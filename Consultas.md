@@ -85,7 +85,21 @@ Towards Resilient and Decarbonized Energy Systems: A Multi-Agent Approach to Mic
 
 | Fecha | Herramienta | Consulta | Resultado |
 |-------|-------------|---------|-----------|
-| - | - | - | - |
+| 2026-07-24 | OpenAlex | forward-backward sweep load flow radial distribution systems | 10 papers encontrados. Referencias D013-D016 agregadas |
+
+---
+
+### D013 - Algoritmo Mejorado de Barrido para Sistemas de Distribucion Radial
+Chang, G. W., Chu, S. Y., & Wang, H. L. (2007). An Improved Backward/Forward Sweep Load Flow Algorithm for Radial Distribution Systems. *IEEE Transactions on Power Systems*. https://doi.org/10.1109/TPWRS.2007.907112
+
+### D014 - Convergencia del Metodo de Barrido para Flujo de Carga en Sistemas Radiales
+Bompard, E., Carpaneto, E., Chicco, G., & Napoli, R. (2000). Convergence of the backward/forward sweep method for the load-flow analysis of radial distribution systems. *International Journal of Electrical Power & Energy Systems*. https://doi.org/10.1016/S0142-0615(00)00022-5
+
+### D015 - Revision de Algoritmos de Flujo de Potencia Basados en Barrido
+Eminoglu, U., & Hocaoglu, M. H. (2008). Distribution Systems Forward/Backward Sweep-based Power Flow Algorithms: A Review and Comparison Study. *Electric Power Components and Systems*, 37(1), 91-110. https://doi.org/10.1080/15325000802322046
+
+### D016 - Metodo de Barrido Mejorado con Nueva Organizacion de Informacion de Red
+Ouali, S., & Cherkaoui, A. (2020). An Improved Backward/Forward Sweep Power Flow Method Based on a New Network Information Organization for Radial Distribution Systems. *Journal of Electrical and Computer Engineering*, 2020, 5643410. https://doi.org/10.1155/2020/5643410
 
 ---
 
