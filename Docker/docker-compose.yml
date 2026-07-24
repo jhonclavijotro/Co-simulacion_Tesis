@@ -1,0 +1,95 @@
+services:
+  pc-central:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: pc-central
+    hostname: pc-central
+    ports:
+      - "5555:5555"
+    entrypoint: ["python", "CentralPC/server_pc.py"]
+    command: ["3", "5555", "15000", "60"]
+    networks:
+      - mas-net
+
+  dinamica-1:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: dinamica-1
+    hostname: dinamica-1
+    command: ["--fuente", "BESS", "--SoC", "0.8", "--puerto", "6000"]
+    networks:
+      - mas-net
+
+  agente-1:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.agente
+    container_name: agente-1
+    depends_on:
+      - pc-central
+      - dinamica-1
+    restart: on-failure:5
+    command: ["--id", "1", "--host", "pc-central", "--puerto", "5555",
+              "--SoC", "0.8", "--P_rated", "20000", "--K_soc", "2.0",
+              "--modo", "remoto", "--dinamica-host", "dinamica-1",
+              "--dinamica-puerto", "6000"]
+    networks:
+      - mas-net
+
+  dinamica-2:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: dinamica-2
+    hostname: dinamica-2
+    command: ["--fuente", "BESS", "--SoC", "0.5", "--puerto", "6000"]
+    networks:
+      - mas-net
+
+  agente-2:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.agente
+    container_name: agente-2
+    depends_on:
+      - pc-central
+      - dinamica-2
+    restart: on-failure:5
+    command: ["--id", "2", "--host", "pc-central", "--puerto", "5555",
+              "--SoC", "0.5", "--P_rated", "20000", "--K_soc", "2.0",
+              "--modo", "remoto", "--dinamica-host", "dinamica-2",
+              "--dinamica-puerto", "6000"]
+    networks:
+      - mas-net
+
+  dinamica-3:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: dinamica-3
+    hostname: dinamica-3
+    command: ["--fuente", "BESS", "--SoC", "0.3", "--puerto", "6000"]
+    networks:
+      - mas-net
+
+  agente-3:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.agente
+    container_name: agente-3
+    depends_on:
+      - pc-central
+      - dinamica-3
+    restart: on-failure:5
+    command: ["--id", "3", "--host", "pc-central", "--puerto", "5555",
+              "--SoC", "0.3", "--P_rated", "20000", "--K_soc", "2.0",
+              "--modo", "remoto", "--dinamica-host", "dinamica-3",
+              "--dinamica-puerto", "6000"]
+    networks:
+      - mas-net
+
+networks:
+  mas-net:
+    driver: bridge

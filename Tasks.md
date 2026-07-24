@@ -82,10 +82,16 @@
 
 | ID | Tarea | Estado | Prioridad |
 |----|-------|--------|-----------|
-| 4.1 | Crear Dockerfile para dinamicas de generacion | [ ] | Alta |
-| 4.2 | Crear Dockerfile para agentes de consenso | [ ] | Alta |
-| 4.3 | Crear docker-compose.yml para orquestacion local | [ ] | Alta |
-| 4.4 | Motor de emulacion parametrico (N nodos base + M virtuales) | [ ] | Alta |
+| 4.1 | Crear Dockerfile para dinamicas de generacion | [x] | Alta |
+| 4.2 | Crear Dockerfile para agentes de consenso | [x] | Alta |
+| 4.3 | Crear docker-compose.yml para orquestacion local | [x] | Alta |
+| 4.4 | Motor de emulacion parametrico (N nodos base + M virtuales) | [x] | Alta |
+| 4.5 | Servicio de dinamica remota (TCP/JSON para agente) | [x] | Alta |
+| 4.6 | Cliente de dinamica para agente remoto | [x] | Alta |
+| 4.7 | Script de despliegue deploy.py (SCP + SSH) | [x] | Media |
+| 4.8 | Root docker-compose.yml para lanzamiento directo | [x] | Alta |
+| 4.9 | Deploy en Raspberry Pi (SCP + Docker Compose) | [x] | Alta |
+| 4.10 | Co-simulacion distribuida funcional: 3 dinamicas + 3 agentes + PC Central en RPi | [x] | Alta |
 
 ---
 

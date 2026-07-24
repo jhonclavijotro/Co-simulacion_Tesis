@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+RUN pip install --no-cache-dir "numpy>=1.24,<2.0"
+
+WORKDIR /app
+COPY . .
+
+ENV PYTHONPATH=/app
+
+ENTRYPOINT ["python", "ejecutar_agente.py"]
+CMD ["--id", "1", "--host", "pc-central", "--puerto", "5555", \
+     "--SoC", "0.5", "--P_rated", "20000", "--K_soc", "2.0"]
