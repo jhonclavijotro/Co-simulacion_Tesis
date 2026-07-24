@@ -1,4 +1,4 @@
-import numpy as np
+import math
 
 
 class Transformadas:
@@ -31,12 +31,12 @@ class Transformadas:
 
     def clarke(self, Va, Vb, Vc):
         Valpha = (2 * Va - Vb - Vc) / 3
-        Vbeta = (Vb - Vc) / np.sqrt(3)
+        Vbeta = (Vb - Vc) / math.sqrt(3)
         return [Valpha, Vbeta]
 
     def park(self, Valpha, Vbeta, theta):
-        Vd = Valpha * np.cos(theta) + Vbeta * np.sin(theta)
-        Vq = -Valpha * np.sin(theta) + Vbeta * np.cos(theta)
+        Vd = Valpha * math.cos(theta) + Vbeta * math.sin(theta)
+        Vq = -Valpha * math.sin(theta) + Vbeta * math.cos(theta)
         return [Vd, Vq]
 
     def lpf(self, Vq, Vq1, ylf1):

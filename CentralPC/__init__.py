@@ -1,2 +1,3 @@
-# Paquete de simulador de red (PC Central)
-# Forward-Backward Sweep + Matrices de Sensibilidad + Reloj Maestro
+from CentralPC.reloj_zmq import RelojZMQ
+
+__all__ = ["RelojZMQ"]

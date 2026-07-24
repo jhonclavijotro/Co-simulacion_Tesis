@@ -68,8 +68,13 @@
 | 3.3 | Crear nodos de Demanda (perfiles P, Q) | [x] | Alta |
 | 3.4 | Implementar PC Central - Modo A (Forward-Backward Sweep) | [x] | Alta |
 | 3.5 | Implementar PC Central - Modo B (Matrices de Sensibilidad) | [x] | Alta |
-| 3.6 | Desarrollar agentes de consenso MAS (tiempo finito) | [ ] | Alta |
-| 3.7 | Implementar comunicacion ZeroMQ (reloj maestro) | [ ] | Alta |
+| 3.6 | Desarrollar agentes de consenso MAS (tiempo finito) | [x] | Alta |
+| 3.7 | Implementar comunicacion ZeroMQ (reloj maestro) | [x] | Alta |
+| 3.7a | RelojZMQ: servidor TCP con PUB/PULL (stdlib socket+select) | [x] | Alta |
+| 3.7b | AgenteZMQ: cliente TCP con SUB/PUSH (stdlib socket) | [x] | Alta |
+| 3.7c | CoordinadorZMQ: orquestador distribuido con solver sweep | [x] | Alta |
+| 3.7d | Script `ejecutar_agente.py` para lanzar agente por CLI | [x] | Alta |
+| 3.7e | Test de comunicacion bidireccional (threads, 3 agentes + PC) | [x] | Alta |
 
 ---
 
