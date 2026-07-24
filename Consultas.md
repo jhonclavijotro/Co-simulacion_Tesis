@@ -101,6 +101,17 @@ Eminoglu, U., & Hocaoglu, M. H. (2008). Distribution Systems Forward/Backward Sw
 ### D016 - Metodo de Barrido Mejorado con Nueva Organizacion de Informacion de Red
 Ouali, S., & Cherkaoui, A. (2020). An Improved Backward/Forward Sweep Power Flow Method Based on a New Network Information Organization for Radial Distribution Systems. *Journal of Electrical and Computer Engineering*, 2020, 5643410. https://doi.org/10.1155/2020/5643410
 
+### D017 - Computacion Eficiente de Coeficientes de Sensibilidad en Redes Radiales
+Christakou, K., LeBoudec, J. Y., Paolone, M., & Tomozei, D. C. (2013). Efficient Computation of Sensitivity Coefficients of Node Voltages and Line Currents in Unbalanced Radial Electrical Distribution Networks. *IEEE Transactions on Smart Grid*, 4(2), 741-750. https://doi.org/10.1109/TSG.2012.2231715
+
+### D018 - Control de Tension sin Modelo con Sensibilidad Medida
+(2019). Experimental Validation of Model-less Robust Voltage Control using Measurement-based Estimated Voltage Sensitivity Coefficients. *IEEE Transactions on Power Systems*.
+- **Archivo**: `Docs/Experimental Validation of Model-less Robust Voltage Control using Measurement-based Estimated Voltage Sensitivity Coefficients.pdf`
+
+### D019 - Control de Tension por Sensibilidad Trifasica para Redes Hibridas AC/DC
+Zhang, et al. (2021). Voltage control method based on three-phase four-wire sensitivity for hybrid AC DC. *IET Renewable Power Generation*.
+- **Archivo**: `Docs/IET Renewable Power Gen - 2021 - Zhang - Voltage control method based on three-phase four-wire sensitivity for hybrid AC DC.pdf`
+
 ---
 
 ## Formato de Referencia APA (Plantilla)
