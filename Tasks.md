@@ -64,8 +64,8 @@
 | ID | Tarea | Estado | Prioridad |
 |----|-------|--------|-----------|
 | 3.1 | Investigar e implementar nodo BESS | [x] | Alta |
-| 3.2 | Crear nodo Hidrico (derivado del eolico) | [ ] | Alta |
-| 3.3 | Crear nodos de Demanda (perfiles P, Q) | [ ] | Alta |
+| 3.2 | Crear nodo Hidrico (derivado del eolico) | [x] | Alta |
+| 3.3 | Crear nodos de Demanda (perfiles P, Q) | [x] | Alta |
 | 3.4 | Implementar PC Central - Modo A (Forward-Backward Sweep) | [ ] | Alta |
 | 3.5 | Implementar PC Central - Modo B (Matrices de Sensibilidad) | [ ] | Alta |
 | 3.6 | Desarrollar agentes de consenso MAS (tiempo finito) | [ ] | Alta |
