@@ -1,0 +1,28 @@
+# Entorno virtual y paquetes
+Lib/
+Scripts/
+site-packages/
+*.egg-info/
+venv/
+.env/
+
+# Archivos generados
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+
+# Resultados de simulacion
+*.csv
+*.xlsx
+
+# Directorios del sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
