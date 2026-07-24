@@ -50,12 +50,12 @@
 
 | ID | Tarea | Estado | Prioridad |
 |----|-------|--------|-----------|
-| 2.1 | Unificar `Transformadas.py` en `common/` | [ ] | Alta |
-| 2.2 | Unificar `RedTrifasica.py` en `common/` | [ ] | Alta |
-| 2.3 | Unificar `GridInverter.py` en `common/` | [ ] | Alta |
-| 2.4 | Unificar `Rectificador.py` en `common/` | [ ] | Alta |
-| 2.5 | Unificar `PMSG.py` en `common/` | [ ] | Alta |
-| 2.6 | Unificar graficadores en `common/` | [ ] | Media |
+| 2.1 | Unificar `Transformadas.py` en `common/` | [x] | Alta |
+| 2.2 | Unificar `RedTrifasica.py` en `common/` | [x] | Alta |
+| 2.3 | Unificar `GridInverter.py` en `common/` | [x] | Alta |
+| 2.4 | Unificar `Rectificador.py` en `common/` | [x] | Alta |
+| 2.5 | Unificar `PMSG.py` en `common/` | [x] | Alta |
+| 2.6 | Unificar graficadores en `common/` | [-] | Baja |
 
 ---
 
@@ -63,7 +63,7 @@
 
 | ID | Tarea | Estado | Prioridad |
 |----|-------|--------|-----------|
-| 3.1 | Investigar e implementar nodo BESS | [ ] | Alta |
+| 3.1 | Investigar e implementar nodo BESS | [x] | Alta |
 | 3.2 | Crear nodo Hidrico (derivado del eolico) | [ ] | Alta |
 | 3.3 | Crear nodos de Demanda (perfiles P, Q) | [ ] | Alta |
 | 3.4 | Implementar PC Central - Modo A (Forward-Backward Sweep) | [ ] | Alta |
