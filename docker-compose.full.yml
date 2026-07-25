@@ -1,0 +1,177 @@
+services:
+  # --- Co-simulacion Central ---
+  pc-central:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: pc-central
+    hostname: pc-central
+    ports:
+      - "5555:5555"
+    entrypoint: ["python", "CentralPC/server_pc.py"]
+    command: ["3", "5555", "15000", "60"]
+    networks:
+      - mas-net
+
+  # --- Dinamicas ---
+  dinamica-1:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: dinamica-1
+    hostname: dinamica-1
+    command: ["--fuente", "BESS", "--SoC", "0.8", "--puerto", "6000"]
+    networks:
+      - mas-net
+
+  agente-1:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agente
+    container_name: agente-1
+    depends_on:
+      - pc-central
+      - dinamica-1
+    restart: on-failure:5
+    command: ["--id", "1", "--host", "pc-central", "--puerto", "5555",
+              "--SoC", "0.8", "--P_rated", "20000", "--K_soc", "2.0",
+              "--modo", "remoto", "--dinamica-host", "dinamica-1",
+              "--dinamica-puerto", "6000"]
+    networks:
+      - mas-net
+
+  dinamica-2:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: dinamica-2
+    hostname: dinamica-2
+    command: ["--fuente", "BESS", "--SoC", "0.5", "--puerto", "6000"]
+    networks:
+      - mas-net
+
+  agente-2:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agente
+    container_name: agente-2
+    depends_on:
+      - pc-central
+      - dinamica-2
+    restart: on-failure:5
+    command: ["--id", "2", "--host", "pc-central", "--puerto", "5555",
+              "--SoC", "0.5", "--P_rated", "20000", "--K_soc", "2.0",
+              "--modo", "remoto", "--dinamica-host", "dinamica-2",
+              "--dinamica-puerto", "6000"]
+    networks:
+      - mas-net
+
+  dinamica-3:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: dinamica-3
+    hostname: dinamica-3
+    command: ["--fuente", "BESS", "--SoC", "0.3", "--puerto", "6000"]
+    networks:
+      - mas-net
+
+  agente-3:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agente
+    container_name: agente-3
+    depends_on:
+      - pc-central
+      - dinamica-3
+    restart: on-failure:5
+    command: ["--id", "3", "--host", "pc-central", "--puerto", "5555",
+              "--SoC", "0.3", "--P_rated", "20000", "--K_soc", "2.0",
+              "--modo", "remoto", "--dinamica-host", "dinamica-3",
+              "--dinamica-puerto", "6000"]
+    networks:
+      - mas-net
+
+  # --- Infraestructura ---
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    hostname: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin123
+      DOCKER_INFLUXDB_INIT_ORG: mas
+      DOCKER_INFLUXDB_INIT_BUCKET: simulacion
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: mas-token
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    networks:
+      - mas-net
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    hostname: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+    networks:
+      - mas-net
+
+  # --- GUI - Centro de Mando ---
+  gui:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.gui
+    container_name: gui
+    hostname: gui
+    ports:
+      - "5000:5000"
+    depends_on:
+      - influxdb
+    volumes:
+      - gui-data:/app/GUI/data
+    networks:
+      - mas-net
+
+  # --- Logger InfluxDB ---
+  logger:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dinamica
+    container_name: logger
+    hostname: logger
+    depends_on:
+      - influxdb
+    command: >
+      python -c "
+import sys, time
+sys.path.insert(0, '.')
+from CentralPC.logger_influx import LoggerInflux
+log = LoggerInflux()
+print('[Logger] Conectado a InfluxDB. Esperando datos...')
+paso = 0
+while True:
+    log.log_coordinador(paso, paso*0.5, 0.5, 15000)
+    log.flush()
+    paso += 1
+    if paso % 10 == 0:
+        print(f'[Logger] Escritos {paso} puntos')
+    time.sleep(0.5)
+"
+    networks:
+      - mas-net
+
+volumes:
+  influxdb-data:
+  mosquitto-data:
+  gui-data:
+
+networks:
+  mas-net:
+    driver: bridge

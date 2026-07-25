@@ -99,10 +99,16 @@
 
 | ID | Tarea | Estado | Prioridad |
 |----|-------|--------|-----------|
-| 5.1 | Desarrollar GUI - Centro de Mando (carga de perfiles) | [ ] | Alta |
-| 5.2 | Integrar InfluxDB con discretizacion de 500 ms | [ ] | Alta |
-| 5.3 | Implementar publicacion MQTT de variables meteorologicas | [ ] | Alta |
-| 5.4 | Boton de despliegue "un clic" de contenedores | [ ] | Media |
+| 5.1 | Desarrollar GUI - Centro de Mando (carga de perfiles) | [x] | Alta |
+| 5.2 | Integrar InfluxDB con discretizacion de 500 ms | [x] | Alta |
+| 5.3 | Implementar publicacion MQTT de variables meteorologicas | [x] | Alta |
+| 5.4 | Boton de despliegue "un clic" de contenedores | [x] | Media |
+| 5.5 | CentralPC/logger_influx.py: escritura InfluxDB via HTTP API | [x] | Alta |
+| 5.6 | CentralPC/climate_publisher.py: publicacion MQTT de meteo | [x] | Alta |
+| 5.7 | GUI/app.py + templates/index.html: dashboard Flask + Chart.js | [x] | Alta |
+| 5.8 | Docker/Dockerfile.gui: contenedor Flask + Gunicorn | [x] | Alta |
+| 5.9 | docker-compose.full.yml: InfluxDB + Mosquitto + GUI + Logger | [x] | Alta |
+| 5.10 | Perfiles de ejemplo (meteo + demanda) en GUI/data/ | [x] | Alta |
 
 ---
 
