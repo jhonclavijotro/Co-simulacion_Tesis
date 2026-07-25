@@ -25,6 +25,8 @@ Thumbs.db
 Docs/
 # Plan maestro (prompt interno)
 PLAN.md
+# Credenciales de acceso
+RASPDIR.md
 
 # IDE
 .vscode/
