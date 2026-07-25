@@ -1,0 +1,26 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python 3.11+, numpy, scipy, matplotlib, Flask, Gunicorn, Chart.js, InfluxDB 2.x, Mosquitto MQTT, Docker + Compose, ZeroMQ (stdlib socket+select)
+  Domain: Multi-Agent System (MAS) for distributed microgrid control — voltage regulation and reactive power control in low-voltage distribution networks
+  Language: Code comments and documentation in Spanish; variable/class/function names in Spanish or English (consistent per module)
+  Naming: PascalCase classes (SistemaSolar, RedTrifasica), snake_case methods/variables (calculate_output, duty_cycle), CONSTANT_CASE for constants (POA, V_DC_REF)
+  Conventions: Type hints mandatory on public functions. No "from x import *". No mutable globals across modules. No commercial power flow libraries (Pandapower, OpenDSS)
+  Commit format: [FEAT|FIX|REFACTOR|DOCS|TEST|CHORE] mensaje en español
+  Architecture: Each generation node = 2 Docker containers (physical dynamics + consensus agent) communicating via ZeroMQ over TCP/JSON
+  PC Central: Master clock + power flow solver (Forward-Backward Sweep Mode A / Sensitivity Matrices Mode B)
+  GUI: Flask dashboard with Chart.js real-time plotting, InfluxDB historical storage (500 ms discretization), MQTT climate data publishing
+  Deployment: Docker Compose on Raspberry Pi via SCP/SSH (PuTTY plink)
+  Codebase: ~3000 Python lines across 15 packages (Solar/, Eolica/, Diesel/, Hidrica/, BESS/, Demanda/, MAS/, CentralPC/, Dinamica/, GUI/, Docker/, common/)
+
+rules:
+  proposal:
+    - Include specific references to academic papers used (Christakou 2013, Chang 2007, etc.)
+    - Always list FASE (phase) and task IDs from Tasks.md
+  design:
+    - Include ASCII architecture diagrams
+    - Document ZeroMQ message protocol format
+    - List all Docker services and their communication ports
+  tasks:
+    - Reference original task IDs from Tasks.md (e.g., "3.7c")
+    - Mark completions with [x] and known pending items with [~]
