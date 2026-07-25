@@ -1,32 +1,26 @@
+from typing import Dict, List
+
+
 class AgenteConsenso:
-    """Agente con difusion de informacion para consenso distribuido.
+    """Agente con difusion de informacion para consenso distribuido."""
 
-    Cada agente mantiene una tabla {(id, step): SoC} con timestamps.
-    Al recibir una tabla vecina, solo acepta entradas con step MAYOR
-    al que ya conoce. Esto evita que valores stale sobrescriban
-    valores mas recientes.
+    def __init__(self, id_agente: int, vecinos: List[int], num_agentes: int) -> None:
+        self.id: int = id_agente
+        self.vecinos: List[int] = list(vecinos)
+        self.n: int = num_agentes
+        self.tabla: Dict[int, float] = {id_agente: 0.0}
+        self.steps: Dict[int, int] = {id_agente: 0}
 
-    El step es el numero de paso maestro en que el agente actualizo
-    su propio SoC. Un agente solo es autoritativo para su propia
-    entrada, y marca cada actualizacion con el step actual.
-    """
-
-    def __init__(self, id_agente, vecinos, num_agentes):
-        self.id = id_agente
-        self.vecinos = list(vecinos)
-        self.n = num_agentes
-        self.tabla = {id_agente: 0.0}
-        self.steps = {id_agente: 0}
-
-    def init_tabla(self, SoC_inicial):
+    def init_tabla(self, SoC_inicial: float) -> None:
         self.tabla[self.id] = SoC_inicial
         self.steps[self.id] = 0
 
-    def actualizar_local(self, SoC, step):
+    def actualizar_local(self, SoC: float, step: int) -> None:
         self.tabla[self.id] = SoC
         self.steps[self.id] = step
 
-    def recibir_vecino(self, tabla_vecina, steps_vecinos):
+    def recibir_vecino(self, tabla_vecina: Dict[int, float],
+                       steps_vecinos: Dict[int, int]) -> None:
         for k in tabla_vecina:
             v = tabla_vecina[k]
             sv = steps_vecinos[k]
@@ -34,22 +28,22 @@ class AgenteConsenso:
                 self.tabla[k] = v
                 self.steps[k] = sv
 
-    def obtener_tabla(self):
+    def obtener_tabla(self) -> Dict[int, float]:
         return dict(self.tabla)
 
-    def obtener_steps(self):
+    def obtener_steps(self) -> Dict[int, int]:
         return dict(self.steps)
 
-    def promedio_global(self):
+    def promedio_global(self) -> float:
         if not self.tabla:
             return 0.0
         return sum(self.tabla.values()) / len(self.tabla)
 
     @property
-    def cobertura(self):
+    def cobertura(self) -> int:
         return len(self.tabla)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (f"AgenteConsenso(id={self.id}, "
                 f"vecinos={self.vecinos}, "
                 f"cobertura={self.cobertura}/{self.n})")

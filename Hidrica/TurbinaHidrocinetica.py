@@ -1,4 +1,4 @@
-import math
+import numpy as np
 
 
 class TurbinaHidrocinetica:
@@ -45,7 +45,7 @@ class TurbinaHidrocinetica:
         lambda1 = (self.R * wr) / vc
         inv_lambda_i = 1.0 / (lambda1 + 0.08 * self.B) - 0.035 / (self.B**3 + 1.0)
         x = 1.0 / inv_lambda_i if inv_lambda_i != 0 else 1e6
-        cp = c1 * (c2 / x - c3 * self.B - c4) * math.exp(-c5 / x) + c6 * lambda1
-        area = math.pi * (self.R ** 2)
+        cp = c1 * (c2 / x - c3 * self.B - c4) * np.exp(-c5 / x) + c6 * lambda1
+        area = np.pi * (self.R ** 2)
         pm = 0.5 * self.rho * area * (vc ** 3) * cp
         return -(pm / wr)

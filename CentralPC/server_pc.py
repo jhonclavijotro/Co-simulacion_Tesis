@@ -12,11 +12,11 @@ from CentralPC.reloj_zmq import RelojZMQ
 from CentralPC.master_clock import MasterClock
 
 
-def main():
-    N = int(sys.argv[1]) if len(sys.argv) > 1 else 3
-    puerto = int(sys.argv[2]) if len(sys.argv) > 2 else 5555
-    demanda = float(sys.argv[3]) if len(sys.argv) > 3 else 15000.0
-    tiempo_total = float(sys.argv[4]) if len(sys.argv) > 4 else 60.0
+def main() -> None:
+    N: int = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+    puerto: int = int(sys.argv[2]) if len(sys.argv) > 2 else 5555
+    demanda: float = float(sys.argv[3]) if len(sys.argv) > 3 else 15000.0
+    tiempo_total: float = float(sys.argv[4]) if len(sys.argv) > 4 else 60.0
 
     print(f"PC Central iniciando... N={N} puerto={puerto}")
     r = RelojZMQ(puerto=puerto, paso_maestro=0.1)

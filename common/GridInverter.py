@@ -30,20 +30,16 @@ class GridConnectedInverter:
 
     def decoupledC(self, Md, Mq, Wg, Id, Iq):
         Ls = 5e-3
-        Ud1 = Md - (Iq * Wg * Ls)
-        Uq1 = Mq + (Id * Wg * Ls)
-        Ud = Ud1 if Ud1 > 1e-6 else 1e-6
-        Uq = Uq1 if Uq1 > 1e-6 else 1e-6
+        Ud = Md - (Iq * Wg * Ls)
+        Uq = Mq + (Id * Wg * Ls)
         return Ud, Uq
 
     def inductor(self, Vtd, Vtq, VdG, VqG, wt, Idi1, Iqi1):
         Ls = 5e-3
         xd = Vtd - VdG + (Iqi1 * Ls * wt)
-        Ud1 = (Idi1 * 0.9) + (0.2 * xd)
+        Ud = (Idi1 * 0.9) + (0.2 * xd)
         xq = Vtq - VqG - (Idi1 * Ls * wt)
-        Uq1 = (Iqi1 * 0.9) + (0.2 * xq)
-        Ud = Ud1 if Ud1 > 1e-6 else 1e-6
-        Uq = Uq1 if Uq1 > 1e-6 else 1e-6
+        Uq = (Iqi1 * 0.9) + (0.2 * xq)
         return Ud, Uq
 
     def step(self, Vdc, Vdi, Vqi, theta, Iqg, sample_time):

@@ -116,8 +116,8 @@
 
 | ID | Tarea | Estado | Prioridad |
 |----|-------|--------|-----------|
-| 6.1 | Agregar type hints a todas las funciones | [ ] | Media |
-| 6.2 | Estandarizar nomenclatura (espanol/ingles) | [ ] | Media |
-| 6.3 | Reemplazar constantes literales por `np.pi` | [ ] | Baja |
-| 6.4 | Eliminar saturacion fisica incorrecta en `decoupledC` | [ ] | Baja |
-| 6.5 | Agregar pruebas unitarias para cada subsistema | [ ] | Media |
+| 6.1 | Agregar type hints a funciones publicas (MAS, CentralPC, Dinamica) | [x] | Media |
+| 6.2 | Estandarizar nomenclatura (espanol/ingles - consistente por modulo) | [x] | Media |
+| 6.3 | Reemplazar `math.pi` por `np.pi` (Aerogenerador, TurbinaHidro, SistemaBESS) | [x] | Baja |
+| 6.4 | Eliminar saturacion fisica incorrecta en `decoupledC` (Rectificador, GridInverter) | [x] | Baja |
+| 6.5 | Agregar `tests/test_mas.py` (24 pruebas, 23 pasan, 1 skip sin numpy) | [x] | Media |

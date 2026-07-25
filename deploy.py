@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 
+RAIZ = os.path.dirname(os.path.abspath(__file__))
 RPI_USER = "jhonclavijotro"
 RPI_HOST = "192.168.1.10"
 RPI_DIR = "/home/jhonclavijotro/mas"

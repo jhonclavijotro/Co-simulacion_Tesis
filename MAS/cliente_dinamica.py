@@ -5,26 +5,28 @@ Usa el mismo patron JSON+'\\n' que agente_zmq.py.
 
 import json
 import socket
+from typing import Any, Dict, Optional
 
 
 class ClienteDinamica:
     """Cliente para ServicioDinamica remoto."""
 
-    def __init__(self, host="127.0.0.1", puerto=6000, timeout=5.0):
-        self.host = host
-        self.puerto = puerto
-        self.timeout = timeout
-        self._socket = None
-        self._buf = b""
+    def __init__(self, host: str = "127.0.0.1", puerto: int = 6000,
+                 timeout: float = 5.0) -> None:
+        self.host: str = host
+        self.puerto: int = puerto
+        self.timeout: float = timeout
+        self._socket: Optional[socket.socket] = None
+        self._buf: bytes = b""
 
-    def conectar(self):
+    def conectar(self) -> None:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.settimeout(self.timeout)
         self._socket.connect((self.host, self.puerto))
         self._socket.setblocking(False)
         print(f"[ClienteDinamica] Conectado a {self.host}:{self.puerto}")
 
-    def _enviar(self, msg_dict):
+    def _enviar(self, msg_dict: Dict[str, Any]) -> None:
         if self._socket is None:
             return
         payload = (json.dumps(msg_dict) + "\n").encode("utf-8")
@@ -33,7 +35,8 @@ class ClienteDinamica:
         except (BrokenPipeError, ConnectionResetError, OSError) as e:
             print(f"[ClienteDinamica] Error envio: {e}")
 
-    def _leer_respuesta(self, max_espera=5.0):
+    def _leer_respuesta(self, max_espera: float = 5.0
+                         ) -> Optional[Dict[str, Any]]:
         import select as _select
         import time as _time
         t0 = _time.time()
@@ -54,7 +57,7 @@ class ClienteDinamica:
             _time.sleep(0.001)
         return None
 
-    def step(self, dt, P_ref):
+    def step(self, dt: float, P_ref: float) -> Dict[str, Any]:
         self._enviar({"comando": "step", "dt": dt, "P_ref": P_ref})
         resp = self._leer_respuesta()
         if resp is None:
@@ -63,14 +66,14 @@ class ClienteDinamica:
             raise RuntimeError(resp.get("error", "Error desconocido"))
         return resp
 
-    def estado(self):
+    def estado(self) -> Dict[str, Any]:
         self._enviar({"comando": "estado"})
         resp = self._leer_respuesta()
         if resp is None:
             raise ConnectionError("Sin respuesta del servicio de dinamica")
         return resp
 
-    def desconectar(self):
+    def desconectar(self) -> None:
         if self._socket:
             try:
                 self._socket.close()

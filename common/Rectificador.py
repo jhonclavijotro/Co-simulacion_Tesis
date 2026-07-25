@@ -27,10 +27,8 @@ class Rectificador:
 
     def decoupledC(self, Md, Mq, Wg, Id, Iq):
         Ls = 5e-3
-        Ud1 = Md - (Iq * Wg * Ls)
-        Uq1 = Mq + (Id * Wg * Ls)
-        Ud = Ud1 if Ud1 > 1e-6 else 1e-6
-        Uq = Uq1 if Uq1 > 1e-6 else 1e-6
+        Ud = Md - (Iq * Wg * Ls)
+        Uq = Mq + (Id * Wg * Ls)
         return Ud, Uq
 
     def PlantaRC(self, ic, t_sample, Vdc_current):

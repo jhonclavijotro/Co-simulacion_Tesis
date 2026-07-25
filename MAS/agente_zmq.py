@@ -6,29 +6,22 @@ Usa sockets TCP stdlib con mensajes JSON terminados en '\\n'.
 
 import json
 import socket
+from typing import Any, Dict, Optional
 
 
 class AgenteZMQ:
-    """Cliente TCP para comunicacion con la PC Central.
+    """Cliente TCP para comunicacion con la PC Central."""
 
-    Patron:
-      SUB — recibe ticks del servidor
-      PUSH — envia mediciones al servidor
+    def __init__(self, id_agente: int, host: str = "127.0.0.1",
+                 puerto: int = 5555, timeout_ms: int = 5000) -> None:
+        self.id: int = id_agente
+        self.host: str = host
+        self.puerto: int = puerto
+        self.timeout: float = timeout_ms / 1000.0
+        self._socket: Optional[socket.socket] = None
+        self._buf: bytes = b""
 
-    Usa UN solo socket bidireccional (TCP full-duplex).
-    """
-
-    def __init__(self, id_agente, host="127.0.0.1", puerto=5555,
-                 timeout_ms=5000):
-        self.id = id_agente
-        self.host = host
-        self.puerto = puerto
-        self.timeout = timeout_ms / 1000.0
-        self._socket = None
-        self._buf = b""
-
-    def conectar(self):
-        """Conecta al servidor y envia HELLO."""
+    def conectar(self) -> None:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.settimeout(self.timeout)
         self._socket.connect((self.host, self.puerto))
@@ -36,8 +29,7 @@ class AgenteZMQ:
         self._enviar({"tipo": "hello", "id": self.id})
         print(f"[AgenteZMQ:{self.id}] Conectado a {self.host}:{self.puerto}")
 
-    def _enviar(self, msg_dict):
-        """Envia un mensaje JSON por el socket."""
+    def _enviar(self, msg_dict: Dict[str, Any]) -> None:
         if self._socket is None:
             return
         payload = (json.dumps(msg_dict) + "\n").encode("utf-8")
@@ -46,12 +38,7 @@ class AgenteZMQ:
         except (BrokenPipeError, ConnectionResetError, OSError) as e:
             print(f"[AgenteZMQ:{self.id}] Error al enviar: {e}")
 
-    def _leer_mensaje(self):
-        """Lee del socket, extrae el primer mensaje JSON completo.
-
-        Retorna:
-            dict con el mensaje, o None si no hay mensaje completo.
-        """
+    def _leer_mensaje(self) -> Optional[Dict[str, Any]]:
         if self._socket is None:
             return None
         try:
@@ -71,12 +58,7 @@ class AgenteZMQ:
             return "_DESCONECTADO_"
         return None
 
-    def esperar_tick(self):
-        """Espera un mensaje TICK del servidor.
-
-        Retorna:
-            dict con datos del tick, o None si timeout/desconexion.
-        """
+    def esperar_tick(self) -> Optional[Dict[str, Any]]:
         import select as _select
         import time as _time
 
@@ -92,9 +74,10 @@ class AgenteZMQ:
         print(f"[AgenteZMQ:{self.id}] Timeout esperando tick")
         return None
 
-    def enviar_medicion(self, P_ref, SoC, cobertura, SoC_avg, **extra):
-        """Envia medicion al servidor."""
-        msg = {
+    def enviar_medicion(self, P_ref: float, SoC: float,
+                        cobertura: int, SoC_avg: float,
+                        **extra: Any) -> None:
+        msg: Dict[str, Any] = {
             "tipo": "medicion",
             "id": self.id,
             "P_ref": round(P_ref, 1),
@@ -105,8 +88,7 @@ class AgenteZMQ:
         msg.update(extra)
         self._enviar(msg)
 
-    def desconectar(self):
-        """Cierra la conexion."""
+    def desconectar(self) -> None:
         if self._socket:
             try:
                 self._socket.close()

@@ -1,5 +1,5 @@
 import csv
-import math
+import numpy as np
 from BESS.Bateria import Bateria
 from BESS.BuckBoost import BuckBoost
 from common.GridInverter import GridConnectedInverter
@@ -124,9 +124,9 @@ class SistemaBESS:
         ctx["SoC"] = self.bateria.SoC
         ctx["P_bat"] = V_bat * I_bat
 
-        self.theta_grid += 2.0 * math.pi * 60.0 * dt
-        if self.theta_grid > 2.0 * math.pi:
-            self.theta_grid -= 2.0 * math.pi
+        self.theta_grid += 2.0 * np.pi * 60.0 * dt
+        if self.theta_grid > 2.0 * np.pi:
+            self.theta_grid -= 2.0 * np.pi
         v_rms = self.V_rms if V_pcc is None else abs(V_pcc)
         Va, Vb, Vc = self._gen_3ph(self.theta_grid, v_rms)
 
