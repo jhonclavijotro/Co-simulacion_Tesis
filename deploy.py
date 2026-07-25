@@ -14,13 +14,13 @@ import sys
 import time
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
-RPI_USER = "jhonclavijotro"
-RPI_HOST = "192.168.1.10"
-RPI_DIR = "/home/jhonclavijotro/mas"
+RPI_USER = os.environ.get("RPI_USER", "")
+RPI_HOST = os.environ.get("RPI_HOST", "")
+RPI_DIR = os.environ.get("RPI_DIR", "/home/pi/mas")
 PLINK = os.path.join(os.environ.get("TEMP", "C:\\Temp"), "plink.exe")
 PSCP = os.path.join(os.environ.get("TEMP", "C:\\Temp"), "pscp.exe")
-HOSTKEY = "ssh-ed25519 255 SHA256:58xLuFJZciF8FRl9OH7+j0dxTaJDDTLqZD9cfBTPKzk"
-PASSWORD = "Jhonathan/7319"
+HOSTKEY = os.environ.get("RPI_HOSTKEY", "")
+PASSWORD = os.environ.get("RPI_PASSWORD", "")
 
 
 def _descargar_putty():
