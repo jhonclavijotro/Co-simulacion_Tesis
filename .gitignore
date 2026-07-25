@@ -21,6 +21,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Documentos de referencia (PDFs grandes)
+Docs/
+
 # IDE
 .vscode/
 .idea/
