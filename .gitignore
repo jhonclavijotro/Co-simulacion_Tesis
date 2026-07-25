@@ -23,6 +23,8 @@ Thumbs.db
 
 # Documentos de referencia (PDFs grandes)
 Docs/
+# Plan maestro (prompt interno)
+PLAN.md
 
 # IDE
 .vscode/
