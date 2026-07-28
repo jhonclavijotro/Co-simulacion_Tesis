@@ -1,25 +1,39 @@
 import csv
+import numpy as np
 from Eolica.Aerogenerador import Aerogenerador
-from common.PMSG import SistemaPMG
-from common.Rectificador import Rectificador
 from common.Transformadas import Transformadas
 from common.RedTrifasica import RedTrifasica
 from common.GridInverter import GridConnectedInverter
-from common.GraficadorEolico import graficar_resultados
+try:
+    from common.GraficadorEolico import graficar_resultados
+except ImportError:
+    def graficar_resultados(): pass
 
 
 class SistemaEolico:
-    """Sistema completo de generacion eolica conectado a red.
+    """Sistema eolico como fuente equivalente conectada a red.
 
-    Integra el aerogenerador, generador PMSG, rectificador, inversor
-    trifasico y PLL para sincronizacion con la red electrica.
+    Modela el conjunto turbina+PMSG+rectificador como una fuente
+    de corriente DC (Iwind) que alimenta el bus, similar al Boost
+    solar. El GridInverter regula Vdc e inyecta potencia a la red.
+
+    Dinamica:
+      - La velocidad del rotor Wr sigue al target MPPT con lag de 1er orden
+      - Pm = 0.5*rho*A*Cp(lambda)*V^3
+      - Pgen = Pm * eta  (perdidas generador+rectificador)
+      - Iwind = Pgen / Vdc
+      - Vdc = integral((Iwind - Iinv_dc) / C_dc)
     """
 
-    def __init__(self):
-        """Inicializa todos los subsistemas y el estado interno de la simulacion."""
-        self.aerogenerador = Aerogenerador(R=2.5, B=8.0)
-        self.sistema_pmg = SistemaPMG(relacion=4.0)
-        self.rectificador = Rectificador()
+    def __init__(self, R=2.5, B=8.0, relacion=4.0, eta=0.95):
+        self.aerogenerador = Aerogenerador(R, B)
+        self.relacion = relacion
+        self.eta = eta
+        self.C_dc = 0.001
+        self.tau_Wr = 5.0
+        self._vdc_int = 0.0
+        self._Kp_vdc = 0.5
+        self._Ki_vdc = 0.1
         self.redtrifasica = RedTrifasica()
         self.transformadas = Transformadas()
         self.inversor = GridConnectedInverter()
@@ -28,7 +42,7 @@ class SistemaEolico:
         self.Ws = None
         self.contexto = {
             "time": 0.0,
-            "Wr": 0.0,
+            "Wr": 0.5,
             "Ws": 14.0,
             "Idi": 0.0,
             "Iq": 0.0,
@@ -37,18 +51,19 @@ class SistemaEolico:
             "Vdi": 0.0,
             "Fsys": 0.0,
             "Vq": 0.0,
-            "Te": 0.0,
-            "Tg": 0.0,
             "Tm": 0.0,
+            "Pm": 0.0,
             "Wg": 0.0,
             "Vdc": 300.0,
             "Pdc_in": 0.0,
             "Pdc_out": 0.0,
             "Vdt": 0.0,
+            "Cp": 0.0,
+            "lambda": 0.0,
+            "Iwind": 0.0,
         }
 
     def _perfil_viento(self, t):
-        """Genera un perfil de viento variable en el tiempo para la simulacion."""
         if t < 4:
             return 8.0
         elif t < 9:
@@ -62,49 +77,67 @@ class SistemaEolico:
         else:
             return 12.0
 
+    def mppt(self, Ws):
+        lambd_opt = 6.85
+        R = 2.5
+        return (Ws * lambd_opt) / R
+
+    def _Cp(self, lambd, beta):
+        c1, c2, c3, c4, c5, c6 = 0.5176, 116.0, 0.4, 5.0, 21.0, 0.0068
+        inv = 1.0 / (lambd + 0.08 * beta) - 0.035 / (beta**3 + 1.0)
+        x = 1.0 / inv if inv != 0 else 1e6
+        cp = c1 * (c2 / x - c3 * beta - c4) * np.exp(-c5 / x) + c6 * lambd
+        return max(cp, 0.0)
+
     def step(self, dt=0.001, V_pcc=None, setpoints=None):
-        """Ejecuta un paso de integracion de todo el sistema eolico.
-
-        Parametros:
-            dt: Paso de tiempo [s]
-            V_pcc: Tension en el punto de acoplamiento comun (PCC) [V]
-            setpoints: Diccionario opcional con consignas externas
-
-        Retorna:
-            Copia del diccionario de contexto con el estado actualizado.
-        """
         ctx = self.contexto
 
-        if setpoints:
-            if "Q_ref_kvar" in setpoints:
-                ctx["Pq"] = setpoints["Q_ref_kvar"] * 1000.0
+        if setpoints and "Q_ref_kvar" in setpoints:
+            ctx["Pq"] = setpoints["Q_ref_kvar"] * 1000.0
 
         Ws = self.Ws if self.Ws is not None else self._perfil_viento(ctx["time"])
         ctx["Ws"] = Ws
 
-        Tm = self.aerogenerador.calcular_torque(ctx["Wr"], Ws)
-        ctx["Tm"] = Tm
+        Wr_target = self.mppt(Ws)
+        tau_inv = 1.0 / self.tau_Wr
+        ctx["Wr"] = ctx["Wr"] + tau_inv * (Wr_target - ctx["Wr"]) * dt
+        ctx["Wr"] = max(0.5, ctx["Wr"])
+        ctx["Wg"] = ctx["Wr"] * self.relacion
 
-        datos_pmg = self.sistema_pmg.calcular_sistema(ctx["Vq"], ctx["Tm"], dt)
-        ctx["Wg"] = datos_pmg["Wg"]
-        ctx["Tg"] = datos_pmg["Tg"]
-        ctx["Wr"] = datos_pmg["Wr"]
-        ctx["Iq"] = datos_pmg["Iq"]
+        lambd = (self.aerogenerador.R * ctx["Wr"]) / max(Ws, 0.1)
+        ctx["lambda"] = lambd
+        cp = self._Cp(lambd, self.aerogenerador.B)
+        ctx["Cp"] = cp
 
-        Vdc_new, Vq_rect, Pdc_in, Pdc_out = self.rectificador.ejecutar(
-            Ws, ctx["Wr"], ctx["Iq"], ctx["Idi"], ctx["Wg"], ctx["Vdc"], dt)
-        ctx["Vdc"] = Vdc_new
-        ctx["Vq"] = Vq_rect
-        ctx["Pdc_in"] = Pdc_in
-        ctx["Pdc_out"] = Pdc_out
+        area = np.pi * self.aerogenerador.R ** 2
+        Pm = 0.5 * self.aerogenerador.rho * area * (Ws ** 3) * cp
+        ctx["Pm"] = Pm
 
-        Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
-            ctx["Vdc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["Iq"], dt)
-        ctx["Idi"] = Idi
+        Pgen = Pm * self.eta
+        ctx["Pdc_in"] = Pgen
+
+        Iwind = Pgen / max(ctx["Vdc"], 1.0)
+        ctx["Iwind"] = Iwind
+
+        error_vdc = self.inversor.Vdcref - ctx["Vdc"]
+        self._vdc_int += error_vdc * self._Ki_vdc * dt
+        self._vdc_int = max(-10.0, min(10.0, self._vdc_int))
+        Iinv_cmd = Iwind - (self._Kp_vdc * error_vdc + self._vdc_int)
+        Iinv_cmd = max(0.0, Iinv_cmd)
+
+        Pw, Pq, _, Iqi, Vdt, Idiref = self.inversor.step(
+            ctx["Vdc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, D=0.0)
+
+        Iinv_dc = Iinv_cmd
+        ctx["Idi"] = self.inversor.Idi
         ctx["Iqi"] = Iqi
         ctx["Vdt"] = Vdt
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq
+        ctx["Pdc_out"] = ctx["Vdc"] * Iinv_cmd
+
+        ic = Iwind - Iinv_dc
+        ctx["Vdc"] = max(250.0, min(ctx["Vdc"] + (ic / self.C_dc) * dt, 450.0))
 
         if V_pcc is not None:
             Va, Vb, Vc = V_pcc, 0.0, 0.0
@@ -122,37 +155,37 @@ class SistemaEolico:
         return dict(ctx)
 
     def ejecutar(self, tiempo_simulacion=25):
-        ctx = self.contexto
-        while ctx["time"] < tiempo_simulacion:
+        while self.contexto["time"] < tiempo_simulacion:
             try:
-                resultado = self.step(self.sample_time)
+                res = self.step(self.sample_time)
                 self.datos.append([
-                    resultado["time"], resultado["Wr"], resultado["Tm"], resultado["Wg"],
-                    resultado["Tg"], resultado["Vq"], resultado["Iq"], resultado["Vdc"],
-                    resultado["Pdc_in"], resultado["Vdt"], resultado["Idi"],
-                    resultado.get("Idiref", 0), resultado["Pdc_out"],
-                    resultado["Vdi"], resultado["Vqi"], resultado["Fsys"],
-                    resultado["Pw"], resultado["Pq"], resultado["Ws"],
-                    resultado["Vdi"], resultado["Vqi"], resultado["Fsys"],
-                    resultado.get("Valpha", 0), resultado.get("Vbeta", 0),
+                    res["time"], res["Wr"], res["Tm"], res["Wg"],
+                    0, 0, res["Iwind"], res["Vdc"],
+                    res["Pdc_in"], res["Vdt"], res["Idi"],
+                    res.get("Idiref", 0), res["Pdc_out"],
+                    res["Vdi"], res["Vqi"], res["Fsys"],
+                    res["Pw"], res["Pq"], res["Ws"],
+                    res["Vdi"], res["Vqi"], res["Fsys"],
+                    res.get("Valpha", 0), res.get("Vbeta", 0),
+                    res["lambda"], res["Cp"], res["Pm"],
                 ])
             except Exception as e:
-                print(f"Error during simulation: {e}")
+                print(f"Error: {e}")
                 break
 
         header = ["Tiempo", "Wr", "Tm", "Wg", "Tg",
-                   "Vq", "Iq", "Vdc", "Pdc_in",
-                   "Vdt", "Idi", "Idiref", "Pdc_out",
-                   "Vd_red", "Vq_red", "Fsys_red", "Pw", "Pq", "Ws",
-                   "Va", "Vb", "Vc", "Valpha", "Vbeta"]
-        with open("resultados.csv", "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(header)
-            writer.writerows(self.datos)
+                  "Vq", "Iq", "Vdc", "Pdc_in",
+                  "Vdt", "Idi", "Idiref", "Pdc_out",
+                  "Vd_red", "Vq_red", "Fsys_red", "Pw", "Pq", "Ws",
+                  "Va", "Vb", "Vc", "Valpha", "Vbeta",
+                  "Lambda", "Cp", "Pm"]
+        with open("resultados.csv", "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(header)
+            w.writerows(self.datos)
 
         graficar_resultados()
 
 
 if __name__ == "__main__":
-    sistema = SistemaEolico()
-    sistema.ejecutar()
+    SistemaEolico().ejecutar()
