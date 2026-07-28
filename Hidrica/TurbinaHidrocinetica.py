@@ -5,12 +5,14 @@ class TurbinaHidrocinetica:
     """Modelo hidrodinamico de una turbina hidrocinetica de eje horizontal.
 
     Adaptado del modelo aerodinamico del aerogenerador (Aerogenerador).
-    La unica diferencia estructural es la densidad del fluido:
-      - Aire:  rho = 1.225 kg/m3
-      - Agua:  rho = 1000.0 kg/m3  (~816 veces mas denso)
-
-    Por tanto, para una misma potencia, el rotor hidrocinetico puede ser
-    significativamente menor que un aerogenerador.
+    Diferencias clave con el modelo eolico:
+      - Densidad del fluido: agua rho = 1000 kg/m3 (~816x aire)
+      - Pitch beta = 0 fijo: en agua, el fluido es incompresible y no
+        existe el fenomeno de entrada en perdida (stall) del aire, por
+        lo que el control de pitch no es necesario ni aplicable.
+      - El modelo Cp(lambda) con coeficientes c1-c6 (Betz) se mantiene
+        como aproximacion, aunque los perfiles hidrocineticos tienen
+        curvas Cp(lambda) distintas en la practica.
     """
 
     def __init__(self, R, B):

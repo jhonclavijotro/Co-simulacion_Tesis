@@ -26,6 +26,7 @@ Thumbs.db
 _debug*
 _quick*
 memoria_persistente_*
+resultados_*.csv
 
 # Documentos de referencia (PDFs grandes)
 Docs/
