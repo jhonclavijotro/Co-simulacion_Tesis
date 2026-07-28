@@ -55,7 +55,7 @@
 | 2.3 | Unificar `GridInverter.py` en `common/` | [x] | Alta |
 | 2.4 | Unificar `Rectificador.py` en `common/` | [x] | Alta |
 | 2.5 | Unificar `PMSG.py` en `common/` | [x] | Alta |
-| 2.6 | Unificar graficadores en `common/` | [-] | Baja |
+| 2.6 | Unificar graficadores en `common/` | [x] | Baja |
 
 ---
 
@@ -121,3 +121,10 @@
 | 6.3 | Reemplazar `math.pi` por `np.pi` (Aerogenerador, TurbinaHidro, SistemaBESS) | [x] | Baja |
 | 6.4 | Eliminar saturacion fisica incorrecta en `decoupledC` (Rectificador, GridInverter) | [x] | Baja |
 | 6.5 | Agregar `tests/test_mas.py` (24 pruebas, 23 pasan, 1 skip sin numpy) | [x] | Media |
+| 6.6 | Eliminar `debug_mas.py` (codigo roto con metodos inexistentes) | [x] | Media |
+| 6.7 | Unificar graficadores duplicados en `common/` | [x] | Media |
+| 6.8 | Extraer CSS/JS inline de GUI a `static/css/` y `static/js/` | [x] | Media |
+| 6.9 | Tests de `solver_sweep.py` (16 tests, FBS, convergencia, carga PQ/Z/I) | [x] | Alta |
+| 6.10 | Tests de `solver_sensitivity.py` (8 tests, calibrado, prediccion, error sin calibrar) | [x] | Alta |
+| 6.11 | Tests de `reloj_zmq.py` + `agente_zmq.py` (4 tests, init + handshake TCP) | [x] | Alta |
+| 6.12 | CI/CD con GitHub Actions (`.github/workflows/test.yml`) | [x] | Alta |

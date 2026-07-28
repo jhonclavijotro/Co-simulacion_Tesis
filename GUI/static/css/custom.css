@@ -1,0 +1,14 @@
+body { background: #0b0e14; color: #e0e6ed; font-family: 'Segoe UI', sans-serif; }
+.card { background: #151a22; border: 1px solid #2a3340; border-radius: 12px; margin-bottom: 1rem; }
+.card-header { background: #1c232d; border-bottom: 1px solid #2a3340; font-weight: 600; }
+.card-body { padding: 1.25rem; }
+.badge-soc { font-size: 1.2rem; padding: 0.4rem 0.8rem; }
+.valor { font-size: 1.8rem; font-weight: 700; }
+.text-gris { color: #8899aa; }
+.upload-zone { border: 2px dashed #2a3340; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; }
+.upload-zone:hover { border-color: #4a9eff; }
+.nav-tabs .nav-link { color: #8899aa; }
+.nav-tabs .nav-link.active { background: #1c232d; color: #4a9eff; border-color: #2a3340; }
+.btn-primary { background: #4a9eff; border: none; }
+.btn-primary:hover { background: #3a8eef; }
+.btn-success { background: #22c55e; border: none; }

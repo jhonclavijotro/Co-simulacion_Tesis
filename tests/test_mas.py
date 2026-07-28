@@ -187,17 +187,14 @@ class TestGridInverter(unittest.TestCase):
 
 class TestRectificador(unittest.TestCase):
     def test_decoupledC(self):
-        try:
-            import numpy as np
-            from common.Rectificador import RectificadorTrifasico
-            rect = RectificadorTrifasico()
-            Ud, Uq = rect.decoupledC(5, 3, 377, 2, 1)
-            esperado_Ud = 5 - (1 * 377 * 5e-3)
-            esperado_Uq = 3 + (2 * 377 * 5e-3)
-            self.assertAlmostEqual(Ud, esperado_Ud)
-            self.assertAlmostEqual(Uq, esperado_Uq)
-        except ImportError:
-            self.skipTest("numpy no disponible")
+        import numpy as np
+        from common.Rectificador import Rectificador
+        rect = Rectificador()
+        Ud, Uq = rect.decoupledC(5, 3, 377, 2, 1)
+        esperado_Ud = 5 - (1 * 377 * 5e-3)
+        esperado_Uq = 3 + (2 * 377 * 5e-3)
+        self.assertAlmostEqual(Ud, esperado_Ud)
+        self.assertAlmostEqual(Uq, esperado_Uq)
 
 
 if __name__ == "__main__":

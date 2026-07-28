@@ -5,7 +5,7 @@ from common.Rectificador import Rectificador
 from common.Transformadas import Transformadas
 from common.RedTrifasica import RedTrifasica
 from common.GridInverter import GridConnectedInverter
-from Eolica.GraficadorEolico import graficar_resultados
+from common.GraficadorEolico import graficar_resultados
 
 
 class SistemaEolico:

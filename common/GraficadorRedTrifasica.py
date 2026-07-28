@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import csv
 import os
 
+
 def graficar_red_trifasica(archivo="resultados.csv"):
     if not os.path.exists(archivo):
-        print(f"⚠ Error: No se encontró el archivo {archivo}")
+        print(f"Error: No se encontro el archivo {archivo}")
         return
 
     tiempo = []
@@ -17,12 +18,7 @@ def graficar_red_trifasica(archivo="resultados.csv"):
 
     with open(archivo, "r") as file:
         reader = csv.reader(file)
-        header = next(reader)  # Leer el header
-        # Se asume que las columnas se guardaron en el siguiente orden:
-        # 0: Tiempo, 1: Wr, 2: Tm, 3: Wg, 4: Tg,
-        # 5: Vq, 6: Iq, 7: Vdc, 8: Pdc_in,
-        # 9: Vdt, 10: Idi, 11: Idiref, 12: Pdc_out,
-        # 13: Vd_red, 14: Vq_red, 15: Fsys_red, 16: Pw
+        next(reader)
         for row in reader:
             try:
                 tiempo.append(float(row[0]))
@@ -35,7 +31,6 @@ def graficar_red_trifasica(archivo="resultados.csv"):
             except (ValueError, IndexError):
                 continue
 
-    # Crear subplots para cada variable
     fig, axs = plt.subplots(6, 1, figsize=(10, 12), sharex=True)
 
     axs[0].plot(tiempo, Vd_red, color="blue", label="Vd")
@@ -64,7 +59,7 @@ def graficar_red_trifasica(archivo="resultados.csv"):
 
     axs[4].plot(tiempo, Pq, color="purple", label="Pq")
     axs[4].set_ylabel("Pq (Var)")
-    axs[4].set_title("Potencia Reactiva Inyectada (Pa)")
+    axs[4].set_title("Potencia Reactiva Inyectada (Pq)")
     axs[4].legend()
     axs[4].grid(True)
 
@@ -77,6 +72,7 @@ def graficar_red_trifasica(archivo="resultados.csv"):
 
     plt.tight_layout()
     plt.show()
+
 
 if __name__ == "__main__":
     graficar_red_trifasica()

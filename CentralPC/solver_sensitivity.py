@@ -135,8 +135,10 @@ class SensitivitySolver:
                                    V_mag[i] * math.sin(ang))
             return V, True, 1
         else:
-            return self.sweep.resolver(inyecciones, V_slack,
-                                       tol, max_iter, relajacion)
+            return self.sweep.resolver(inyecciones, modelos=None,
+                                       V_slack=V_slack, tol=tol,
+                                       max_iter=max_iter,
+                                       relajacion=relajacion)
 
     def __str__(self):
         estado = "calibrado" if self._calibrado else "sin calibrar"
