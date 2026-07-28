@@ -86,6 +86,7 @@ Towards Resilient and Decarbonized Energy Systems: A Multi-Agent Approach to Mic
 | Fecha | Herramienta | Consulta | Resultado |
 |-------|-------------|---------|-----------|
 | 2026-07-24 | OpenAlex | forward-backward sweep load flow radial distribution systems | 10 papers encontrados. Referencias D013-D016 agregadas |
+| 2026-07-27 | arXiv, engrxiv | Boost averaged model, state-space averaging, Middlebrook & Cuk | Referencias D020-D022 agregadas |
 
 ---
 
@@ -111,6 +112,23 @@ Christakou, K., LeBoudec, J. Y., Paolone, M., & Tomozei, D. C. (2013). Efficient
 ### D019 - Control de Tension por Sensibilidad Trifasica para Redes Hibridas AC/DC
 Zhang, et al. (2021). Voltage control method based on three-phase four-wire sensitivity for hybrid AC DC. *IET Renewable Power Generation*.
 - **Archivo**: `Docs/IET Renewable Power Gen - 2021 - Zhang - Voltage control method based on three-phase four-wire sensitivity for hybrid AC DC.pdf`
+
+### D020 - Metodo Unificado para Modelado de Convertidores Conmutados (State-Space Averaging)
+Middlebrook, R. D., & Ćuk, S. (1977). A general unified approach to modelling switching-converter power stages. *International Journal of Electronics*, 42(6), 521-550. https://doi.org/10.1080/00207217708900678
+- **Temas**: Modelado promediado, convertidores conmutados, espacio de estados
+- **Uso**: Fundamento teorico del modelo promediado del Boost usado en `Solar/BoostConverter.py`
+
+### D021 - Relaciones del Convertidor Boost en Modo de Conduccion Continua (CCM)
+Erickson, R. W., & Maksimović, D. (2020). *Fundamentals of Power Electronics* (3rd ed.). Springer. https://doi.org/10.1007/978-3-030-43881-4
+- **Capitulo 3**: Steady-State Equivalent Circuit Modeling, Losses, and Efficiency
+- **Relacion clave**: Modo CCM → V_out/V_in = 1/(1-D), I_in/I_out = 1/(1-D) → I_out = I_in*(1-D)
+- **Uso**: Correccion del error en `Solar/BoostConverter.py:49` (Iboost = Ipv/(1-D) → Ipv*(1-D))
+
+### D022 - Convertidores DC-DC (Libro de Referencia)
+Hart, D. W. (2011). *Power Electronics*. McGraw-Hill.
+- **Archivo**: `Docs/../D:/PDFs/LIBROS/Hart - Electrónica de Potencia.pdf`
+- **Capitulo 6**: Convertidores DC-DC, Seccion 6.3: Convertidor elevador (Boost)
+- **Uso**: Validacion independiente de la relacion V_out/V_in y balance de potencia P_in = P_out
 
 ---
 

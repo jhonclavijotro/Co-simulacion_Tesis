@@ -31,11 +31,11 @@ class SistemaSolar:
         self.contexto = {
             "time": 0.0,          # Tiempo actual de simulacion [s]
             "V_pv": 0.0,          # Voltaje del panel [V]
-            "I_pv": 5.0,          # Corriente del panel [A]
+            "I_pv": 7.6,          # Corriente del panel [A]
             "V_array": 0.0,       # Voltaje del arreglo completo [V]
             "P_array": 0.0,       # Potencia del arreglo [W]
-            "V_ref": 240.0,       # Voltaje de referencia del MPPT [V]
-            "duty_cycle": 0.5,    # Ciclo de trabajo del convertidor Boost
+            "V_ref": 350.0,       # Voltaje de referencia del MPPT [V] (~MPP)
+            "duty_cycle": 0.125,  # D = 1 - Vref/Vdc = 1 - 350/400
             "V_dc": 400.0,        # Tension del bus de corriente continua [V]
             "I_inv": 0.0,         # Corriente del inversor [A]
             "Idi": 0.0,           # Corriente en el eje directo del inversor [A]
@@ -49,6 +49,8 @@ class SistemaSolar:
         }
         # Paso de integracion temporal [s]
         self.sample_time = 0.001
+        # Ultimo tiempo de ejecucion del MPPT [s]
+        self._ultimo_mppt = 0.0
         # Lista para almacenar los resultados de la simulacion
         self.datos = []
 
@@ -72,33 +74,42 @@ class SistemaSolar:
             if "V_ref_mppt" in setpoints:
                 ctx["V_ref"] = setpoints["V_ref_mppt"]
 
-        # Calcular la salida del panel fotovoltaico con la irradiancia POA
-        V_panel, I_panel, V_array, P_array = self.panel.calculate_output(
-            self.POA, self.Tam)
-        ctx["V_pv"] = V_panel
-        ctx["I_pv"] = I_panel
-        ctx["P_array"] = P_array
+        # Obtener el voltaje real del arreglo desde la relacion del Boost
+        V_array = ctx["V_dc"] * (1.0 - ctx["duty_cycle"])
         ctx["V_array"] = V_array
 
+        # Corriente del panel en ese voltaje (curva I-V real)
+        I_pv = self.panel.calculate_at_voltage(V_array, self.POA, self.Tam)
+        ctx["I_pv"] = I_pv
+        P_array = V_array * I_pv
+        ctx["P_array"] = P_array
+
         # Actualizar la referencia de voltaje mediante el algoritmo MPPT
-        ctx["V_ref"] = self.mppt.step(ctx["V_array"], ctx["I_pv"])
+        # El MPPT se ejecuta cada 500 pasos (0.5s) para evitar que reaccione
+        # a transitorios de Vdc no relacionados con el duty cycle
+        if ctx["time"] - self._ultimo_mppt >= 0.5:
+            ctx["V_ref"] = self.mppt.step(ctx["V_array"], ctx["I_pv"])
+            self._ultimo_mppt = ctx["time"]
 
         # Calcular el ciclo de trabajo del convertidor elevador Boost
-        ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_dc"])
+        # Feedforward: D = 1 - Vref/Vdc (relacion algebraica exacta)
+        ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_array"], ctx["V_dc"])
 
         # Ejecutar un paso del inversor conectado a red
         Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
-            ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["I_pv"], dt)
+            ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["I_pv"], dt,
+            D=ctx["duty_cycle"])
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq
         ctx["Idi"] = Idi
         ctx["Iqi"] = Iqi
         ctx["Idiref"] = Idiref
 
-        # Actualizar el estado del convertidor Boost
-        Ipv_new, Vdc_new = self.boost.update_state(
-            ctx["duty_cycle"], ctx["I_pv"], ctx["Idi"], dt)
-        ctx["I_pv"] = Ipv_new
+        # Actualizar el bus DC del convertidor Boost
+        # NOTA: Idi es ahora la corriente equivalente DC que demanda el inversor (Iinv_dc)
+        # Esta corriente ya incluye la relacion de transformacion Vdi/Vdc
+        _, Vdc_new = self.boost.update_state(
+            ctx["duty_cycle"], ctx["I_pv"], ctx["V_array"], ctx["Idi"], dt)
         ctx["V_dc"] = Vdc_new
 
         # Obtener la tension trifasica de la red o usar el valor externo del PCC

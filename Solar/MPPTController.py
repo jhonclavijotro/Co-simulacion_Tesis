@@ -4,11 +4,11 @@ class MPPTController:
     def __init__(self):
         """Inicializa el controlador MPPT con valores por defecto."""
         self.V_ref = 350.0
-        self.V_old = 0.0
-        self.P_old = 0.0
+        self.V_old = 350.0
+        self.P_old = 350.0 * 7.6
         self.paso = 1.0
-        self.V_ref_min = 0.0
-        self.V_ref_max = 400.0
+        self.V_ref_min = 100.0
+        self.V_ref_max = 390.0
 
     def step(self, V_array, I):
         """Ejecuta un paso del algoritmo P&O para actualizar la referencia de tension.
