@@ -18,6 +18,7 @@ import time
 
 sys.path.insert(0, ".")
 
+from Diesel.SistemaDiesel import SistemaDiesel
 from Hidrica.SistemaHidrico import SistemaHidrico
 from MAS.BESS_simplificado import BateriaSimplificada
 
@@ -33,6 +34,11 @@ _FABRICA = {
         R=p.get("R", 1.5),
         B=p.get("B", 0.0),
         relacion=p.get("relacion", 4.0),
+        eta=p.get("eta", 0.95),
+    ),
+    "Diesel": lambda p: SistemaDiesel(
+        Kp_gov=p.get("Kp_gov", 0.001),
+        Ki_gov=p.get("Ki_gov", 0.02),
         eta=p.get("eta", 0.95),
     ),
 }
