@@ -1,31 +1,24 @@
-from scipy import signal 
 import numpy as np
-import math
 
-def controlDiesel(E, E1, y1):
-    """
-    Control proporcional-integral para el motor Diesel.
-    """
-    y = 0.000974170175365822 * E + 0.000691535501608831 * E1 + y1   
-    if y > 10:
-        return 10
-    elif y < -10:
-        return -10
-    else:
-        return y
 
-def modeloDiesel(F, tv):
+class MotorDiesel:
+    """Modelo de primer orden del motor Diesel con estado interno.
+
+    Reemplaza la creacion de sistemas StateSpace en cada paso,
+    manteniendo el estado del filtro digital recursivo.
+
+    G(s) = Ke / (te*s + 1)
+      y[n] = a*y[n-1] + b*u[n]
+      a = exp(-dt/te), b = Ke*(1 - a)
     """
-    Modelo dinámico del motor Diesel.
-    Retorna la respuesta (por ejemplo, torque) como una función discreta.
-    """
-    Ke = 1.0
-    te = 0.035
-    A = -1.0 / te
-    B = (Ke / te) * F
-    C = 1.0
-    D = 0.0
-    sys2 = signal.StateSpace([A], [B], [C], [D])
-    sys_disc = sys2.to_discrete(0.001)
-    t_out, y_out = signal.dstep(sys_disc, t=tv)
-    return np.squeeze(y_out[0])
+
+    def __init__(self, Ke=1.0, te=0.035):
+        self.Ke = Ke
+        self.te = te
+        self.Tm = 0.0
+
+    def step(self, F, dt):
+        a = np.exp(-dt / self.te)
+        b = self.Ke * (1.0 - a)
+        self.Tm = a * self.Tm + b * F
+        return self.Tm
