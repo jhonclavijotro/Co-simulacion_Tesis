@@ -23,6 +23,9 @@ Thumbs.db
 
 # Archivos extraidos de documentos binarios
 *_extracted.txt
+_debug*
+_quick*
+memoria_persistente_*
 
 # Documentos de referencia (PDFs grandes)
 Docs/

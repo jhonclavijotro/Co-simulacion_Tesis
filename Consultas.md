@@ -87,6 +87,7 @@ Towards Resilient and Decarbonized Energy Systems: A Multi-Agent Approach to Mic
 |-------|-------------|---------|-----------|
 | 2026-07-24 | OpenAlex | forward-backward sweep load flow radial distribution systems | 10 papers encontrados. Referencias D013-D016 agregadas |
 | 2026-07-27 | arXiv, engrxiv | Boost averaged model, state-space averaging, Middlebrook & Cuk | Referencias D020-D022 agregadas |
+| 2026-07-28 | OpenAlex, arXiv, IEEE | Wind turbine generic EMT models, WECC Type 4, reduced-order models, average value models | Referencias D023-D028 agregadas |
 
 ---
 
@@ -129,6 +130,39 @@ Hart, D. W. (2011). *Power Electronics*. McGraw-Hill.
 - **Archivo**: `Docs/../D:/PDFs/LIBROS/Hart - Electrónica de Potencia.pdf`
 - **Capitulo 6**: Convertidores DC-DC, Seccion 6.3: Convertidor elevador (Boost)
 - **Uso**: Validacion independiente de la relacion V_out/V_in y balance de potencia P_in = P_out
+
+---
+
+### D023 - Modelo Generico EMT para Parques Eolicos con PMSG Full-Converter
+Karaagac, U., Mahseredjian, J., Gagnon, R., Gras, H., Saad, H., Cai, L., Kocar, I., Haddadi, A., Farantatos, E., Bu, S., Chan, K. W., & Wang, L. (2019). A Generic EMT-Type Model for Wind Parks With Permanent Magnet Synchronous Generator Full Size Converter Wind Turbines. *IEEE Power and Energy Technology Systems Journal*, 6(3), 131-141. https://doi.org/10.1109/JPETS.2019.2928013
+- **Temas**: PMSG, FSC, generic EMT model, average value model (AVM), WECC, aggregated wind park
+- **Soporte a la modificacion**: El paper confirma que (1) los modelos de valor promedio (AVM) reemplazan el convertidor detallado por fuentes controladas, (2) la dinamica electrica del generador esta aislada de la red ("the dynamics of the electrical generator are isolated from the grid"), (3) el MSC controla torque/velocidad y el GSC regula Vdc — tareas separadas sin conflicto, (4) en simulaciones EMT con paso grande (>50us), el AVM proporciona precision aceptable con ganancia computacional significativa.
+
+### D024 - Fundamentos de Modelado de Sistemas de Potencia con Generacion por Convertidores
+Paolone, M., Gaunt, T., Guillaud, X., Liserre, M., Meliopoulos, S., Monti, A., Van Cutsem, T., Vittal, V., & Vournas, C. (2020). Fundamentals of power systems modelling in the presence of converter-interfaced generation. *Electric Power Systems Research*, 189, 106811. https://doi.org/10.1016/j.epsr.2020.106811
+- **Temas**: Modelado de convertidores, estabilidad, sistemas de potencia, generacion renovable
+- **Soporte**: Establece los principios de modelado de sistemas con alta penetracion de generacion basada en convertidores, incluyendo la separacion de escalas temporales y modelos de orden reducido.
+
+### D025 - Marco de Co-simulacion Multitasa con Solver de Pasos Variables
+Liu, W., Zhao, Z., Xu, H., Zeng, Y., & Yuan, L. (2025). Multi-rate Co-simulation Framework with Taylor-series-based Variable-step Solver for Grid-connected Power Converters. *Chinese Journal of Electrical Engineering*, 11(1), 59-73. https://doi.org/10.23919/CJEE.2025.000111
+- **Temas**: Co-simulacion multitasa, solver paso variable, convertidores grid-connected, distribucion
+- **Archivo**: `Docs/Multi-rate Co-simulation Framework with Taylor-series-based Variable-step Solver for Grid-connected Power Converters.pdf`
+- **Soporte**: El framework propuesto divide el sistema en subsistemas segun sus constantes de tiempo y usa diferentes tasas de simulacion. La particion se basa en el teorema de sustitucion de circuitos. Confirma que la co-simulacion multitasa acelera la simulacion >200x con error <1%.
+
+### D026 - Norma IEC 61400-27: Modelos de Simulacion Eolica
+IEC 61400-27-1:2015. Wind turbines — Part 27-1: Electrical simulation models — Wind turbines. International Electrotechnical Commission.
+- **Temas**: Estandar, modelos de simulacion, turbinas eolicas, generico
+- **Soporte**: Estandar internacional que define modelos genericos de simulacion electrica para turbinas eolicas. Referenciado por Karaagac et al. (2019) como la base para modelos Cp-matrix y control de pitch. El estandar recomienda el uso de modelos agregados y la representacion Cp(λ,β) mediante matrices.
+
+### D027 - Guia WECC para Modelado Dinamico de Plantas Eolicas
+WECC Renewable Energy Modeling Task Force. (2014). *WECC Wind Power Plant Dynamic Modeling Guide*. Western Electricity Coordinating Council.
+- **Temas**: WECC, modelos genericos, plantas eolicas, Type 3, Type 4
+- **Soporte**: Guia de referencia para modelos genericos de plantas eolicas usados en estudios de estabilidad del WECC. Define las practicas estandar para modelos de orden reducido (phasor domain / positive sequence) para Type 4 (full converter).
+
+### D028 - Modelos Genericos Dinamicos para Plantas Eolicas y Otras Tecnologias Renovables
+Pourbeik, P., et al. (2016). Generic dynamic models for modeling wind power plants and other renewable technologies in large-scale power system studies. *IEEE Transactions on Energy Conversion*, 32(3), 1108-1116. https://doi.org/10.1109/TEC.2016.2639051
+- **Temas**: Modelos genericos, WECC, renovables, estabilidad, estudios de sistemas de potencia
+- **Soporte**: Propone modelos genericos unificados para plantas eolicas (Type 3 y 4) y solares, validados por el WECC REMTF y adoptados por la industria. Confirma la practica de modelar el conjunto convertidor+generador como una fuente equivalente para estudios de estabilidad.
 
 ---
 
