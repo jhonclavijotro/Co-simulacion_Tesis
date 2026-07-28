@@ -18,6 +18,7 @@ import time
 
 sys.path.insert(0, ".")
 
+from Hidrica.SistemaHidrico import SistemaHidrico
 from MAS.BESS_simplificado import BateriaSimplificada
 
 
@@ -27,6 +28,12 @@ _FABRICA = {
         capacidad_Ah=p.get("capacidad_Ah", 200.0),
         SoC_inicial=p.get("SoC", 0.5),
         N_serie=p.get("N_serie", 10),
+    ),
+    "Hidrica": lambda p: SistemaHidrico(
+        R=p.get("R", 1.5),
+        B=p.get("B", 0.0),
+        relacion=p.get("relacion", 4.0),
+        eta=p.get("eta", 0.95),
     ),
 }
 

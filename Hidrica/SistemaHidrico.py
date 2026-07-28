@@ -5,7 +5,7 @@ from common.Transformadas import Transformadas
 from common.RedTrifasica import RedTrifasica
 from common.GridInverter import GridConnectedInverter
 try:
-    from common.GraficadorEolico import graficar_resultados
+    from common.GraficadorHidro import graficar_resultados
 except ImportError:
     def graficar_resultados(): pass
 
