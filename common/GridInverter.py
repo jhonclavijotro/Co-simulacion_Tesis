@@ -6,8 +6,8 @@ class GridConnectedInverter:
         self.fn = fn
         self.Tn = Tn
         self.Vdcref = Vdcref
-        self.Kp_vdc = 0.008
-        self.Ki_vdc = 0.016
+        self.Kp_vdc = 0.05
+        self.Ki_vdc = 0.02
         self.I_int_vdc = 0.0
         self.E7 = 0.0
         self.y4 = 0.0
@@ -17,16 +17,22 @@ class GridConnectedInverter:
         self.Iqi = 0.0
         self.Idi1 = 0.0
         self.Iqi1 = 0.0
+        self.I_inv_max = 50.0
 
     def controlvdc_PI(self, error, I_int_prev, Kp, Ki, Ts,
-                      I_int_min=-10.0, I_int_max=10.0):
-        I_int = I_int_prev + error * Ts
+                      I_int_min=-5.0, I_int_max=5.0):
+        u_unsat = Kp * error + I_int_prev
+        if u_unsat < self.I_inv_max and u_unsat > -self.I_inv_max:
+            I_int = I_int_prev + error * Ki * Ts
+        else:
+            I_int = I_int_prev
         I_int = max(min(I_int, I_int_max), I_int_min)
-        u = Kp * error + Ki * I_int
-        return u, I_int
+        u = Kp * error + I_int
+        return max(min(u, self.I_inv_max), -self.I_inv_max), I_int
 
     def control3(self, E, E_prev, y_prev):
-        return 0.09 * E + 0.2 * E_prev + y_prev
+        y = 0.09 * E + 0.2 * E_prev + y_prev
+        return y
 
     def decoupledC(self, Md, Mq, Wg, Id, Iq):
         Ls = 5e-3
@@ -40,34 +46,28 @@ class GridConnectedInverter:
         Ud = (Idi1 * 0.9) + (0.2 * xd)
         xq = Vtq - VqG - (Idi1 * Ls * wt)
         Uq = (Iqi1 * 0.9) + (0.2 * xq)
-        return Ud, Uq
+        return max(min(Ud, self.I_inv_max), -self.I_inv_max), max(min(Uq, self.I_inv_max), -self.I_inv_max)
 
-    def step(self, Vdc, Vdi, Vqi, theta, Iqg, sample_time):
+    def step(self, Vdc, Vdi, Vqi, theta, Ig, sample_time, D=0.0):
         Evdc = self.Vdcref - Vdc
         Mvdc, self.I_int_vdc = self.controlvdc_PI(
             Evdc, self.I_int_vdc, self.Kp_vdc, self.Ki_vdc, sample_time
         )
-        Idiref = Iqg - Mvdc
+        Iboost = Ig * (1.0 - D) if D >= 0 else Ig
+        P_dc = Vdc * Iboost
+        vdi_clamped = max(min(Vdi, 120.0), 100.0) if abs(Vdi) > 1.0 else 110.0
+        Idiref = P_dc / vdi_clamped - Mvdc
         Iqiref = 0.0
 
-        E6 = Idiref - self.Idi
-        Mdi = self.control3(E6, self.E7, self.y4)
-        self.E7, self.y4 = E6, Mdi
+        tau = 0.5
+        self.Idi = self.Idi + tau * (Idiref - self.Idi)
+        self.Iqi = self.Iqi + tau * (Iqiref - self.Iqi)
+        self.Idi = max(min(self.Idi, self.I_inv_max), -self.I_inv_max)
+        self.Iqi = max(min(self.Iqi, self.I_inv_max), -self.I_inv_max)
 
-        E8 = Iqiref - self.Iqi
-        Mqi = self.control3(E8, self.E9, self.y5)
-        self.E9, self.y5 = E8, Mqi
+        Pw = P_dc
+        Pq = 0.0
 
-        Vdt, Vqt = self.decoupledC(Mdi, Mqi, theta, self.Idi, self.Iqi)
+        Iinv_dc = Iboost
 
-        Idi_new, Iqi_new = self.inductor(Vdt, Vqt, Vdi, Vqi, theta,
-                                         self.Idi1, self.Iqi1)
-        self.Idi = Idi_new
-        self.Iqi = Iqi_new
-        self.Idi1 = Idi_new
-        self.Iqi1 = Iqi_new
-
-        Pw = (self.Idi * Vdi) + (self.Iqi * Vqi)
-        Pq = (self.Idi * Vqi) - (Vdi * self.Iqi)
-
-        return Pw, Pq, self.Idi, self.Iqi, Vdt, Idiref
+        return Pw, Pq, Iinv_dc, self.Iqi, 0.0, Idiref

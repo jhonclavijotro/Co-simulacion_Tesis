@@ -57,6 +57,14 @@ class SolarPanel:
         P_array = V_array * I
         return V, I, V_array, P_array
 
+    def calculate_at_voltage(self, V_array, poa, T):
+        Iph = self._photon_current(poa, T)
+        Irs = self._saturation_inverse_current(T)
+        Io = self._saturation_current(T, Irs)
+        Vt = self.n * self.Ns * self.K * T / self.q
+        V_panel = V_array / self.num_panels
+        return self._current_at_voltage(V_panel, Iph, Io, Vt)
+
     def _photon_current(self, poa, T):
         """Calcula la corriente fotonica generada por la irradiancia incidente.
 
@@ -80,7 +88,6 @@ class SolarPanel:
         """
         exponent = self.q * self.Voc / (self.n * self.Ns * self.K * T)
         p = math.exp(exponent) - 1.0
-        p = max(1e-6, min(p, 1e6))
         return self.Isc / p
 
     def _saturation_current(self, T, Irs):
@@ -96,32 +103,66 @@ class SolarPanel:
         exponent = ((1.0 / self.Tn) - (1.0 / T)) * ((self.Eg0 * self.q) / (self.n * self.K))
         return Irs * ((T / self.Tn) ** 3) * math.exp(exponent)
 
-    def _solve_panel_equation(self, Iph, Io, T, tol=1e-3, max_iter=50):
-        """Resuelve la ecuacion del panel fotovoltaico mediante iteracion de Newton-Raphson.
+    def _current_at_voltage(self, V, Iph, Io, Vt):
+        """Calcula la corriente del panel a un voltaje dado usando iteracion de punto fijo.
+
+        Resuelve la ecuacion del modelo de diodo simple:
+            I = Iph - Io*(exp((V + I*Rs)/Vt) - 1) - (V + I*Rs)/Rsh
 
         Parametros:
+            V: Voltaje del panel [V]
             Iph: Corriente fotonica [A]
             Io: Corriente de saturacion [A]
-            T: Temperatura de la celda [K]
-            tol: Tolerancia para la convergencia
-            max_iter: Numero maximo de iteraciones
+            Vt: Voltaje termico [V]
+
+        Retorna:
+            I: Corriente del panel [A]
+        """
+        I = Iph
+        for _ in range(10):
+            Vd = V + I * self.Rs
+            arg = Vd / Vt
+            if arg > 50:
+                I_diode = Io * (math.exp(50) - 1.0) + Io * math.exp(50) * (arg - 50)
+            else:
+                I_diode = Io * (math.exp(arg) - 1.0)
+            I_shunt = Vd / self.Rsh
+            I_new = Iph - I_diode - I_shunt
+            if abs(I_new - I) < 1e-6:
+                break
+            I = I_new
+        return I
+
+    def _solve_panel_equation(self, Iph, Io, T):
+        """Encuentra el punto de operacion del panel (V cerca del MPP).
+
+        Usa barrido desde Voc hacia abajo para encontrar el punto
+        de maxima potencia en la curva I-V.
 
         Retorna:
             V: Voltaje de operacion del panel [V]
             I: Corriente de operacion del panel [A]
+
+    def calculate_at_voltage(self, V_array, poa, T):
+        Iph = self._photon_current(poa, T)
+        Irs = self._saturation_inverse_current(T)
+        Io = self._saturation_current(T, Irs)
         """
-        V = self.Voc * 0.8
         Vt = self.n * self.Ns * self.K * T / self.q
-        for _ in range(max_iter):
-            I_diode = Io * (math.exp(V / Vt) - 1.0)
-            I_shunt = (V + I_diode * self.Rs) / self.Rsh
-            I_calc = Iph - I_diode - I_shunt
-            f = V - (Iph - I_diode - I_shunt) * self.Rs - V
-            I_sc = Iph - I_diode - V / self.Rsh
-            g = 1.0 + (self.Rs / self.Rsh) + (self.Rs * Io / Vt) * math.exp(V / Vt)
-            V_new = V - (V - I_sc * self.Rs) / g
-            if abs(V_new - V) < tol:
-                break
-            V = V_new
-        I = Iph - Io * (math.exp(V / Vt) - 1.0) - (V + 0.0) / self.Rsh
+
+        def current(V):
+            return self._current_at_voltage(V, Iph, Io, Vt)
+
+        V_oc = self.Voc
+        best_V, best_P = 0, 0
+        for frac in [0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55]:
+            V = V_oc * frac
+            I = current(V)
+            if I <= 0:
+                continue
+            P = V * I
+            if P > best_P:
+                best_V, best_P = V, P
+
+        V, I = best_V, current(best_V)
         return V, I
