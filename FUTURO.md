@@ -1,4 +1,60 @@
-# FUTURO: Base de Datos de Paneles Solares y Clima Via MQTT
+# FUTURO: Próximos Pasos — Co-simulación Multiagente
+
+## Prioridad Alta: Pendientes P3–P8 (Post-auditoría BESS)
+
+### P3 — Controlador PI con Anti-Windup en BuckBoost
+Archivo: `BESS/BuckBoost.py`
+
+- [ ] Reemplazar el PI actual del lazo de corriente por uno con anti-windup por saturación condicional (conditional integration)
+- [ ] Límites de saturación del duty cycle: `[d_min, d_max]` configurables
+- [ ] Test: seguimiento de `I_bat_ref` con error estacionario nulo en regimen permanente
+- [ ] Test: sin overshoot en saturación tras escalón de `I_bat_ref`
+
+### P4 — Límite de Corriente del Inversor
+Archivo: `BESS/SistemaBESS.py`
+
+- [ ] Hacer `I_inv_max` configurable desde `__init__` (actualmente 50A fijo)
+- [ ] Implementar limitación de corriente en modo detallado (hoy solo existe en promedio)
+- [ ] Implementar limitación dinámica: reducir `I_inv_max` cuando `V_pcc < 0.85 pu`
+- [ ] Probar respuesta a hueco de tensión (voltage sag) con `V_pcc = 0.7 pu`
+
+### P5 — Eficiencia Round-Trip en Modelo Simplificado
+Archivo: `MAS/BESS_simplificado.py`
+
+- [ ] Agregar `eta_charge` y `eta_discharge` como parámetros del `__init__`
+- [ ] Aplicar eficiencia: `P_real = P_ref * eta` (carga: `eta=eta_charge`, descarga: `eta=eta_discharge`)
+- [ ] Valor por defecto: `eta_charge = 0.92`, `eta_discharge = 0.95` (Li-ion típico)
+- [ ] Test: energía extraída > energía almacenada en un ciclo completo carga/descarga
+
+### P6 — BuckBoost PI Mejorado (Refinamiento)
+Archivo: `BESS/BuckBoost.py`
+
+- [ ] Sintonizar ganancias `Kp`, `Ki` mediante Ziegler-Nichols o asignación de polos
+- [ ] Agregar feedforward de `I_bat_ref` para mejorar respuesta transitoria
+- [ ] Agregar modo boost (elevador) separado del modo buck (reductor)
+- [ ] Test: conmutación buck-boost sin discontinuidad en la corriente
+
+### P7 — Protocolo de Dinámica Remota (Extensión)
+Archivo: `Dinamica/servicio_dinamica.py`
+
+- [ ] Agregar soporte para `V_pcc` en el comando `step()` del servicio
+- [ ] Extender `ClienteDinamica.step()` con parámetro `V_pcc` opcional
+- [ ] Agregar comando `set_param` para cambiar parámetros en caliente (`eta`, `I_inv_max`, etc.)
+- [ ] Test: step remoto con V_pcc y verificar que SoC cambia correctamente
+
+### P8 — Documentación en Obsidian
+Vault: `D:\PERSONAL\obsidian\cerebro\`
+
+- [ ] Crear nota `Tesis-Arquitectura-BESS.md` con diagrama de bloques y ecuaciones del BuckBoost + Batería
+- [ ] Crear nota `Tesis-Plan-P3-P8.md` con estado de cada mejora y resultados de tests
+- [ ] Actualizar `Tesis-Fuente-Corriente-Equivalente.md` si quedaron ecuaciones pendientes
+- [ ] Vincular todas las notas con wikilinks bidireccionales
+
+---
+
+---
+
+# FUTURO: Base de Datos de Paneles Solares y Clima Via MQTT (Original)
 
 ## 1. Correcciones a la Vision Inicial
 

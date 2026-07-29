@@ -109,7 +109,7 @@ class SistemaBESS:
         ctx["V_oc"] = self.bateria.V_oc
 
         I_bat_ref = self.buck_boost.calcular_referencia_corriente(P_ref_eff, V_bat)
-        duty = self.buck_boost.control_corriente(I_bat_ref, ctx["I_bat"])
+        duty = self.buck_boost.control_corriente(I_bat_ref, ctx["I_bat"], dt)
         ctx["duty"] = duty
 
         I_inv = P_ref_eff / max(ctx["V_dc"], 1.0)
@@ -136,7 +136,7 @@ class SistemaBESS:
         ctx["V_oc"] = self.bateria.V_oc
 
         I_bat_ref = self.buck_boost.calcular_referencia_corriente(P_ref, V_bat)
-        duty = self.buck_boost.control_corriente(I_bat_ref, ctx["I_bat"])
+        duty = self.buck_boost.control_corriente(I_bat_ref, ctx["I_bat"], dt)
         ctx["duty"] = duty
 
         I_inv = ctx.get("P_inv_ac", 0.0) / max(ctx["V_dc"], 1.0)
