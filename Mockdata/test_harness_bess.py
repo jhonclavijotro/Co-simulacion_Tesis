@@ -221,15 +221,16 @@ def validar_simplificado(resultados):
     checks.append(("P_real = P_ref (ideal)", np.allclose(p_ref, p_real),
                    f"max_diff={np.max(np.abs(p_ref - p_real)):.1f}W"))
 
-    # 5. Energia: dSoC * E_wh * 3600 ≈ sum(P_ref * dt)
+    # 5. Perdidas por eficiencia: P_chem difiere de P_ref segun modo
     E_wh = 480.0 * 200.0  # V_pack * capacidad_Ah (default)
     dt = 0.5
     dSoC_total = soc[-1] - soc[0]
-    energia_electrica = np.sum(p_ref * dt)
-    energia_esperada = -dSoC_total * E_wh * 3600
-    error_energia = abs(energia_electrica - energia_esperada)
-    error_pct = error_energia / max(abs(energia_electrica), 1) * 100
-    checks.append(("Conservacion energia < 1% error",
+    energia_quimica = -dSoC_total * E_wh * 3600
+    p_chem = np.where(p_ref > 0, p_ref / 0.95, p_ref * 0.92)
+    energia_efectiva = np.sum(p_chem * dt)
+    error_energia = abs(energia_efectiva - energia_quimica)
+    error_pct = error_energia / max(abs(energia_efectiva), 1) * 100
+    checks.append(("Conservacion energia c/eficiencia < 1% error",
                    error_pct < 1.0,
                    f"error={error_pct:.3f}%"))
 

@@ -17,6 +17,8 @@ class BateriaSimplificada:
         SoC_inicial: float = 0.5,
         N_serie: int = 10,
         V_base: float = 110.0,
+        eta_charge: float = 0.92,
+        eta_discharge: float = 0.95,
     ) -> None:
         self.V_pack: float = V_nominal * N_serie
         self.capacidad_Ah: float = capacidad_Ah
@@ -27,6 +29,8 @@ class BateriaSimplificada:
         self.V_base: float = V_base
         self.V_pcc_pu: float = 1.0
         self.lvrt_scaling: float = 1.0
+        self.eta_charge: float = eta_charge
+        self.eta_discharge: float = eta_discharge
 
     def _lvrt_factor(self, V_pcc_pu: float) -> float:
         if V_pcc_pu >= 0.88:
@@ -45,7 +49,14 @@ class BateriaSimplificada:
             self.V_pcc_pu = 1.0
 
         self.lvrt_scaling = self._lvrt_factor(self.V_pcc_pu)
-        P_ref_eff = P_ref * self.lvrt_scaling
-        self.P_real = P_ref_eff
-        dSoC: float = -P_ref_eff * dt / (self.E_wh * 3600.0)
+        P_ref_lvrt = P_ref * self.lvrt_scaling
+
+        self.P_real = P_ref_lvrt
+
+        if P_ref_lvrt >= 0:
+            P_chem = P_ref_lvrt / self.eta_discharge
+        else:
+            P_chem = P_ref_lvrt * self.eta_charge
+
+        dSoC: float = -P_chem * dt / (self.E_wh * 3600.0)
         self.SoC = max(0.0, min(1.0, self.SoC + dSoC))

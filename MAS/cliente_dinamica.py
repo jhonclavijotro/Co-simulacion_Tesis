@@ -57,13 +57,24 @@ class ClienteDinamica:
             _time.sleep(0.001)
         return None
 
-    def step(self, dt: float, P_ref: float) -> Dict[str, Any]:
-        self._enviar({"comando": "step", "dt": dt, "P_ref": P_ref})
+    def step(self, dt: float, P_ref: float,
+             V_pcc: Optional[float] = None) -> Dict[str, Any]:
+        msg: Dict[str, Any] = {"comando": "step", "dt": dt, "P_ref": P_ref}
+        if V_pcc is not None:
+            msg["V_pcc"] = V_pcc
+        self._enviar(msg)
         resp = self._leer_respuesta()
         if resp is None:
             raise ConnectionError("Sin respuesta del servicio de dinamica")
         if not resp.get("ok"):
             raise RuntimeError(resp.get("error", "Error desconocido"))
+        return resp
+
+    def set_param(self, **params) -> Dict[str, Any]:
+        self._enviar({"comando": "set_param", "params": params})
+        resp = self._leer_respuesta()
+        if resp is None:
+            raise ConnectionError("Sin respuesta del servicio de dinamica")
         return resp
 
     def estado(self) -> Dict[str, Any]:

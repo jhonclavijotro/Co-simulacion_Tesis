@@ -71,13 +71,24 @@ class ServicioDinamica:
         if cmd == "step":
             dt = msg.get("dt", 0.1)
             P_ref = msg.get("P_ref", 0.0)
-            self.modelo.step(dt, P_ref)
+            V_pcc = msg.get("V_pcc", None)
+            if V_pcc is not None:
+                self.modelo.step(dt, P_ref, V_pcc=V_pcc)
+            else:
+                self.modelo.step(dt, P_ref)
             return {"ok": True, "SoC": self.modelo.SoC,
                     "P_ref": self.modelo.P_ref, "P_real": self.modelo.P_real}
         elif cmd == "estado":
             return {"ok": True, "fuente": self.fuente,
                     "SoC": self.modelo.SoC, "P_ref": self.modelo.P_ref,
                     "P_real": self.modelo.P_real}
+        elif cmd == "set_param":
+            ok_params = []
+            for k, v in msg.get("params", {}).items():
+                if hasattr(self.modelo, k):
+                    setattr(self.modelo, k, v)
+                    ok_params.append(k)
+            return {"ok": True, "params_actualizados": ok_params}
         else:
             return {"ok": False, "error": f"Comando desconocido: {cmd}"}
 
