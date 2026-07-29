@@ -1,4 +1,5 @@
 import csv
+import math
 import numpy as np
 from BESS.Bateria import Bateria
 from BESS.BuckBoost import BuckBoost
@@ -42,7 +43,7 @@ class SistemaBESS:
 
         self.V_rms = V_rms
         self.V_pu_base = V_rms
-        self.I_inv_max = I_inv_max
+        self._I_inv_max = I_inv_max
         self._lvrt_active = False
         self.sample_time = 0.001
         self.theta_grid = 0.0
@@ -72,7 +73,16 @@ class SistemaBESS:
             "P_inv_ac": 0.0,
             "V_pcc_pu": 1.0,
             "lvrt_scaling": 1.0,
+            "I_inv_lim": I_inv_max,
         }
+
+    @property
+    def I_inv_max(self):
+        return self._I_inv_max
+
+    @I_inv_max.setter
+    def I_inv_max(self, valor):
+        self._I_inv_max = max(0.0, float(valor))
 
     def _gen_3ph(self, theta, v_rms):
         Vpk = v_rms * math.sqrt(2.0)
@@ -86,6 +96,14 @@ class SistemaBESS:
             return 1.0
         elif V_pcc_pu >= 0.50:
             return 0.88 * (V_pcc_pu - 0.50) / (0.88 - 0.50)
+        else:
+            return 0.0
+
+    def _current_limit_dynamic(self, V_pcc_pu):
+        if V_pcc_pu >= 0.85:
+            return self._I_inv_max
+        elif V_pcc_pu >= 0.50:
+            return self._I_inv_max * (V_pcc_pu - 0.50) / (0.85 - 0.50)
         else:
             return 0.0
 
@@ -104,6 +122,9 @@ class SistemaBESS:
         P_ref_eff = P_ref * lvrt_s
         ctx["P_ref"] = P_ref_eff
 
+        I_inv_lim = self._current_limit_dynamic(V_pcc_pu)
+        ctx["I_inv_lim"] = I_inv_lim
+
         V_bat = self.bateria.calcular_V(ctx["I_bat"])
         ctx["V_bat"] = V_bat
         ctx["V_oc"] = self.bateria.V_oc
@@ -113,7 +134,7 @@ class SistemaBESS:
         ctx["duty"] = duty
 
         I_inv = P_ref_eff / max(ctx["V_dc"], 1.0)
-        I_inv = max(-self.I_inv_max, min(self.I_inv_max, I_inv))
+        I_inv = max(-I_inv_lim, min(I_inv_lim, I_inv))
         I_bat, Vdc = self.buck_boost.actualizar_estado(
             duty, I_bat_ref, V_bat, ctx["V_dc"], I_inv, dt
         )
@@ -131,6 +152,14 @@ class SistemaBESS:
         ctx = self.contexto
         ctx["P_ref"] = P_ref
 
+        if V_pcc is not None:
+            V_pcc_pu = abs(V_pcc) / self.V_pu_base if self.V_pu_base > 0 else 1.0
+        else:
+            V_pcc_pu = 1.0
+        ctx["V_pcc_pu"] = V_pcc_pu
+        ctx["lvrt_scaling"] = self._lvrt_factor(V_pcc_pu)
+        ctx["I_inv_lim"] = self._current_limit_dynamic(V_pcc_pu)
+
         V_bat = self.bateria.calcular_V(ctx["I_bat"])
         ctx["V_bat"] = V_bat
         ctx["V_oc"] = self.bateria.V_oc
@@ -140,6 +169,7 @@ class SistemaBESS:
         ctx["duty"] = duty
 
         I_inv = ctx.get("P_inv_ac", 0.0) / max(ctx["V_dc"], 1.0)
+        I_inv = max(-ctx["I_inv_lim"], min(ctx["I_inv_lim"], I_inv))
         I_bat, Vdc = self.buck_boost.actualizar_estado(
             duty, I_bat_ref, V_bat, ctx["V_dc"], I_inv, dt
         )
@@ -221,6 +251,7 @@ class SistemaBESS:
                     resultado["I_bat"], resultado["P_bat"], resultado["P_ref"],
                     resultado["V_dc"], resultado["duty"], resultado["Pw"],
                     resultado["V_pcc_pu"], resultado["lvrt_scaling"],
+                    resultado["I_inv_lim"],
                 ])
             except Exception as e:
                 print(f"Error en t={ctx['time']:.3f}s: {e}")
@@ -228,7 +259,8 @@ class SistemaBESS:
 
         header = [
             "time", "SoC", "V_bat", "I_bat", "P_bat", "P_ref",
-            "V_dc", "duty", "Pw", "V_pcc_pu", "lvrt_scaling"
+            "V_dc", "duty", "Pw", "V_pcc_pu", "lvrt_scaling",
+            "I_inv_lim"
         ]
         with open("resultados_bess.csv", "w", newline="") as f:
             writer = csv.writer(f)
