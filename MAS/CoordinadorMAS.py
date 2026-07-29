@@ -75,8 +75,10 @@ class CoordinadorMAS:
 
         self.V = self.pc.step()
 
+        V_refs = {n: 110.0 for n in self.pc.nodos_red}
         for ag in self.agentes.values():
-            ag.step(self.paso_maestro)
+            V_pcc_pu = float(abs(self.V[ag.id])) if self.V is not None and ag.id < len(self.V) else 1.0
+            ag.step(self.paso_maestro, V_pcc=V_pcc_pu)
 
         for ag in self.agentes.values():
             ag.registrar_historico(t)

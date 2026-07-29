@@ -23,7 +23,7 @@ class SistemaBESS:
 
     def __init__(self, V_nominal=48.0, capacidad_Ah=200.0, SoC_inicial=0.5,
                  N_serie=10, N_paralelo=1, Vdcref=400, V_rms=110.0,
-                 modo="promedio"):
+                 modo="promedio", I_inv_max=50.0):
         self.modo = modo
         self.bateria = Bateria(
             V_nominal=V_nominal, capacidad_Ah=capacidad_Ah,
@@ -41,6 +41,9 @@ class SistemaBESS:
             self.transformadas = None
 
         self.V_rms = V_rms
+        self.V_pu_base = V_rms
+        self.I_inv_max = I_inv_max
+        self._lvrt_active = False
         self.sample_time = 0.001
         self.theta_grid = 0.0
         self.datos = []
@@ -55,6 +58,7 @@ class SistemaBESS:
             "V_oc": V_pack,
             "P_bat": 0.0,
             "P_ref": 0.0,
+            "P_ref_orig": 0.0,
             "V_dc": Vdcref,
             "duty": 0.0,
             "Idi": 0.0,
@@ -66,6 +70,8 @@ class SistemaBESS:
             "Pw": 0.0,
             "Pq": 0.0,
             "P_inv_ac": 0.0,
+            "V_pcc_pu": 1.0,
+            "lvrt_scaling": 1.0,
         }
 
     def _gen_3ph(self, theta, v_rms):
@@ -75,19 +81,39 @@ class SistemaBESS:
         Vc = Vpk * math.cos(theta + 2.09439510239)
         return Va, Vb, Vc
 
+    def _lvrt_factor(self, V_pcc_pu):
+        if V_pcc_pu >= 0.88:
+            return 1.0
+        elif V_pcc_pu >= 0.50:
+            return 0.88 * (V_pcc_pu - 0.50) / (0.88 - 0.50)
+        else:
+            return 0.0
+
     def _paso_interno_promedio(self, dt, V_pcc, P_ref, Q_ref):
         ctx = self.contexto
-        ctx["P_ref"] = P_ref
+        ctx["P_ref_orig"] = P_ref
+
+        if V_pcc is not None:
+            V_pcc_pu = abs(V_pcc) / self.V_pu_base if self.V_pu_base > 0 else 1.0
+        else:
+            V_pcc_pu = 1.0
+        ctx["V_pcc_pu"] = V_pcc_pu
+
+        lvrt_s = self._lvrt_factor(V_pcc_pu)
+        ctx["lvrt_scaling"] = lvrt_s
+        P_ref_eff = P_ref * lvrt_s
+        ctx["P_ref"] = P_ref_eff
 
         V_bat = self.bateria.calcular_V(ctx["I_bat"])
         ctx["V_bat"] = V_bat
         ctx["V_oc"] = self.bateria.V_oc
 
-        I_bat_ref = self.buck_boost.calcular_referencia_corriente(P_ref, V_bat)
+        I_bat_ref = self.buck_boost.calcular_referencia_corriente(P_ref_eff, V_bat)
         duty = self.buck_boost.control_corriente(I_bat_ref, ctx["I_bat"])
         ctx["duty"] = duty
 
-        I_inv = P_ref / max(ctx["V_dc"], 1.0)
+        I_inv = P_ref_eff / max(ctx["V_dc"], 1.0)
+        I_inv = max(-self.I_inv_max, min(self.I_inv_max, I_inv))
         I_bat, Vdc = self.buck_boost.actualizar_estado(
             duty, I_bat_ref, V_bat, ctx["V_dc"], I_inv, dt
         )
@@ -97,7 +123,7 @@ class SistemaBESS:
         self.bateria.actualizar_SoC(I_bat, dt)
         ctx["SoC"] = self.bateria.SoC
         ctx["P_bat"] = V_bat * I_bat
-        ctx["Pw"] = P_ref
+        ctx["Pw"] = P_ref_eff
 
         ctx["time"] = round(ctx["time"] + dt, 3)
 
@@ -194,6 +220,7 @@ class SistemaBESS:
                     resultado["time"], resultado["SoC"], resultado["V_bat"],
                     resultado["I_bat"], resultado["P_bat"], resultado["P_ref"],
                     resultado["V_dc"], resultado["duty"], resultado["Pw"],
+                    resultado["V_pcc_pu"], resultado["lvrt_scaling"],
                 ])
             except Exception as e:
                 print(f"Error en t={ctx['time']:.3f}s: {e}")
@@ -201,7 +228,7 @@ class SistemaBESS:
 
         header = [
             "time", "SoC", "V_bat", "I_bat", "P_bat", "P_ref",
-            "V_dc", "duty", "Pw"
+            "V_dc", "duty", "Pw", "V_pcc_pu", "lvrt_scaling"
         ]
         with open("resultados_bess.csv", "w", newline="") as f:
             writer = csv.writer(f)

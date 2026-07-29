@@ -49,7 +49,7 @@ class AgenteBESS:
         return self.P_ref
 
     def step(self, dt, V_pcc=None, P_total_demanda=None):
-        self.bateria.step(dt, self.P_ref)
+        self.bateria.step(dt, self.P_ref, V_pcc=V_pcc)
 
     def registrar_historico(self, tiempo):
         self.historico.append({

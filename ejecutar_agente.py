@@ -43,7 +43,7 @@ def ejecutar_agente_remoto(id_agente, host, puerto, P_rated, K_soc,
             self.P_ref = 0.0
             self.P_real = 0.0
 
-        def step(self, dt, P_ref):
+        def step(self, dt, P_ref, V_pcc=None):
             resp = self._cli.step(dt, P_ref)
             self.SoC = resp["SoC"]
             self.P_ref = resp["P_ref"]
@@ -83,7 +83,8 @@ def _loop_agente(id_agente, host, puerto, SoC_inicial,
             P_ref = demanda_w * fraccion
             P_ref = max(-P_rated, min(P_rated, P_ref))
 
-            modelo.step(paso_maestro, P_ref)
+            V_pcc_ag = tick.get("V_pcc", {}).get(str(id_agente))
+            modelo.step(paso_maestro, P_ref, V_pcc=V_pcc_ag)
 
             zmq.enviar_medicion(
                 P_ref=P_ref,

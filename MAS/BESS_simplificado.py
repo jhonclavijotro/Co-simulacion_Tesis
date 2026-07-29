@@ -2,7 +2,13 @@ from typing import Optional
 
 
 class BateriaSimplificada:
-    """Modelo energetico simplificado de bateria para co-simulacion MAS."""
+    """Modelo energetico simplificado de bateria para co-simulacion MAS.
+
+    Incluye limitacion LVRT basada en V_pcc:
+      - V_pcc >= 0.88 pu: operacion normal
+      - 0.50 <= V_pcc < 0.88 pu: derating lineal
+      - V_pcc < 0.50 pu: potencia cero (trip)
+    """
 
     def __init__(
         self,
@@ -10,6 +16,7 @@ class BateriaSimplificada:
         capacidad_Ah: float = 200.0,
         SoC_inicial: float = 0.5,
         N_serie: int = 10,
+        V_base: float = 110.0,
     ) -> None:
         self.V_pack: float = V_nominal * N_serie
         self.capacidad_Ah: float = capacidad_Ah
@@ -17,9 +24,28 @@ class BateriaSimplificada:
         self.SoC: float = max(0.0, min(1.0, SoC_inicial))
         self.P_ref: float = 0.0
         self.P_real: float = 0.0
+        self.V_base: float = V_base
+        self.V_pcc_pu: float = 1.0
+        self.lvrt_scaling: float = 1.0
 
-    def step(self, dt: float, P_ref: float) -> None:
+    def _lvrt_factor(self, V_pcc_pu: float) -> float:
+        if V_pcc_pu >= 0.88:
+            return 1.0
+        elif V_pcc_pu >= 0.50:
+            return 0.88 * (V_pcc_pu - 0.50) / (0.88 - 0.50)
+        else:
+            return 0.0
+
+    def step(self, dt: float, P_ref: float, V_pcc: Optional[float] = None) -> None:
         self.P_ref = P_ref
-        self.P_real = P_ref
-        dSoC: float = -P_ref * dt / (self.E_wh * 3600.0)
+
+        if V_pcc is not None:
+            self.V_pcc_pu = V_pcc / self.V_base if self.V_base > 0 else 1.0
+        else:
+            self.V_pcc_pu = 1.0
+
+        self.lvrt_scaling = self._lvrt_factor(self.V_pcc_pu)
+        P_ref_eff = P_ref * self.lvrt_scaling
+        self.P_real = P_ref_eff
+        dSoC: float = -P_ref_eff * dt / (self.E_wh * 3600.0)
         self.SoC = max(0.0, min(1.0, self.SoC + dSoC))
