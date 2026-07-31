@@ -21,6 +21,7 @@ sys.path.insert(0, ".")
 from Diesel.SistemaDiesel import SistemaDiesel
 from Hidrica.SistemaHidrico import SistemaHidrico
 from MAS.BESS_simplificado import BateriaSimplificada
+from Solar.SolarSimplificado import SolarSimplificado
 
 
 _FABRICA = {
@@ -29,6 +30,10 @@ _FABRICA = {
         capacidad_Ah=p.get("capacidad_Ah", 200.0),
         SoC_inicial=p.get("SoC", 0.5),
         N_serie=p.get("N_serie", 10),
+    ),
+    "Solar": lambda p: SolarSimplificado(
+        P_rated=p.get("P_rated", 3000.0),
+        T_total=p.get("T_total", 3600.0),
     ),
     "Hidrica": lambda p: SistemaHidrico(
         R=p.get("R", 1.5),

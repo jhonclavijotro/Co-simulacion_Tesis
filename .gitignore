@@ -35,6 +35,17 @@ PLAN.md
 # Credenciales de acceso
 RASPDIR.md
 
+# Logs
+*.log
+
+# Resultados de simulacion generados
+Mockdata/sim_1hora_resultados.png
+Mockdata/test_harness_*.png
+Mockdata/comparacion_*.png
+
+# Virtual env artifacts
+share/
+
 # IDE
 .vscode/
 .idea/
