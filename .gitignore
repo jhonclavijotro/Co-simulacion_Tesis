@@ -3,6 +3,11 @@
 venv/
 ENV/
 env/
+Lib/
+Include/
+Scripts/*.exe
+Scripts/__init__.py
+Scripts/__pycache__/
 
 # Python cache & build files
 __pycache__/
@@ -26,6 +31,8 @@ __pycache__/
 *.log
 resultados_solar.csv
 resultados.csv
+*.html
+share/
 
 # Excluir documentación de tesis (LaTeX)
 Thesis_LaTeX/
