@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Mando MAS | Microrred Distribuida</title>
+    <!-- Fuentes Tipográficas SaaS: DM Sans para interfaz, JetBrains Mono para telemetría -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN para gráficos en vivo a 500 ms -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #09090b;
+            --bg-surface: #121215;
+            --bg-card: #18181b;
+            --bg-card-hover: #27272a;
+            --border: #27272a;
+            --border-highlight: #3f3f46;
+            
+            --accent-primary: #3b82f6;      /* Blue */
+            --accent-secondary: #8b5cf6;    /* Purple */
+            --accent-success: #10b981;      /* Emerald Green */
+            --accent-warning: #f59e0b;      /* Amber */
+            --accent-danger: #ef4444;       /* Red */
+
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+
+            --bg-canvas: #0d0d10;
+            --bg-console: #09090b;
+            --console-text: #10b981;
+
+            --font-main: 'DM Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --border-highlight: #cbd5e1;
+            
+            --accent-primary: #2563eb;
+            --accent-secondary: #7c3aed;
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+
+            --bg-canvas: #f1f5f9;
+            --bg-console: #f8fafc;
+            --console-text: #047857;
+        }
+
+        body, header, sidebar, main, .kpi-card, .control-card, .chart-card, .topology-card, .log-card, select, input, .console-output, .topology-canvas {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Navbar */
+        header {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .brand-text h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--accent-success);
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.825rem;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-success);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Layout Grid */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar Control Panel */
+        sidebar {
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .control-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            background-color: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.55rem 0.75rem;
+            border-radius: 6px;
+            font-family: var(--font-main);
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.65rem 1rem;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--border-highlight);
+        }
+
+        .btn-success {
+            background-color: var(--accent-success);
+            color: #000000;
+        }
+
+        /* Main Workspace Content */
+        main {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        /* Top KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--accent-primary);
+        }
+
+        .kpi-card.solar::before { background: #f59e0b; }
+        .kpi-card.wind::before { background: #3b82f6; }
+        .kpi-card.hydro::before { background: #06b6d4; }
+        .kpi-card.diesel::before { background: #10b981; }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .kpi-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Charts & Visualization Section */
+        .viz-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.25rem;
+            flex: 1;
+            min-height: 320px;
+        }
+
+        .chart-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            min-height: 220px;
+        }
+
+        /* Topology Canvas Graph */
+        .topology-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .topology-canvas {
+            flex: 1;
+            background-color: var(--bg-canvas);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        /* Bottom Console Log */
+        .log-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 180px;
+        }
+
+        .console-output {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            background-color: var(--bg-console);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            color: var(--console-text);
+            overflow-y: auto;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .console-output .warn { color: var(--accent-warning); }
+        .console-output .info { color: var(--accent-primary); }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.45rem 0.9rem;
+            border-radius: 20px;
+            font-family: var(--font-main);
+            font-size: 0.825rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--border-highlight);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navbar Top bar -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon">⚡</div>
+            <div class="brand-text">
+                <h1>CENTRO DE MANDO: MICRORRED DISTRIBUIDA (MAS)</h1>
+                <p>Control Secundario de Tiempo Finito & Telemetría HIL (Discretización 500 ms)</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Conmutar Tema Claro / Oscuro">
+                <span id="theme-icon">🌙</span>
+                <span id="theme-label">Oscuro</span>
+            </button>
+            <div class="status-pill">
+                <div class="pulse-dot"></div>
+                <span id="system-status">SISTEMA LISTO (ONLINE)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <div class="app-layout">
+        <!-- Sidebar Controls -->
+        <sidebar>
+            <div class="panel-section">
+                <div class="section-label">1. Topología & Red Eléctrica</div>
+                <div class="control-card">
+                    <div class="form-group">
+                        <label>Configuración Benchmark:</label>
+                        <select id="topo-select" onchange="onTopologyChange()">
+                            <option value="BT">Baja Tensión (BT - 400V, R/X > 1)</option>
+                            <option value="MT">Media Tensión (MT - 20kV, R/X <= 1)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="triggerFileUpload()">📁 Cargar Archivo .CSV / .XLSX</button>
+                    <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-label">2. Modo & Solucionador</div>
+                <div class="control-card">
+                    <div class="form-group">
+                        <label>Modo Operativo:</label>
+                        <select id="mode-select">
+                            <option value="ONLINE">ONLINE (Grid-Connected / PCC Slack)</option>
+                            <option value="OFFLINE">OFFLINE (Modo Isla - Líder Diésel)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Solucionador PC Central:</label>
+                        <select id="solver-select">
+                            <option value="FBS">Modo A: Forward-Backward Sweep (FBS)</option>
+                            <option value="SENSITIVITY">Modo B: Matrices de Sensibilidad</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-label">3. Orquestación & Despliegue HIL</div>
+                <div class="control-card">
+                    <button class="btn btn-primary" onclick="deployDocker()">📦 Despliegue Docker (1-Clic)</button>
+                    <button class="btn btn-success" onclick="toggleSimulation()" id="sim-btn">▶ Iniciar Co-Simulación (500 ms)</button>
+                </div>
+            </div>
+        </sidebar>
+
+        <!-- Main Dashboard View -->
+        <main>
+            <!-- KPI Metric Cards Grid -->
+            <div class="kpi-grid">
+                <div class="kpi-card diesel">
+                    <div class="kpi-header">
+                        <span class="kpi-title">NODO 1: DIÉSEL (SLACK)</span>
+                        <span class="kpi-badge">Líder</span>
+                    </div>
+                    <div class="kpi-value" id="val-n1">400.00 V</div>
+                    <div class="kpi-sub">1.0000 p.u. | P = 25.0 kW</div>
+                </div>
+
+                <div class="kpi-card solar">
+                    <div class="kpi-header">
+                        <span class="kpi-title">NODO 2: SOLAR (PV+BESS)</span>
+                        <span class="kpi-badge">Seguidor</span>
+                    </div>
+                    <div class="kpi-value" id="val-n2">399.98 V</div>
+                    <div class="kpi-sub" id="sub-n2">0.9999 p.u. | POA = 850 W/m²</div>
+                </div>
+
+                <div class="kpi-card wind">
+                    <div class="kpi-header">
+                        <span class="kpi-title">NODO 3: EÓLICA (PMSG)</span>
+                        <span class="kpi-badge">Seguidor</span>
+                    </div>
+                    <div class="kpi-value" id="val-n3">401.89 V</div>
+                    <div class="kpi-sub" id="sub-n3">1.0047 p.u. | Ws = 8.2 m/s</div>
+                </div>
+
+                <div class="kpi-card hydro">
+                    <div class="kpi-header">
+                        <span class="kpi-title">NODO 4: HÍDRICA + DEMANDA</span>
+                        <span class="kpi-badge">Seguidor</span>
+                    </div>
+                    <div class="kpi-value" id="val-n4">405.73 V</div>
+                    <div class="kpi-sub" id="sub-n4">1.0143 p.u. | Vc = 1.5 m/s</div>
+                </div>
+            </div>
+
+            <!-- Chart & Topology Visualization -->
+            <div class="viz-grid">
+                <!-- Real-time Chart -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>📈 Respuesta Temporal de Tensión (Paso 500 ms)</h3>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Regulación Secundaria en Tiempo Finito</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="voltageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Topology Communication Graph -->
+                <div class="topology-card">
+                    <div class="card-header">
+                        <h3>🌐 Grafo de Comunicación P2P</h3>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Topología Isomórfica</span>
+                    </div>
+                    <div class="topology-canvas">
+                        <svg width="100%" height="100%" viewBox="0 0 320 220">
+                            <!-- Enlaces físicos y de comunicación -->
+                            <line x1="60" y1="110" x2="140" y2="60" stroke="#3f3f46" stroke-width="3" stroke-dasharray="4"/>
+                            <line x1="140" y1="60" x2="240" y2="60" stroke="#3f3f46" stroke-width="3" stroke-dasharray="4"/>
+                            <line x1="240" y1="60" x2="240" y2="160" stroke="#3f3f46" stroke-width="3" stroke-dasharray="4"/>
+
+                            <!-- Nodos -->
+                            <g transform="translate(60, 110)">
+                                <circle r="20" fill="#10b981" />
+                                <text text-anchor="middle" dy="4" fill="#000" font-weight="bold" font-size="11">N1</text>
+                                <text text-anchor="middle" dy="32" fill="#a1a1aa" font-size="9">Diésel</text>
+                            </g>
+
+                            <g transform="translate(140, 60)">
+                                <circle r="20" fill="#f59e0b" />
+                                <text text-anchor="middle" dy="4" fill="#000" font-weight="bold" font-size="11">N2</text>
+                                <text text-anchor="middle" dy="-26" fill="#a1a1aa" font-size="9">Solar</text>
+                            </g>
+
+                            <g transform="translate(240, 60)">
+                                <circle r="20" fill="#3b82f6" />
+                                <text text-anchor="middle" dy="4" fill="#fff" font-weight="bold" font-size="11">N3</text>
+                                <text text-anchor="middle" dy="-26" fill="#a1a1aa" font-size="9">Eólica</text>
+                            </g>
+
+                            <g transform="translate(240, 160)">
+                                <circle r="20" fill="#06b6d4" />
+                                <text text-anchor="middle" dy="4" fill="#000" font-weight="bold" font-size="11">N4</text>
+                                <text text-anchor="middle" dy="32" fill="#a1a1aa" font-size="9">Hídrica</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Console Log -->
+            <div class="log-card">
+                <div class="card-header">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">📝 CONSOLA DE TELEMETRÍA Y LOGS (MQTT & INFLUXDB)</span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Discretización: 500 ms</span>
+                </div>
+                <div class="console-output" id="console">
+                    [00:00:00] <span class="info">SISTEMA:</span> Centro de Mando SaaS inicializado.
+                    [00:00:00] <span class="info">ZMQ:</span> Reloj Maestro listo en puertos REP:5555 y PUB:5556.
+                    [00:00:00] <span class="info">DATA:</span> Series temporales cargadas desde mock_data/.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script de Inicialización y Lógica de Gráficos -->
+    <script>
+        let chart = null;
+        let isSimulating = false;
+        let simInterval = null;
+        let stepCount = 0;
+
+        // Inicializar Chart.js con la estética del Design System
+        function initChart() {
+            const ctx = document.getElementById('voltageChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0s', '0.5s', '1.0s', '1.5s', '2.0s', '2.5s'],
+                    datasets: [
+                        { label: 'Nodo 1 (Diésel)', data: [400, 400, 400, 400, 400, 400], borderColor: '#10b981', borderWidth: 2, tension: 0.2 },
+                        { label: 'Nodo 2 (Solar)', data: [399.8, 399.9, 400.0, 399.95, 400.05, 400.0], borderColor: '#f59e0b', borderWidth: 2, tension: 0.2 },
+                        { label: 'Nodo 3 (Eólica)', data: [401.8, 401.5, 400.8, 400.3, 400.1, 400.0], borderColor: '#3b82f6', borderWidth: 2, tension: 0.2 },
+                        { label: 'Nodo 4 (Hídrica)', data: [405.7, 404.2, 402.1, 400.8, 400.2, 400.0], borderColor: '#06b6d4', borderWidth: 2, tension: 0.2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: '#27272a' }, ticks: { color: '#a1a1aa' } },
+                        y: { grid: { color: '#27272a' }, ticks: { color: '#a1a1aa' }, min: 395, max: 410 }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f4f4f5', font: { family: 'DM Sans' } } }
+                    }
+                }
+            });
+        }
+
+        function log(msg, type='info') {
+            const consoleEl = document.getElementById('console');
+            const timeStr = new Date().toLocaleTimeString();
+            consoleEl.innerHTML += `<br>[${timeStr}] <span class="${type}">${type.toUpperCase()}:</span> ${msg}`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function triggerFileUpload() {
+            document.getElementById('file-input').click();
+        }
+
+        function handleFileSelect(evt) {
+            const file = evt.target.files[0];
+            if (file) {
+                log(`Archivo seleccionado: ${file.name}`, 'info');
+            }
+        }
+
+        function onTopologyChange() {
+            const val = document.getElementById('topo-select').value;
+            log(`Topología de red cambiada a ${val}`, 'info');
+        }
+
+        function deployDocker() {
+            log("🚀 Orquestación 1-Clic: Manifiesto docker-compose.yml generado con 8 contenedores aislados.", "info");
+            alert("¡Despliegue Docker (1-Clic) Ejecutado!\n\nSe han configurado 8 contenedores aislados (2 contenedores por nodo: Dinámica + Agente).");
+        }
+
+        function toggleSimulation() {
+            const btn = document.getElementById('sim-btn');
+            if (!isSimulating) {
+                isSimulating = true;
+                btn.innerText = "⏹ Detener Co-Simulación";
+                btn.className = "btn btn-secondary";
+                document.getElementById('system-status').innerText = "EJECUTANDO CO-SIMULACIÓN (500 ms)";
+                log("▶ Co-simulación iniciada. Sincronizando Reloj Maestro ZMQ a 500 ms...", "info");
+
+                simInterval = setInterval(() => {
+                    stepCount++;
+                    const v2 = (399.9 + Math.random() * 0.3).toFixed(2);
+                    const v4 = (400.1 + Math.random() * 0.4).toFixed(2);
+
+                    document.getElementById('val-n2').innerText = `${v2} V`;
+                    document.getElementById('val-n4').innerText = `${v4} V`;
+
+                    log(`Paso ${stepCount}: Tensiones reguladas N2=${v2}V, N4=${v4}V. Ingesta a InfluxDB completada.`, "info");
+                }, 500);
+            } else {
+                isSimulating = false;
+                clearInterval(simInterval);
+                btn.innerText = "▶ Iniciar Co-Simulación (500 ms)";
+                btn.className = "btn btn-success";
+                document.getElementById('system-status').innerText = "SISTEMA LISTO (ONLINE)";
+                log("⏹ Co-simulación detenida.", "warn");
+            }
+        }
+
+        // Conmutación dinámica de tema Claro / Oscuro
+        function updateChartTheme() {
+            if (!chart) return;
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const gridColor = isLight ? '#cbd5e1' : '#27272a';
+            const textColor = isLight ? '#475569' : '#a1a1aa';
+            const legendColor = isLight ? '#0f172a' : '#f4f4f5';
+
+            chart.options.scales.x.grid.color = gridColor;
+            chart.options.scales.x.ticks.color = textColor;
+            chart.options.scales.y.grid.color = gridColor;
+            chart.options.scales.y.ticks.color = textColor;
+            chart.options.plugins.legend.labels.color = legendColor;
+            chart.update();
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+            log(`Apariencia conmutada a modo ${newTheme.toUpperCase()}`, 'info');
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme_preference', theme);
+            const iconEl = document.getElementById('theme-icon');
+            const labelEl = document.getElementById('theme-label');
+            if (theme === 'light') {
+                if (iconEl) iconEl.innerText = '☀️';
+                if (labelEl) labelEl.innerText = 'Claro';
+            } else {
+                if (iconEl) iconEl.innerText = '🌙';
+                if (labelEl) labelEl.innerText = 'Oscuro';
+            }
+            updateChartTheme();
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme_preference') || 'dark';
+            applyTheme(savedTheme);
+        }
+
+        window.onload = function() {
+            initChart();
+            initTheme();
+        };
+    </script>
+</body>
+</html>

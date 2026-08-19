@@ -1,0 +1,41 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.pytest/
+.cache/
+
+# Local IDE/Agent configurations and memory
+.agents/
+.antigravity_memory/
+.vscode/
+.gemini/
+
+# Output and simulation data
+*.csv
+!config/*.csv
+*.xlsx
+*.log
+resultados_solar.csv
+resultados.csv
+
+# Excluir documentación de tesis (LaTeX)
+Thesis_LaTeX/
+
+# Excluir bóveda de notas de Obsidian
+obsidian_vault/
+
+# Regla para ignorar todos los archivos markdown (.md)
+*.md
+**/*.md
+
+# Exceptuar explícitamente el README.md de la regla anterior
+!README.md

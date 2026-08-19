@@ -1,0 +1,95 @@
+# Manifiesto Autogenerado de Co-Simulación Docker (Separación Estricta de Procesos)
+version: '3.8'
+
+networks:
+  microgrid_net:
+    driver: bridge
+
+services:
+  nodo_1_dinamica:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dynamic
+    container_name: nodo_1_dinamica
+    environment:
+      - NODE_ID=1
+      - SOURCE_TYPE=DIESEL
+    networks:
+      - microgrid_net
+
+  nodo_1_agente:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agent
+    container_name: nodo_1_agente
+    environment:
+      - NODE_ID=1
+      - OPERATING_MODE=ONLINE
+    networks:
+      - microgrid_net
+
+  nodo_2_dinamica:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dynamic
+    container_name: nodo_2_dinamica
+    environment:
+      - NODE_ID=2
+      - SOURCE_TYPE=SOLAR
+    networks:
+      - microgrid_net
+
+  nodo_2_agente:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agent
+    container_name: nodo_2_agente
+    environment:
+      - NODE_ID=2
+      - OPERATING_MODE=ONLINE
+    networks:
+      - microgrid_net
+
+  nodo_3_dinamica:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dynamic
+    container_name: nodo_3_dinamica
+    environment:
+      - NODE_ID=3
+      - SOURCE_TYPE=EOLICA
+    networks:
+      - microgrid_net
+
+  nodo_3_agente:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agent
+    container_name: nodo_3_agente
+    environment:
+      - NODE_ID=3
+      - OPERATING_MODE=ONLINE
+    networks:
+      - microgrid_net
+
+  nodo_4_dinamica:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dynamic
+    container_name: nodo_4_dinamica
+    environment:
+      - NODE_ID=4
+      - SOURCE_TYPE=HIDRICA
+    networks:
+      - microgrid_net
+
+  nodo_4_agente:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.agent
+    container_name: nodo_4_agente
+    environment:
+      - NODE_ID=4
+      - OPERATING_MODE=ONLINE
+    networks:
+      - microgrid_net

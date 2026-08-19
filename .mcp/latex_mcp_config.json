@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "latex-mcp-server": {
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "tools.latex_mcp_server.cli"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

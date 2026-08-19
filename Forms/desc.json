@@ -1,0 +1,26 @@
+{
+    "id": "660528",
+    "label": "Planta solar palmaseca 1",
+    "descripcion": "Granja solar de 13 MW con tecnología solar",
+    "tipo": "GENERACION",
+    "tecnologia": "SOLAR",
+    "activo": true,
+    "numeroPaneles": 30228,
+    "numeroInversores": 18,
+    "modulo": "LGW-Y270N2L4-000",
+    "nodosVecinos": [
+        "650235",
+        "385468"
+    ],
+    "conductor": [
+        "ACSR4/0",
+        "ACSR4/0"
+    ],
+    "distancia": [
+        2.5,
+        3.0
+    ],
+    "tension": [
+        "13.2"
+    ]
+}
