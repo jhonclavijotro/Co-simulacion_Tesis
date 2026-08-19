@@ -13,14 +13,14 @@
 ![Raspberry Pi](https://img.shields.io/badge/Raspberry_Pi_5-Cluster-A22846?style=for-the-badge&logo=raspberrypi&logoColor=white)
 
 [![Tests](https://img.shields.io/badge/tests-24%2F24_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#testing)
-[![License](https://img.shields.io/badge/license-Academic-blue?style=flat-square)](#license)
-[![Status](https://img.shields.io/badge/status-Active_Development-yellow?style=flat-square)](#project-status)
+[![License](https://img.shields.io/badge/license-Academic-blue?style=flat-square)](#licencia)
+[![Status](https://img.shields.io/badge/status-Active_Development-yellow?style=flat-square)](#roadmap)
 
 ---
 
 **Tesis de Grado** · Jhonathan Clavijo
 
-[Arquitectura](#-arquitectura) · [Instalación](#-instalación) · [Uso](#-uso-rápido) · [Tests](#-testing) · [Documentación](#-documentación)
+[Arquitectura](#arquitectura) · [Instalación](#instalación) · [Uso](#uso-rápido) · [Tests](#testing) · [Documentación](#documentación)
 
 </div>
 
@@ -171,8 +171,8 @@ Tesis_Grado/
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/<usuario>/MAS-Microgrid.git
-cd MAS-Microgrid
+git clone git@github.com:jhonclavijotro/Co-simulacion_Tesis.git
+cd Co-simulacion_Tesis
 
 # 2. Crear y activar entorno virtual
 python -m venv .venv
@@ -318,11 +318,11 @@ Todos los modelos utilizan integración de paso fino (1 ms) con submuestreo al p
 
 | Documento | Descripción |
 |---|---|
-| [`PLAN.md`](PLAN.md) | Plan maestro del proyecto |
-| [`Constitucion.md`](Constitucion.md) | Alcance, estándares de código y bibliografía |
-| [`Tasks.md`](Tasks.md) | Tablero Kanban de seguimiento |
-| [`Thesis_LaTeX/`](Thesis_LaTeX/) | Documento completo de la tesis (6 capítulos) |
-| [`obsidian_vault/`](obsidian_vault/) | Base de conocimiento Zettelkasten con notas enlazadas |
+| `PLAN.md` | Plan maestro del proyecto (Local) |
+| `Constitucion.md` | Alcance, estándares de código y bibliografía (Local) |
+| `Tasks.md` | Tablero Kanban de seguimiento (Local) |
+| `Thesis_LaTeX/` | Directorio con el documento de la tesis en LaTeX (Local) |
+| `obsidian_vault/` | Bóveda de conocimiento Zettelkasten con notas enlazadas (Local) |
 
 ---
 
