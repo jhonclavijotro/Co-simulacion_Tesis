@@ -8,7 +8,13 @@ import os
 import json
 import re
 from typing import Dict, Any, List, Optional
-from mcp.server import MCPServer
+try:
+    from mcp.server.mcpserver import MCPServer
+except ImportError:
+    try:
+        from mcp.server import MCPServer
+    except ImportError:
+        from mcp.server.fastmcp import FastMCP as MCPServer
 
 from .scaffolding import scaffold_latex_project
 from .parser import parse_latex_file, validate_latex_document
