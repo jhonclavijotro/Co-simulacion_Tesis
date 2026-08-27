@@ -104,7 +104,7 @@ class SistemaDiesel:
             ctx["Vdc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, D=0.0)
 
         Iinv_dc = Iinv_cmd
-        ctx["Idi"] = self.inversor.Idi
+        ctx["Idi"] = self.inversor.Idi_ref
         ctx["Iqi"] = Iqi
         ctx["Vdt"] = Vdt
         ctx["Pw"] = Pw
@@ -114,9 +114,12 @@ class SistemaDiesel:
         ctx["Vdc"] = max(250.0, min(ctx["Vdc"] + (ic / self.C_dc) * dt, 450.0))
 
         if V_pcc is not None:
-            Va, Vb, Vc = V_pcc
+            if isinstance(V_pcc, (int, float)):
+                Va, Vb, Vc = self.transformadas.synthesize_vabc(V_pcc)
+            else:
+                Va, Vb, Vc = V_pcc
         else:
-            Va, Vb, Vc = 0.0, 0.0, 0.0
+            Va, Vb, Vc = self.transformadas.synthesize_vabc(230.0)
 
         Valpha, Vbeta, theta0, Vq_out, Vd_out, Fsys = \
             self.transformadas.aplicar_transformadas([Va, Vb, Vc], ctx["Vqi"])

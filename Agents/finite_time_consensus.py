@@ -167,7 +167,8 @@ class FiniteTimeConsensusAgent:
             # El líder fija estrictamente la referencia nominal de tensión de la isla
             u_v = self.c1 * sig_pow(e_leader, self.alpha, self.epsilon)
 
-        # Cálculo de la corrección instantánea de control (Euler explícito)
+        # Cálculo de la corrección incremental de control (Paso de Euler: Delta V_i = -dt * u_v)
+        # El llamador integra este incremento en el voltaje/potencia (V_i += dV, Q_i += dQ)
         raw_delta_V = -dt * u_v
         raw_delta_Q = -dt * u_q * self.Q_max
 

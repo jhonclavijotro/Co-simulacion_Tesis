@@ -48,6 +48,8 @@ class MasterClockZMQ:
         self.context = zmq.Context()
         self.rep_socket = self.context.socket(zmq.REP)
         self.rep_socket.setsockopt(zmq.LINGER, 0)
+        self.rep_socket.setsockopt(zmq.RCVTIMEO, 2000)
+        self.rep_socket.setsockopt(zmq.SNDTIMEO, 1000)
         self.rep_socket.bind(f"tcp://*:{self.port_rep}")
 
         self.pub_socket = self.context.socket(zmq.PUB)
@@ -118,20 +120,41 @@ class MasterClockZMQ:
         self.context.term()
 
     def start_loop(self, max_steps=10):
-        """Bucle principal de simulación."""
+        """Bucle principal de simulación determinista sin deriva temporal."""
         print(f"Reloj Maestro ZMQ iniciado en modo {self.mode} [Malla={self.mesh_type}] (Paso = {self.dt}s).")
         print(f"  Canal de comunicación: {self.comm_emulator}")
         print(f"  Escuchando en REP:{self.port_rep}, PUB:{self.port_pub}...")
         self.running = True
 
+        poller = zmq.Poller()
+        poller.register(self.rep_socket, zmq.POLLIN)
+        last_injections = {}
+        t_next = time.perf_counter()
+
         for step in range(max_steps):
-            message = self.rep_socket.recv_json()
-            injections = message.get("injections", {})
+            t_next += self.dt
+
+            socks = dict(poller.poll(timeout=2000))
+            if self.rep_socket in socks and socks[self.rep_socket] == zmq.POLLIN:
+                try:
+                    message = self.rep_socket.recv_json()
+                    injections = message.get("injections", {})
+                    last_injections = injections
+                except zmq.ZMQError:
+                    injections = last_injections
+            else:
+                injections = last_injections
 
             res = self.run_step(injections)
-            self.rep_socket.send_json({"status": "OK", "step": res["step"]})
 
-            time.sleep(self.dt)
+            try:
+                self.rep_socket.send_json({"status": "OK", "step": res["step"]})
+            except zmq.ZMQError:
+                pass
+
+            sleep_time = t_next - time.perf_counter()
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
         print("Simulación maestro completada.")
         print(f"  Estadísticas de comunicación: {self.comm_emulator.get_stats()}")

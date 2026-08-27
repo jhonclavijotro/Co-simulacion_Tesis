@@ -39,8 +39,11 @@ class NodeDynamicProcess:
         else:
             raise ValueError(f"Tipo de fuente desconocido: {source_type}")
 
-    def step(self, V_pcc=400.0, Q_ref=0.0):
-        """Ejecuta un paso dinámico (500 ms) alimentado con datos sintéticos."""
+    def step_macro(self, V_pcc=400.0, Q_ref=0.0, macro_dt=0.5, micro_dt=0.001):
+        """
+        Ejecuta un macro-paso de co-simulación (H = 500 ms) compuesto por 500 micro-pasos (h = 1 ms).
+        V_pcc se mantiene en ZOH durante la ventana de comunicación.
+        """
         # 1. Cargar datos de entrada según el tipo de fuente
         if self.source_type == "SOLAR":
             poa, temp = self.data_loader.get_solar_at(self.step_index)
@@ -53,15 +56,16 @@ class NodeDynamicProcess:
             vc = self.data_loader.get_hydro_at(self.step_index)
             self.model.Vc = vc
 
-        # 2. Ejecutar integración física
+        # 2. Ejecutar integración física de 500 micro-pasos (1 kHz)
+        n_substeps = max(1, int(round(macro_dt / micro_dt)))
         setpoints = {"Q_ref_kvar": Q_ref / 1000.0}
-        ctx = self.model.step(dt=0.001, V_pcc=V_pcc, setpoints=setpoints)
+        ctx = None
+        for _ in range(n_substeps):
+            ctx = self.model.step(dt=micro_dt, V_pcc=V_pcc, setpoints=setpoints)
 
         self.step_index += 1
 
         # Mapeo explícito de claves de potencia activa por tipo de fuente.
-        # Evita el fallback genérico a "P_array" (clave exclusiva de Solar)
-        # que enmascararía fallos físicos en otros tipos de nodo.
         _P_KEYS = {
             "SOLAR":   ["Pw", "P_array"],
             "EOLICA":  ["Pw", "Pm"],
@@ -72,13 +76,14 @@ class NodeDynamicProcess:
         }
         p_keys = _P_KEYS.get(self.source_type, ["Pw"])
         P_w = 0.0
-        for key in p_keys:
-            if key in ctx:
-                P_w = ctx[key]
-                break
+        if ctx:
+            for key in p_keys:
+                if key in ctx:
+                    P_w = ctx[key]
+                    break
 
         # Q_var: usar 0.0 como neutral seguro si el contexto no la reporta
-        Q_var = ctx.get("Pq", 0.0)
+        Q_var = ctx.get("Pq", 0.0) if ctx else 0.0
 
         return {
             "node_id": self.node_id,
@@ -87,6 +92,10 @@ class NodeDynamicProcess:
             "P_w": round(P_w, 2),
             "Q_var": round(Q_var, 2)
         }
+
+    def step(self, V_pcc=400.0, Q_ref=0.0):
+        """Alias retrocompatible para ejecutar un macro-paso de co-simulación."""
+        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, macro_dt=0.5, micro_dt=0.001)
 
 
 if __name__ == "__main__":

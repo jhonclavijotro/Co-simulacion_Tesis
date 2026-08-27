@@ -128,7 +128,10 @@ class SistemaSolar:
 
         # Obtener la tension trifasica de la red o usar el valor externo del PCC
         if V_pcc is not None:
-            Va, Vb, Vc = V_pcc, 0.0, 0.0
+            if isinstance(V_pcc, (int, float)):
+                Va, Vb, Vc = self.transformadas.synthesize_vabc(V_pcc)
+            else:
+                Va, Vb, Vc = V_pcc
             ctx["V_actual"] = V_pcc
         else:
             Va, Vb, Vc = self.red.get_voltages(ctx["time"])
