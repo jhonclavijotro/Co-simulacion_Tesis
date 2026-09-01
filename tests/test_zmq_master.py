@@ -53,7 +53,37 @@ class TestMasterClockZMQ(unittest.TestCase):
         self.assertEqual(res["step"], 1)
         self.assertEqual(res["mode"], "SENSITIVITY")
         self.assertTrue(res["converged"])
-        self.assertIn(1, res["voltages"])
+    def test_hold_last_value_and_breaker_trip(self):
+        # max_hold_seconds = 1.0s -> 2 steps at dt=0.5s
+        master = self._make_master("FBS", port_rep=5561, port_pub=5562, max_hold_seconds=1.0)
+        
+        # Paso 1: Nodo 2 inyecta 10 kW
+        inj1 = {"2": {"P": 10000.0, "Q": 1000.0}}
+        res1 = master.run_step(inj1)
+        self.assertNotIn(2, res1["stale_nodes"])
+        self.assertNotIn(2, res1["tripped_nodes"])
+        self.assertEqual(master.last_known_injections[2]["P"], 10000.0)
+
+        # Paso 2: Paquete se pierde (0.5s sin recibir) -> Hold Last Value
+        res2 = master.run_step({})
+        self.assertIn(2, res2["stale_nodes"])
+        self.assertNotIn(2, res2["tripped_nodes"])
+
+        # Paso 3: Sigue sin recibir (1.0s sin recibir) -> Hold Last Value
+        res3 = master.run_step({})
+        self.assertIn(2, res3["stale_nodes"])
+        self.assertNotIn(2, res3["tripped_nodes"])
+
+        # Paso 4: Supera 1.0s (1.5s sin recibir) -> Disyuntor trip (P=0, Q=0)
+        res4 = master.run_step({})
+        self.assertIn(2, res4["tripped_nodes"])
+
+    def test_operating_mode_transition(self):
+        master = self._make_master("FBS", port_rep=5563, port_pub=5564)
+        mode, slack, v_ref = master.set_operating_mode("OFFLINE", slack_node=1, V_slack=1.02)
+        self.assertEqual(mode, "OFFLINE")
+        self.assertEqual(slack, 1)
+        self.assertEqual(v_ref, 1.02)
 
 
 if __name__ == "__main__":

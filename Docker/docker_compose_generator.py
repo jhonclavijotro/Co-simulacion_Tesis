@@ -40,7 +40,12 @@ class DockerComposeGenerator:
         network_profile: str = "IDEAL",
         network_delay_ms: float = 0.0,
         packet_loss_rate: float = 0.0,
-        timeout_steps: int = 4
+        timeout_steps: int = 4,
+        cpu_limit: str = "0.5",
+        mem_limit: str = "256m",
+        hold_mode: str = "ZOH",
+        zfoh_lambda: float = 0.7,
+        master_clock_host: str = "host.docker.internal"
     ) -> str:
         active_map = sources_map if sources_map is not None else self.sources_map
         
@@ -68,6 +73,14 @@ class DockerComposeGenerator:
                 "    environment:",
                 f"      - NODE_ID={n}",
                 f"      - SOURCE_TYPE={source}",
+                f"      - HOLD_MODE={hold_mode}",
+                f"      - ZFOH_LAMBDA={zfoh_lambda}",
+                f"      - MASTER_CLOCK_HOST={master_clock_host}",
+                "    deploy:",
+                "      resources:",
+                "        limits:",
+                f"          cpus: '{cpu_limit}'",
+                f"          memory: {mem_limit}",
                 "    networks:",
                 "      - microgrid_net",
                 ""
@@ -87,6 +100,14 @@ class DockerComposeGenerator:
                 f"      - NETWORK_DELAY_MS={network_delay_ms}",
                 f"      - PACKET_LOSS_RATE={packet_loss_rate}",
                 f"      - TIMEOUT_STEPS={timeout_steps}",
+                f"      - HOLD_MODE={hold_mode}",
+                f"      - ZFOH_LAMBDA={zfoh_lambda}",
+                f"      - MASTER_CLOCK_HOST={master_clock_host}",
+                "    deploy:",
+                "      resources:",
+                "        limits:",
+                f"          cpus: '{cpu_limit}'",
+                f"          memory: {mem_limit}",
                 "    networks:",
                 "      - microgrid_net",
                 ""

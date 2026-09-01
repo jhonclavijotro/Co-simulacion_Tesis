@@ -14,8 +14,21 @@ class ForwardBackwardSweepSolver:
         self.branches = []            # Lista de ramas: {from_node, to_node, R, X, Z}
         self.nodes = []               # Lista de nodos únicos
         self.slack_node = 1           # Nodo slack (subestación / fuente principal)
+        self.operating_mode = "ONLINE"# Modo de operación: ONLINE (interconectado) u OFFLINE (isla)
+        self.V_slack_ref = 1.0        # Tensión de referencia en barra Slack [p.u.]
         self.tolerance = 1e-6         # Tolerancia de convergencia en p.u.
         self.max_iter = 100           # Número máximo de iteraciones
+
+    def set_operating_mode(self, mode: str, slack_node: int = 1, V_slack: float = 1.0):
+        """
+        Configura la transición de barra Slack según el modo de operación ciber-físico:
+          - ONLINE: Barra Slack en subestación / conexión a red externa (Nodo 1).
+          - OFFLINE: Barra Slack asumida por el generador diésel isócrono (Nodo 1) como fuente formadora de red (Grid-Forming, b1=1.0).
+        """
+        self.operating_mode = mode.upper()
+        self.slack_node = slack_node
+        self.V_slack_ref = V_slack
+        return self.operating_mode, self.slack_node, self.V_slack_ref
 
     def load_topology(self, csv_path):
         """Carga la topología de la red desde un archivo CSV."""

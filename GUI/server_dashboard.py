@@ -83,6 +83,15 @@ class APIAndStaticHandler(http.server.SimpleHTTPRequestHandler):
                 command_center.set_mesh_type(req_data["mesh_type"])
             if "network_profile" in req_data:
                 command_center.set_network_profile(req_data["network_profile"])
+            if "hold_mode" in req_data:
+                command_center.set_hold_mode(req_data["hold_mode"], req_data.get("zfoh_lambda"))
+            if "rpi_host" in req_data or "rpi_user" in req_data:
+                command_center.set_rpi_config(
+                    host=req_data.get("rpi_host", command_center.rpi_host),
+                    user=req_data.get("rpi_user", command_center.rpi_user),
+                    port=req_data.get("rpi_port", command_center.rpi_port),
+                    master_clock_host=req_data.get("master_clock_host", command_center.master_clock_host)
+                )
             if "topology" in req_data:
                 topo_map = {
                     "BT": "topologia_BT_4nodos.csv",
@@ -121,8 +130,23 @@ class APIAndStaticHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json_response({
                 "status": "success",
                 "manifest": out_manifest,
-                "message": f"Manifiesto {out_manifest} generado con 8 contenedores aislados."
+                "message": f"Manifiesto {out_manifest} generado con 8 contenedores aislados (Hold: {command_center.hold_mode})."
             })
+            return
+
+        elif parsed.path == "/api/rpi/test":
+            res = command_center.test_rpi_connection()
+            self._send_json_response(res, 200 if res.get("connected") else 400)
+            return
+
+        elif parsed.path == "/api/rpi/deploy":
+            res = command_center.deploy_to_raspberry(
+                host=req_data.get("rpi_host"),
+                user=req_data.get("rpi_user"),
+                port=req_data.get("rpi_port"),
+                master_clock_host=req_data.get("master_clock_host")
+            )
+            self._send_json_response(res, 200 if res.get("success") else 500)
             return
 
         self._send_json_response({"error": "Endpoint no encontrado"}, 404)

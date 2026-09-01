@@ -19,7 +19,7 @@ class MasterClockZMQ:
     """
     def __init__(self, topology_csv, mode="FBS", mesh_type="RADIAL",
                  V_base=400.0, S_base=100000.0, port_rep=5555, port_pub=5556,
-                 comm_scenario="IDEAL", comm_seed=None):
+                 comm_scenario="IDEAL", comm_seed=None, max_hold_seconds=5.0):
         self.topology_csv = topology_csv
         self.mode = mode.upper()
         self.mesh_type = mesh_type.upper()
@@ -27,6 +27,7 @@ class MasterClockZMQ:
         self.S_base = S_base
         self.port_rep = port_rep
         self.port_pub = port_pub
+        self.max_hold_seconds = max_hold_seconds
 
         # Inicializar solucionador
         if self.mode == "FBS":
@@ -44,6 +45,11 @@ class MasterClockZMQ:
         # Emulador de Canal de Comunicación
         self.comm_emulator = CommunicationEmulator(scenario=comm_scenario, seed=comm_seed)
 
+        # Seguimiento de frescura e inyecciones para política Hold Last Value / Disyuntor
+        self.last_known_injections = {}
+        self.node_stale_steps = {}
+        self.tripped_nodes = set()
+
         # ZeroMQ Setup
         self.context = zmq.Context()
         self.rep_socket = self.context.socket(zmq.REP)
@@ -58,6 +64,15 @@ class MasterClockZMQ:
 
         self.running = False
 
+    def set_operating_mode(self, operating_mode: str, slack_node: int = 1, V_slack: float = 1.0):
+        """
+        Permite la transición ciber-física entre modos ONLINE y OFFLINE (isla).
+        En modo FBS reconfigura la barra Slack correspondiente.
+        """
+        if hasattr(self.solver, "set_operating_mode"):
+            return self.solver.set_operating_mode(operating_mode, slack_node, V_slack)
+        return operating_mode, slack_node, V_slack
+
     def run_step(self, node_injections):
         """
         Ejecuta un paso maestro de flujo de potencia con las inyecciones recolectadas.
@@ -65,6 +80,11 @@ class MasterClockZMQ:
         Si el emulador de comunicaciones está activo (escenario != IDEAL), introduce:
           1. Retardo variable (latencia/jitter) antes de procesar las inyecciones.
           2. Pérdida de paquetes: descarte aleatorio de inyecciones de nodo.
+
+        Política de Retención (Hold Last Value) y Apertura de Disyuntor (> 5.0 s):
+          - Si un paquete se pierde temporalmente (<= 5.0 s), se retiene la última inyección conocida.
+          - Si la ausencia supera 5.0 s (> 10 macro-pasos), se asume apertura del disyuntor físico
+            y se reduce la inyección nodal a P = 0.0 W, Q = 0.0 var.
 
         Parámetros:
             node_injections: {node_id: {"P": watts, "Q": vars}}
@@ -78,8 +98,38 @@ class MasterClockZMQ:
         # Emular pérdida de paquetes: filtrar inyecciones
         filtered_injections = self.comm_emulator.filter_injections(node_injections)
 
-        P_dict = {int(k): v["P"] for k, v in filtered_injections.items()}
-        Q_dict = {int(k): v["Q"] for k, v in filtered_injections.items()}
+        # Actualizar o aplicar política de retención y apertura de disyuntor
+        all_candidate_nodes = set(list(node_injections.keys()) + list(self.last_known_injections.keys()))
+        effective_injections = {}
+        stale_nodes = []
+
+        for raw_node in all_candidate_nodes:
+            n_int = int(raw_node)
+            n_str = str(raw_node)
+
+            if n_str in filtered_injections or n_int in filtered_injections:
+                inj = filtered_injections.get(n_str, filtered_injections.get(n_int))
+                self.last_known_injections[n_int] = {"P": float(inj["P"]), "Q": float(inj["Q"])}
+                self.node_stale_steps[n_int] = 0
+                self.tripped_nodes.discard(n_int)
+                effective_injections[n_int] = self.last_known_injections[n_int]
+            else:
+                # Nodo no recibido en este paso (pérdida de paquete o nodo desconectado)
+                stale_cnt = self.node_stale_steps.get(n_int, 0) + 1
+                self.node_stale_steps[n_int] = stale_cnt
+                stale_time = stale_cnt * self.dt
+
+                if stale_time > self.max_hold_seconds:
+                    # Apertura definitiva de disyuntor: potencia nula
+                    self.tripped_nodes.add(n_int)
+                    effective_injections[n_int] = {"P": 0.0, "Q": 0.0}
+                else:
+                    # Retener último valor conocido (Hold Last Value transitorio)
+                    stale_nodes.append(n_int)
+                    effective_injections[n_int] = self.last_known_injections.get(n_int, {"P": 0.0, "Q": 0.0})
+
+        P_dict = {n: effective_injections[n]["P"] for n in effective_injections}
+        Q_dict = {n: effective_injections[n]["Q"] for n in effective_injections}
 
         voltages_complex, conv, iters = self.solver.solve(P_dict, Q_dict)
 
@@ -103,6 +153,8 @@ class MasterClockZMQ:
             "comm_delay_s": round(delay_applied, 4),
             "comm_nodes_received": len(filtered_injections),
             "comm_nodes_dropped": len(node_injections) - len(filtered_injections),
+            "stale_nodes": stale_nodes,
+            "tripped_nodes": list(self.tripped_nodes)
         }
 
         # Publicar los nuevos voltajes a todos los nodos

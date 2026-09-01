@@ -1,0 +1,55 @@
+{
+    "descripcion": "Configuracion de los 5 Nodos de Demanda Pasiva (Nodos 4 a 8)",
+    "nodos": [
+        {
+            "nodo_id": 4,
+            "etiqueta": "D1_Residencial_Urbano",
+            "tipo_consumo": "RESIDENCIAL",
+            "potencia_activa_base_kW": 15.0,
+            "potencia_reactiva_base_kVAR": 3.9,
+            "factor_potencia_nominal": 0.968,
+            "modelo_carga": "POTENCIA_CONSTANTE_PQ",
+            "prioridad_deslastre": 3
+        },
+        {
+            "nodo_id": 5,
+            "etiqueta": "D2_Comercial_Plaza",
+            "tipo_consumo": "COMERCIAL",
+            "potencia_activa_base_kW": 15.0,
+            "potencia_reactiva_base_kVAR": 4.8,
+            "factor_potencia_nominal": 0.952,
+            "modelo_carga": "POTENCIA_CONSTANTE_PQ",
+            "prioridad_deslastre": 2
+        },
+        {
+            "nodo_id": 6,
+            "etiqueta": "D3_Industrial_Pequena",
+            "tipo_consumo": "INDUSTRIAL_LIGERO",
+            "potencia_activa_base_kW": 20.0,
+            "potencia_reactiva_base_kVAR": 9.0,
+            "factor_potencia_nominal": 0.912,
+            "modelo_carga": "IMPEDANCIA_CONSTANTE_Z",
+            "prioridad_deslastre": 1
+        },
+        {
+            "nodo_id": 7,
+            "etiqueta": "D4_Servicios_Bombeo",
+            "tipo_consumo": "SERVICIOS_PUBLICOS",
+            "potencia_activa_base_kW": 10.0,
+            "potencia_reactiva_base_kVAR": 3.3,
+            "factor_potencia_nominal": 0.950,
+            "modelo_carga": "CORRIENTE_CONSTANTE_I",
+            "prioridad_deslastre": 1
+        },
+        {
+            "nodo_id": 8,
+            "etiqueta": "D5_Residencial_Periferico",
+            "tipo_consumo": "RESIDENCIAL",
+            "potencia_activa_base_kW": 8.0,
+            "potencia_reactiva_base_kVAR": 2.2,
+            "factor_potencia_nominal": 0.964,
+            "modelo_carga": "POTENCIA_CONSTANTE_PQ",
+            "prioridad_deslastre": 4
+        }
+    ]
+}

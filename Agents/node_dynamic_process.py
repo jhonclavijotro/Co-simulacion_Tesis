@@ -17,9 +17,12 @@ class NodeDynamicProcess:
     Proceso ejecutable de la Dinámica Físico-Eléctrica por Nodo.
     Lee series temporales desde mock_data y calcula la respuesta física del generador.
     """
-    def __init__(self, node_id, source_type="SOLAR"):
+    def __init__(self, node_id, source_type="SOLAR", hold_mode="ZOH", zfoh_lambda=0.7):
         self.node_id = node_id
         self.source_type = source_type.upper()
+        self.hold_mode = hold_mode.upper()
+        self.zfoh_lambda = float(zfoh_lambda)
+        self.V_pcc_prev = None
         self.data_loader = MockDataLoader()
         self.step_index = 0
 
@@ -39,11 +42,18 @@ class NodeDynamicProcess:
         else:
             raise ValueError(f"Tipo de fuente desconocido: {source_type}")
 
-    def step_macro(self, V_pcc=400.0, Q_ref=0.0, macro_dt=0.5, micro_dt=0.001):
+    def step_macro(self, V_pcc=400.0, Q_ref=0.0, macro_dt=0.5, micro_dt=0.001, hold_mode=None, zfoh_lambda=None):
         """
         Ejecuta un macro-paso de co-simulación (H = 500 ms) compuesto por 500 micro-pasos (h = 1 ms).
-        V_pcc se mantiene en ZOH durante la ventana de comunicación.
+        
+        Esquemas de Reconstrucción de Señal (Hold):
+          - ZOH:  V_step(i) = V_pcc (constante a tramos, O(H))
+          - FOH:  V_step(i) = V_pcc + dV/dt * (i * h) (lineal a tramos, O(H^2))
+          - ZFOH: V_step(i) = V_pcc + lambda * dV/dt * (i * h) (combinación convexa, lambda in [0, 1])
         """
+        active_hold = (hold_mode or self.hold_mode).upper()
+        active_lambda = float(zfoh_lambda if zfoh_lambda is not None else self.zfoh_lambda)
+
         # 1. Cargar datos de entrada según el tipo de fuente
         if self.source_type == "SOLAR":
             poa, temp = self.data_loader.get_solar_at(self.step_index)
@@ -56,13 +66,31 @@ class NodeDynamicProcess:
             vc = self.data_loader.get_hydro_at(self.step_index)
             self.model.Vc = vc
 
-        # 2. Ejecutar integración física de 500 micro-pasos (1 kHz)
+        # 2. Inicialización de memoria de extrapolación para paso 0 (flat start)
+        if self.V_pcc_prev is None:
+            self.V_pcc_prev = float(V_pcc)
+
+        # Cálculo de la tasa de cambio de tensión en el macro-paso
+        dV_dt = (float(V_pcc) - self.V_pcc_prev) / float(macro_dt) if macro_dt > 0 else 0.0
+
+        # 3. Ejecutar integración física de 500 micro-pasos (1 kHz) con reconstrucción de señal
         n_substeps = max(1, int(round(macro_dt / micro_dt)))
         setpoints = {"Q_ref_kvar": Q_ref / 1000.0}
         ctx = None
-        for _ in range(n_substeps):
-            ctx = self.model.step(dt=micro_dt, V_pcc=V_pcc, setpoints=setpoints)
 
+        for i in range(n_substeps):
+            t_sub = i * micro_dt
+            if active_hold == "FOH":
+                V_sub = float(V_pcc) + dV_dt * t_sub
+            elif active_hold == "ZFOH":
+                V_sub = float(V_pcc) + active_lambda * dV_dt * t_sub
+            else:  # ZOH por defecto
+                V_sub = float(V_pcc)
+
+            ctx = self.model.step(dt=micro_dt, V_pcc=V_sub, setpoints=setpoints)
+
+        # Actualizar memoria de tensión previa para el próximo macro-paso
+        self.V_pcc_prev = float(V_pcc)
         self.step_index += 1
 
         # Mapeo explícito de claves de potencia activa por tipo de fuente.

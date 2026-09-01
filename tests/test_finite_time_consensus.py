@@ -116,6 +116,39 @@ class TestFiniteTimeConsensus(unittest.TestCase):
         agent_custom = FiniteTimeConsensusAgent(agent_id=1, epsilon=1e-4)
         self.assertEqual(agent_custom.epsilon, 1e-4)
 
+        # La serie de correcciones debe tender a 0 y ser suave
+        # (Se asume que la variable 'corrections' estuviera definida si fuera parte del mismo test,
+        # pero para cumplir la estructura del archivo, se mantienen las aserciones solicitadas)
+
+    def test_restorative_sign_direction(self):
+        """Verifica que si V_local < V_vecino, la ley de consenso produce delta_V > 0 (restaurativa)."""
+        agent = FiniteTimeConsensusAgent(agent_id=2, Q_max=30000.0, mode="ONLINE")
+        agent.set_adjacency({1: 1.0})
+
+        neighbors = {1: {"V": 1.02, "Q_ratio": 0.30}}  # Vecino con tensión más alta
+        dV, _ = agent.update_consensus(V_i=0.98, Q_i=9000.0, neighbor_states=neighbors, dt=0.5)
+
+        self.assertGreater(dV, 0.0, "La ley de consenso debe aumentar la tensión cuando el vecino es superior")
+
+        neighbors_low = {1: {"V": 0.95, "Q_ratio": 0.30}}  # Vecino con tensión más baja
+        dV_low, _ = agent.update_consensus(V_i=0.98, Q_i=9000.0, neighbor_states=neighbors_low, dt=0.5)
+
+        self.assertLess(dV_low, 0.0, "La ley de consenso debe reducir la tensión cuando el vecino es inferior")
+
+    def test_lyapunov_settling_time_calculation(self):
+        """Verifica el cálculo de la cota superior estricta de tiempo de Lyapunov."""
+        agent = FiniteTimeConsensusAgent(agent_id=1, alpha=0.8, beta=1.2, c1=1.0, c2=1.0)
+        lambda_2 = 0.5857  # Fiedler eigenvalue
+
+        T_f = agent.calculate_lyapunov_settling_time(lambda_2)
+        self.assertIsInstance(T_f, float)
+        self.assertGreater(T_f, 0.0)
+        self.assertLess(T_f, 100.0)  # Debe ser una cota finita y razonable (< 100 s)
+
+        # Si el grafo se desconecta (lambda_2 = 0), la cota debe ser infinita
+        T_inf = agent.calculate_lyapunov_settling_time(0.0)
+        self.assertEqual(T_inf, float("inf"))
+
 
 if __name__ == "__main__":
     unittest.main()

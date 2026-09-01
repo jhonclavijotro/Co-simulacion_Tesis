@@ -1,0 +1,55 @@
+{
+    "proyecto": "Tesis_MAS_CoSimulacion_8Nodos",
+    "descripcion": "Configuracion de Ejecucion de Co-simulacion Ciber-Fisica Distribuida",
+    "parametros_generales": {
+        "duracion_total_segundos": 60.0,
+        "paso_macro_reloj_s": 0.5,
+        "paso_micro_dinamica_s": 0.001,
+        "sub_pasos_por_macro": 500,
+        "modo_solucionador_potencia": "FBS",
+        "tipo_malla": "RADIAL",
+        "tension_base_V": 400.0,
+        "potencia_base_kVA": 100.0,
+        "frecuencia_nominal_Hz": 60.0
+    },
+    "comunicaciones_zeromq": {
+        "pc_central_ip": "127.0.0.1",
+        "puerto_rep_reloj": 5555,
+        "puerto_pub_reloj": 5556,
+        "timeout_rcv_ms": 2000,
+        "timeout_snd_ms": 1000,
+        "max_hold_last_value_s": 5.0
+    },
+    "emulador_canal": {
+        "escenario": "IDEAL",
+        "probabilidad_perdida": 0.0,
+        "latencia_media_ms": 15.0,
+        "jitter_ms": 5.0
+    },
+    "asignacion_nodos": {
+        "nodo_1": {
+            "nombre": "SLACK_RED_PRINCIPAL",
+            "host": "PC_CENTRAL",
+            "tension_ref_pu": 1.00,
+            "angulo_ref_rad": 0.0
+        },
+        "nodo_2": {
+            "nombre": "SOLAR_PV",
+            "host": "RASPBERRY_PI_5",
+            "archivo_config": "Forms/plantilla_nodo_solar.json",
+            "archivo_serie": "Forms/plantilla_datos_solares.csv"
+        },
+        "nodo_3": {
+            "nombre": "BESS",
+            "host": "PC_CENTRAL",
+            "archivo_config": "Forms/plantilla_nodo_bess.json"
+        },
+        "nodos_demanda": {
+            "archivo_config": "Forms/plantilla_nodos_demanda.json",
+            "archivo_serie": "Forms/plantilla_demanda_5nodos.csv"
+        }
+    },
+    "archivos_topologia": {
+        "topologia_csv": "Forms/plantilla_topologia_red_8nodos.csv"
+    }
+}
