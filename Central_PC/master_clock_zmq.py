@@ -41,6 +41,11 @@ class MasterClockZMQ:
 
         self.step_index = 0
         self.dt = 0.5  # 500 ms por paso maestro
+        self.f_sys = 60.0
+        self.f_nom = 60.0
+        self.H_sys = 2.0
+        self.D_sys = 1.0
+        self.operating_mode = "ONLINE"
 
         # Emulador de Canal de Comunicación
         self.comm_emulator = CommunicationEmulator(scenario=comm_scenario, seed=comm_seed)
@@ -69,9 +74,10 @@ class MasterClockZMQ:
         Permite la transición ciber-física entre modos ONLINE y OFFLINE (isla).
         En modo FBS reconfigura la barra Slack correspondiente.
         """
+        self.operating_mode = operating_mode.upper()
         if hasattr(self.solver, "set_operating_mode"):
             return self.solver.set_operating_mode(operating_mode, slack_node, V_slack)
-        return operating_mode, slack_node, V_slack
+        return self.operating_mode, slack_node, V_slack
 
     def run_step(self, node_injections):
         """
@@ -133,6 +139,15 @@ class MasterClockZMQ:
 
         voltages_complex, conv, iters = self.solver.solve(P_dict, Q_dict)
 
+        # Dinámica de frecuencia del sistema (Swing Equation en modo isla)
+        if hasattr(self.solver, "compute_frequency_dynamics"):
+            self.f_sys, p_net = self.solver.compute_frequency_dynamics(
+                P_dict, f_prev=self.f_sys, dt=self.dt, H_sys=self.H_sys, D_sys=self.D_sys, f_nom=self.f_nom
+            )
+        else:
+            p_net = sum(P_dict.values())
+            self.f_sys = self.f_nom
+
         voltages_out = {}
         for node, v_val in voltages_complex.items():
             voltages_out[node] = {
@@ -146,9 +161,13 @@ class MasterClockZMQ:
             "time_sec": round(self.step_index * self.dt, 2),
             "mode": self.mode,
             "mesh_type": self.mesh_type if self.mode == "SENSITIVITY" else "RADIAL",
+            "operating_mode": getattr(self.solver, "operating_mode", self.operating_mode),
             "converged": conv,
             "iterations": iters,
             "voltages": voltages_out,
+            "f_sys_hz": round(self.f_sys, 4),
+            "omega_sys": round(self.f_sys * 2.0 * 3.141592653589793, 4),
+            "P_net_w": round(p_net, 2),
             "comm_scenario": self.comm_emulator.scenario,
             "comm_delay_s": round(delay_applied, 4),
             "comm_nodes_received": len(filtered_injections),

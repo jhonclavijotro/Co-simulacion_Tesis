@@ -16,19 +16,27 @@ class SistemaDiesel:
     eliminando modelos analógicos electromecánicos pesados no requeridos en inversores electrónicos.
     """
 
-    def __init__(self, P_nominal=50000.0, Vdcref=400.0, eta=0.95, tau_P=0.05):
-        """Inicializa el nodo Diésel homogeneizado como VSI-dq.
+    def __init__(self, P_nominal=50000.0, Vdcref=400.0, eta=0.95, tau_P=0.05,
+                 m_p=6.283e-5, f_nom=60.0, droop_enabled=True):
+        """Inicializa el nodo Diésel homogeneizado como VSI-dq con droop primario.
 
         Parámetros:
-            P_nominal: Potencia activa nominal del grupo Diésel [W] (default: 50 kW).
-            Vdcref:    Tensión de referencia del bus DC [V] (default: 400 V).
-            eta:       Eficiencia de conversión global [0..1].
-            tau_P:     Constante de tiempo de respuesta de potencia [s].
+            P_nominal:     Potencia activa nominal del grupo Diésel [W] (default: 50 kW).
+            Vdcref:        Tensión de referencia del bus DC [V] (default: 400 V).
+            eta:           Eficiencia de conversión global [0..1].
+            tau_P:         Constante de tiempo de respuesta de potencia [s].
+            m_p:           Pendiente droop de frecuencia [rad/(s*W)] (default: 5% a P_nom).
+            f_nom:         Frecuencia nominal de red [Hz] (default: 60 Hz).
+            droop_enabled: Habilita el lazo de droop primario omega-P.
         """
         self.P_nominal = float(P_nominal)
         self.Vdcref = float(Vdcref)
         self.eta = float(eta)
         self.tau_P = float(tau_P)
+        self.m_p = float(m_p)
+        self.f_nom = float(f_nom)
+        self.omega_nom = 2.0 * np.pi * self.f_nom
+        self.droop_enabled = droop_enabled
         self.C_dc = 0.002
 
         # Lazo de regulación de Vdc
@@ -53,12 +61,17 @@ class SistemaDiesel:
             "Vdi": 230.0,
             "Vqi": 0.0,
             "theta0": 0.0,
-            "Fsys": 60.0,
+            "Fsys": self.f_nom,
             "Pw": 0.0,
             "Pq": 0.0,
             "Idi": 0.0,
             "Iqi": 0.0,
             "Vdt": 0.0,
+            "delta_omega": 0.0,
+            "delta_P": 0.0,
+            "P_droop": 0.0,
+            "P_target": self.P_nominal,
+            "P_max": self.P_nominal,
         }
 
     def step(self, dt=0.001, V_pcc=None, setpoints=None):
@@ -67,23 +80,47 @@ class SistemaDiesel:
         Parámetros:
             dt:        Paso de integración [s] (default: 1 ms).
             V_pcc:     Tensión medida en el PCC [V o tupla (Va, Vb, Vc)].
-            setpoints: Diccionario opcional de consignas (P_ref, Q_ref_kvar, etc.).
+            setpoints: Diccionario opcional de consignas (P_ref, delta_P, delta_omega, Q_ref_kvar, etc.).
         """
         ctx = self.contexto
 
-        # 1. Actualización de consignas exógenas
+        # 1. Actualización de consignas exógenas y lazo de control secundario
+        delta_P = 0.0
+        delta_omega = 0.0
         if setpoints:
             if "pref_ajuste" in setpoints:
                 self.pref = float(setpoints["pref_ajuste"])
-                ctx["pref"] = self.pref
             elif "P_ref" in setpoints:
                 self.pref = float(setpoints["P_ref"])
-                ctx["pref"] = self.pref
+            elif "P_ref_w" in setpoints:
+                self.pref = float(setpoints["P_ref_w"])
             if "Q_ref_kvar" in setpoints:
                 ctx["Pq"] = setpoints["Q_ref_kvar"] * 1000.0
 
+            delta_P = float(setpoints.get("delta_P", 0.0))
+            delta_omega = float(setpoints.get("delta_omega", 0.0))
+            if "delta_f" in setpoints:
+                delta_omega = float(setpoints["delta_f"]) * 2.0 * np.pi
+
+        # Lazo Droop Primario omega-P con offset secundario
+        P_target = self.pref + delta_P
+        P_droop = 0.0
+        if self.droop_enabled and self.m_p > 0:
+            omega_pll = 2.0 * np.pi * ctx.get("Fsys", self.f_nom)
+            omega_ref = self.omega_nom + delta_omega
+            P_droop = -(omega_pll - omega_ref) / self.m_p
+            P_target += P_droop
+
+        P_target = max(0.0, min(self.P_nominal * 1.2, P_target))
+        ctx["pref"] = self.pref
+        ctx["P_target"] = P_target
+        ctx["P_droop"] = P_droop
+        ctx["delta_P"] = delta_P
+        ctx["delta_omega"] = delta_omega
+        ctx["P_max"] = self.P_nominal
+
         # 2. Dinámica de primer orden de entrega de potencia de la fuente primaria
-        dP = (self.pref - ctx["P_gen"]) / max(1e-4, self.tau_P)
+        dP = (P_target - ctx["P_gen"]) / max(1e-4, self.tau_P)
         ctx["P_gen"] = max(0.0, min(ctx["P_gen"] + dP * dt, self.P_nominal * 1.2))
         ctx["Pm"] = ctx["P_gen"]
         ctx["Pgen"] = ctx["P_gen"] * self.eta

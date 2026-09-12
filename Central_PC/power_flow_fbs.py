@@ -132,7 +132,24 @@ class ForwardBackwardSweepSolver:
                 converged = True
                 break
 
+        self.P_net = sum(P_injections.get(n, 0.0) for n in self.nodes if n != self.slack_node)
+        self.Q_net = sum(Q_injections.get(n, 0.0) for n in self.nodes if n != self.slack_node)
         return V, converged, iterations
+
+    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=1.0, f_nom=60.0):
+        """Calcula la respuesta dinámica de frecuencia mediante la ecuación de oscilación (Swing Equation).
+        df/dt = (Delta P_net / (2 * H * S_base)) * f_nom - D * (f - f_nom)
+        """
+        p_net = sum(float(v) for v in P_injections.values())
+        self.P_net = p_net
+
+        if self.operating_mode == "ONLINE":
+            return f_nom, p_net
+
+        delta_P_pu = p_net / self.S_base
+        df_dt = (delta_P_pu / (2.0 * max(0.1, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
+        f_new = max(55.0, min(65.0, f_prev + df_dt * dt))
+        return f_new, p_net
 
 if __name__ == "__main__":
     solver = ForwardBackwardSweepSolver(V_base=400.0, S_base=100000.0)

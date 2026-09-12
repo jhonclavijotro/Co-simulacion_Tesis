@@ -24,11 +24,16 @@ class SistemaBESS:
 
     def __init__(self, V_nominal=48.0, capacidad_Ah=200.0, SoC_inicial=0.5,
                  N_serie=10, N_paralelo=1, Vdcref=400, V_rms=110.0,
-                 modo="promedio", I_inv_max=50.0, N_inv=1, V_base_MT=13800.0, S_base_planta=1000000.0):
+                 modo="promedio", I_inv_max=50.0, N_inv=1, V_base_MT=13800.0, S_base_planta=1000000.0,
+                 m_p=1.57e-4, f_nom=60.0, droop_enabled=True):
         self.modo = modo
         self.N_inv = max(1, int(N_inv))
         self.V_base_MT = float(V_base_MT)
         self.S_base_planta = float(S_base_planta)
+        self.m_p = float(m_p)
+        self.f_nom = float(f_nom)
+        self.omega_nom = 2.0 * np.pi * self.f_nom
+        self.droop_enabled = droop_enabled
 
         self.bateria = Bateria(
             V_nominal=V_nominal, capacidad_Ah=capacidad_Ah,
@@ -54,6 +59,7 @@ class SistemaBESS:
         self.datos = []
 
         V_pack = self.bateria.V_nominal_pack
+        p_base = float(self.Vdcref * self._I_inv_max)
 
         self.contexto = {
             "time": 0.0,
@@ -71,14 +77,37 @@ class SistemaBESS:
             "theta0": 0.0,
             "Vdi": self.V_rms,
             "Vqi": 0.0,
-            "Fsys": 60.0,
+            "Fsys": self.f_nom,
             "Pw": 0.0,
             "Pq": 0.0,
             "P_inv_ac": 0.0,
             "V_pcc_pu": 1.0,
             "lvrt_scaling": 1.0,
             "I_inv_lim": I_inv_max,
+            "delta_P": 0.0,
+            "delta_omega": 0.0,
+            "P_droop": 0.0,
+            "P_target": 0.0,
+            "P_disponible": p_base,
+            "P_max": p_base,
         }
+
+    @property
+    def P_disponible(self) -> float:
+        """Potencia activa disponible según el Estado de Carga (SoC).
+        Si SoC <= 0.20 (límite mínimo de descarga), la potencia disponible es 0.
+        Para SoC entre 0.20 y 0.90, escala linealmente con el margen de energía.
+        """
+        soc = self.contexto.get("SoC", self.bateria.SoC)
+        soc_min = 0.20
+        soc_max = 0.90
+        p_base = float(self.Vdcref * self._I_inv_max)
+        if soc <= soc_min:
+            return 0.0
+        elif soc >= soc_max:
+            return p_base
+        else:
+            return p_base * ((soc - soc_min) / (soc_max - soc_min))
 
     @property
     def I_inv_max(self):
@@ -213,22 +242,51 @@ class SistemaBESS:
     def step(self, dt=0.001, V_pcc=None, setpoints=None):
         P_ref = 0.0
         Q_ref = 0.0
+        delta_P = 0.0
+        delta_omega = 0.0
         if setpoints:
             if "P_ref_w" in setpoints:
-                P_ref = setpoints["P_ref_w"]
+                P_ref = float(setpoints["P_ref_w"])
+            elif "P_ref" in setpoints:
+                P_ref = float(setpoints["P_ref"])
             if "Q_ref_kvar" in setpoints:
-                Q_ref = setpoints["Q_ref_kvar"]
+                Q_ref = float(setpoints["Q_ref_kvar"])
+
+            delta_P = float(setpoints.get("delta_P", 0.0))
+            delta_omega = float(setpoints.get("delta_omega", 0.0))
+            if "delta_f" in setpoints:
+                delta_omega = float(setpoints["delta_f"]) * 2.0 * np.pi
+
+        # Lazo Droop Primario omega-P con offset secundario
+        P_droop = 0.0
+        if self.droop_enabled and self.m_p > 0:
+            omega_pll = 2.0 * np.pi * self.contexto.get("Fsys", self.f_nom)
+            omega_ref = self.omega_nom + delta_omega
+            P_droop = -(omega_pll - omega_ref) / self.m_p
+
+        P_target = P_ref + delta_P + P_droop
+
+        # Limitar por potencia disponible según SoC
+        p_disp = self.P_disponible
+        P_target = max(-p_disp, min(p_disp, P_target))
+
+        self.contexto["P_target"] = P_target
+        self.contexto["P_droop"] = P_droop
+        self.contexto["delta_P"] = delta_P
+        self.contexto["delta_omega"] = delta_omega
+        self.contexto["P_disponible"] = p_disp
+        self.contexto["P_max"] = p_disp
 
         paso = (self._paso_interno_detallado if self.modo == "detallado"
                 else self._paso_interno_promedio)
 
         if dt <= self.sample_time:
-            paso(dt, V_pcc, P_ref, Q_ref)
+            paso(dt, V_pcc, P_target, Q_ref)
         else:
             n = max(1, round(dt / self.sample_time))
             dt_int = dt / n
             for _ in range(n):
-                paso(dt_int, V_pcc, P_ref, Q_ref)
+                paso(dt_int, V_pcc, P_target, Q_ref)
 
         return dict(self.contexto)
 

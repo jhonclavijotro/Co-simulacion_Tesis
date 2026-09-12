@@ -14,6 +14,7 @@ class SensitivityMatrixSolver:
         self.V_base = V_base
         self.S_base = S_base
         self.mesh_type = mesh_type.upper()
+        self.operating_mode = "ONLINE"
         self.nodes = []
         self.slack_node = 1
         self.S_VQ = {}  # Dict {(i, j): sensitivity_val}
@@ -120,7 +121,27 @@ class SensitivityMatrixSolver:
             v_mag = 1.0 + delta_V
             V_res[i] = complex(v_mag, 0.0)
 
+        self.P_net = sum(P_injections.get(j, 0.0) for j in non_slack_nodes)
+        self.Q_net = sum(Q_injections.get(j, 0.0) for j in non_slack_nodes)
         return V_res, True, 1
+
+    def set_operating_mode(self, mode: str, slack_node: int = 1, V_slack: float = 1.0):
+        self.operating_mode = mode.upper()
+        self.slack_node = slack_node
+        return self.operating_mode, self.slack_node, V_slack
+
+    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=1.0, f_nom=60.0):
+        """Calcula la dinámica de frecuencia en modo isla para SensitivityMatrixSolver."""
+        p_net = sum(float(v) for v in P_injections.values())
+        self.P_net = p_net
+
+        if self.operating_mode == "ONLINE":
+            return f_nom, p_net
+
+        delta_P_pu = p_net / self.S_base
+        df_dt = (delta_P_pu / (2.0 * max(0.1, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
+        f_new = max(55.0, min(65.0, f_prev + df_dt * dt))
+        return f_new, p_net
 
 if __name__ == "__main__":
     solver = SensitivityMatrixSolver(V_base=400.0, S_base=100000.0, mesh_type="RING_ZBUS")

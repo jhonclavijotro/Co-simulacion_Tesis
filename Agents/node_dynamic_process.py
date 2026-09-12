@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import math
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -42,7 +43,8 @@ class NodeDynamicProcess:
         else:
             raise ValueError(f"Tipo de fuente desconocido: {source_type}")
 
-    def step_macro(self, V_pcc=400.0, Q_ref=0.0, macro_dt=0.5, micro_dt=0.001, hold_mode=None, zfoh_lambda=None):
+    def step_macro(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0,
+                   macro_dt=0.5, micro_dt=0.001, hold_mode=None, zfoh_lambda=None):
         """
         Ejecuta un macro-paso de co-simulación (H = 500 ms) compuesto por 500 micro-pasos (h = 1 ms).
         
@@ -75,7 +77,13 @@ class NodeDynamicProcess:
 
         # 3. Ejecutar integración física de 500 micro-pasos (1 kHz) con reconstrucción de señal
         n_substeps = max(1, int(round(macro_dt / micro_dt)))
-        setpoints = {"Q_ref_kvar": Q_ref / 1000.0}
+        setpoints = {
+            "Q_ref_kvar": Q_ref / 1000.0,
+            "P_ref": P_ref,
+            "P_ref_w": P_ref,
+            "delta_P": delta_P,
+            "delta_omega": delta_omega
+        }
         ctx = None
 
         for i in range(n_substeps):
@@ -112,18 +120,35 @@ class NodeDynamicProcess:
 
         # Q_var: usar 0.0 como neutral seguro si el contexto no la reporta
         Q_var = ctx.get("Pq", 0.0) if ctx else 0.0
+        Fsys = ctx.get("Fsys", 60.0) if ctx else 60.0
+        omega_i = 2.0 * math.pi * Fsys
+
+        # Determinación de P_max disponible para el agente MAS
+        P_max = 50000.0
+        if ctx and "P_max" in ctx:
+            P_max = float(ctx["P_max"])
+        elif hasattr(self.model, "P_disponible"):
+            P_max = float(self.model.P_disponible)
+        elif hasattr(self.model, "P_nominal"):
+            P_max = float(self.model.P_nominal)
+        
+        P_ratio = (P_w / P_max) if P_max > 0 else 0.0
 
         return {
             "node_id": self.node_id,
             "source_type": self.source_type,
             "step": self.step_index,
             "P_w": round(P_w, 2),
-            "Q_var": round(Q_var, 2)
+            "Q_var": round(Q_var, 2),
+            "Fsys": round(Fsys, 4),
+            "omega": round(omega_i, 4),
+            "P_max": round(P_max, 2),
+            "P_ratio": round(P_ratio, 4)
         }
 
-    def step(self, V_pcc=400.0, Q_ref=0.0):
+    def step(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0):
         """Alias retrocompatible para ejecutar un macro-paso de co-simulación."""
-        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, macro_dt=0.5, micro_dt=0.001)
+        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, P_ref=P_ref, delta_P=delta_P, delta_omega=delta_omega, macro_dt=0.5, micro_dt=0.001)
 
 
 if __name__ == "__main__":
