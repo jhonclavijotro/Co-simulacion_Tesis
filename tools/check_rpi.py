@@ -1,6 +1,12 @@
 import socket
 import paramiko
 import sys
+import io
+
+# Forzar salida en utf-8 para terminal Windows
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 
 rpi_list = [
     {"name": "MASTER_2", "ip": "10.0.0.151", "user": "admin", "password": "Autonoma2018"},
@@ -8,6 +14,7 @@ rpi_list = [
     {"name": "RP5-Nodo2B", "ip": "10.0.0.153", "user": "admin", "password": "Autonoma2018"},
     {"name": "RP5-Nodo2C", "ip": "10.0.0.154", "user": "admin", "password": "Autonoma2018"},
     {"name": "RP5-Nodo2D", "ip": "10.0.0.155", "user": "admin", "password": "Autonoma2018"},
+    {"name": "DATA", "ip": "10.0.0.160", "user": "jhonclavijotro", "password": "Jhonathan/7319"},
 ]
 
 def check_rpi(pi):

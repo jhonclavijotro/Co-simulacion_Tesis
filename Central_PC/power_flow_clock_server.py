@@ -101,29 +101,35 @@ class PowerFlowClockServer:
 
                 t_next += self.step_dt
 
-                # Recolectar inyecciones enviadas por las Raspberry Pis
+                # Recolectar inyecciones enviadas por las Raspberry Pis (drenar todos los nodos)
                 injections = dict(last_injections)
                 t_poll_limit = max(0.01, t_next - time.perf_counter())
-                poll_timeout_ms = int(t_poll_limit * 1000)
+                poll_deadline = time.perf_counter() + min(t_poll_limit, 0.45)
 
-                socks = dict(poller.poll(timeout=min(poll_timeout_ms, 450)))
-                if self.master.rep_socket in socks and socks[self.master.rep_socket] == zmq.POLLIN:
-                    try:
-                        req_msg = self.master.rep_socket.recv_json()
-                        node_id = req_msg.get("node_id")
-                        if "injections" in req_msg:
-                            injections.update(req_msg["injections"])
-                        elif node_id is not None:
-                            injections[str(node_id)] = {
-                                "P": float(req_msg.get("P_w", 0.0)),
-                                "Q": float(req_msg.get("Q_var", 0.0))
-                            }
-                        last_injections = injections
+                while time.perf_counter() < poll_deadline:
+                    time_left_ms = max(1, int((poll_deadline - time.perf_counter()) * 1000))
+                    socks = dict(poller.poll(timeout=min(time_left_ms, 40)))
+                    if self.master.rep_socket in socks and socks[self.master.rep_socket] == zmq.POLLIN:
+                        try:
+                            req_msg = self.master.rep_socket.recv_json()
+                            node_id = req_msg.get("node_id")
+                            if "injections" in req_msg:
+                                injections.update(req_msg["injections"])
+                            elif node_id is not None:
+                                injections[str(node_id)] = {
+                                    "P": float(req_msg.get("P_w", 0.0)),
+                                    "Q": float(req_msg.get("Q_var", 0.0))
+                                }
+                            last_injections = injections
 
-                        # Responder inmediatamente al nodo que envio datos
-                        self.master.rep_socket.send_json({"status": "ACK", "step": step})
-                    except Exception as e:
-                        pass
+                            # Responder inmediatamente al nodo que envio datos
+                            self.master.rep_socket.send_json({"status": "ACK", "step": step})
+                        except Exception:
+                            pass
+                    else:
+                        # Si no hay mas mensajes en cola y paso tiempo suficiente, continuar
+                        if time.perf_counter() > poll_deadline - 0.05:
+                            break
 
                 # Resolver flujo de potencia FBS a 13.8 kV
                 result = self.master.run_step(injections)

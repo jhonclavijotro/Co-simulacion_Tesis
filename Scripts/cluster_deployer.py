@@ -35,11 +35,15 @@ class ClusterDeployer:
     Lee directamente 'raspberry_list.md' como Fuente Unica de Verdad y gestiona
     el despliegue en las 5 Raspberry Pi 5 y la comunicacion con el PC Central.
     """
-    def __init__(self, list_path: str = "raspberry_list.md", remote_dir: str = "/home/admin/Desktop/test/Tesis_MAS_RPi"):
+    def __init__(self, list_path: str = "raspberry_list.md", base_folder_name: str = "Tesis_MAS_RPi"):
         self.list_path = os.path.abspath(list_path)
-        self.remote_dir = remote_dir
+        self.base_folder_name = base_folder_name
         self.master_host = get_local_ip()
         self.nodes = self._parse_raspberry_list()
+
+    def get_remote_dir(self, node: Dict[str, Any]) -> str:
+        """Calcula el directorio remoto correspondiente segun el usuario del nodo."""
+        return f"/home/{node['user']}/Desktop/test/{self.base_folder_name}"
 
     def _parse_raspberry_list(self) -> List[Dict[str, Any]]:
         """Parsea dinamicamente el archivo markdown con la lista de Raspberry Pis."""
@@ -61,18 +65,20 @@ class ClusterDeployer:
                         "password": pwd.strip()
                     })
 
-        # Asignacion de roles topologicos segun el plan
-        # RPi 0 -> Nodo 1 (Diesel Slack)
-        # RPi 1 -> Nodo 2 (Solar)
-        # RPi 2 -> Nodo 3 (BESS)
-        # RPi 3 -> Nodos 4,5,6 (3 Cargas)
-        # RPi 4 -> Nodo Monitor
+        # Asignacion de roles topologicos segun la distribucion de hardware:
+        # RPi 0 -> Nodo 1 (Diesel Slack) - 10.0.0.151
+        # RPi 1 -> Nodo 2 (Solar PV) - 10.0.0.152
+        # RPi 2 -> Nodo 3 (BESS Storage) - 10.0.0.153
+        # RPi 3 -> Nodos 4 y 5 (Cargas Residencial y Comercial) - 10.0.0.154
+        # RPi 4 -> Nodo 6 (Carga Industrial / Demandas) - 10.0.0.155
+        # RPi 5 -> DATA (Almacenamiento de Datos y Dashboard Web) - 10.0.0.160
         roles = [
-            {"role": "DIESEL_SLACK", "node_id": 1, "desc": "Nodo 1: Diesel (Slack en Isla)"},
-            {"role": "SOLAR_PV",     "node_id": 2, "desc": "Nodo 2: Solar Fotovoltaico"},
-            {"role": "BESS_STORAGE", "node_id": 3, "desc": "Nodo 3: BESS (Baterias)"},
-            {"role": "LOADS_TRIPLE", "node_id": [4, 5, 6], "desc": "Nodos 4, 5, 6: 3 Cargas de Demanda"},
-            {"role": "MONITOR_NODE", "node_id": "MON", "desc": "Nodo Monitor y Telemetria"}
+            {"role": "DIESEL_SLACK", "node_id": 1, "desc": "Nodo 1: Generador Diesel (Slack en Isla)"},
+            {"role": "SOLAR_PV",     "node_id": 2, "desc": "Nodo 2: Solar Fotovoltaico (PV)"},
+            {"role": "BESS_STORAGE", "node_id": 3, "desc": "Nodo 3: BESS (Almacenamiento en Baterias)"},
+            {"role": "LOADS_RES_COM", "node_id": [4, 5], "desc": "Nodos 4 y 5: Cargas Residencial y Comercial"},
+            {"role": "LOAD_IND",     "node_id": 6, "desc": "Nodo 6: Carga Industrial"},
+            {"role": "DATA_STORAGE", "node_id": "DATA", "desc": "Nodo DATA: Almacenamiento y Dashboard Web"}
         ]
 
         for i, node in enumerate(nodes):
@@ -124,30 +130,30 @@ class ClusterDeployer:
     def sync_code_to_all(self, local_root: str = "."):
         """Sincroniza el codigo fuente esencial del proyecto a cada Raspberry Pi."""
         print("\n" + "=" * 65)
-        print(" SINCRONIZANDO CODIGO HACIA TODAS LAS RASPBERRY PI 5")
-        print(f" Destino Remoto: {self.remote_dir}")
+        print(" SINCRONIZANDO CODIGO HACIA TODAS LAS RASPBERRY PI")
         print("=" * 65)
 
         items_to_sync = [
             "Agents", "Central_PC", "Solar", "Eolica", "Hidrica",
             "BESS", "Diesel", "Demanda", "config", "mock_data",
-            "common", "requirements.txt", "raspberry_list.md"
+            "Forms", "Docker", "common", "requirements.txt", "raspberry_list.md", "GUI"
         ]
 
         for node in self.nodes:
             ip = node["ip"]
             name = node["name"]
-            print(f"\n--> Sincronizando {name} ({ip})...")
+            remote_dir = self.get_remote_dir(node)
+            print(f"\n--> Sincronizando {name} ({ip}) en {remote_dir}...")
             try:
-                ssh = self._get_ssh_client(node, timeout=3)
+                ssh = self._get_ssh_client(node, timeout=5)
                 sftp = ssh.open_sftp()
 
                 # Crear estructura de carpetas remota
-                ssh.exec_command(f"mkdir -p {self.remote_dir}")
+                ssh.exec_command(f"mkdir -p {remote_dir}")
 
                 for item in items_to_sync:
                     local_item_path = os.path.join(local_root, item)
-                    remote_item_path = f"{self.remote_dir}/{item}"
+                    remote_item_path = f"{remote_dir}/{item}"
 
                     if not os.path.exists(local_item_path):
                         continue
@@ -175,71 +181,129 @@ class ClusterDeployer:
             except Exception as e:
                 print(f"    [AVISO] No se pudo sincronizar {name} ({ip}): {e}")
 
-    def start_cluster(self, steps=None):
-        """Inicia los servicios en cada Raspberry Pi segun su rol asignado."""
+    def build_images(self):
+        """Compila la imagen Docker 'tesis-rpi:latest' en todas las Raspberry Pi (ARM64)."""
         print("\n" + "=" * 65)
-        print(" INICIANDO SERVICIOS DEL CLUSTER (MODO ISLA - 13.8 kV)")
+        print(" COMPILANDO IMAGENES DOCKER EN LAS 6 RASPBERRY PI (ARM64)")
+        print("=" * 65)
+
+        for node in self.nodes:
+            name = node["name"]
+            ip = node["ip"]
+            remote_dir = self.get_remote_dir(node)
+            print(f"\n--> Compilando imagen Docker en {name} ({ip})...")
+            try:
+                ssh = self._get_ssh_client(node, timeout=10)
+                cmd = f"cd {remote_dir} && docker build -t tesis-rpi:latest -f Docker/Dockerfile.rpi ."
+                stdin, stdout, stderr = ssh.exec_command(cmd)
+                for line in iter(stdout.readline, ""):
+                    line_s = line.strip()
+                    if "Step" in line_s or "DONE" in line_s or "naming to" in line_s or "writing image" in line_s:
+                        print(f"    [{name}] {line_s}")
+                exit_status = stdout.channel.recv_exit_status()
+                if exit_status == 0:
+                    print(f"    [OK] Imagen Docker compilada exitosamente en {name}.")
+                else:
+                    err = stderr.read().decode().strip()
+                    print(f"    [FAIL] Error compilando en {name}: {err}")
+                ssh.close()
+            except Exception as e:
+                print(f"    [ERROR] Fallo en conexion a {name}: {e}")
+
+    def start_cluster(self, steps=None, engine="docker"):
+        """Inicia los servicios en cada Raspberry Pi segun su rol asignado (Docker o Nativo)."""
+        print("\n" + "=" * 65)
+        print(f" INICIANDO SERVICIOS DEL CLUSTER (MODO: {engine.upper()} - 13.8 kV)")
         print(f" - Servidor PC Central: {self.master_host}")
         print("=" * 65)
 
         steps_arg = f"--steps {steps}" if steps else ""
 
-        commands = {
-            "DIESEL_SLACK": f"cd {self.remote_dir} && nohup python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL --master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 --mode OFFLINE {steps_arg} > run_diesel.log 2>&1 &",
-            "SOLAR_PV":     f"cd {self.remote_dir} && nohup python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR --master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 --mode OFFLINE {steps_arg} > run_solar.log 2>&1 &",
-            "BESS_STORAGE": f"cd {self.remote_dir} && nohup python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS --master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 --mode OFFLINE {steps_arg} > run_bess.log 2>&1 &",
-            "LOADS_TRIPLE": f"cd {self.remote_dir} && nohup python3 Agents/multi_load_process.py --master-host {self.master_host} {steps_arg} > run_loads.log 2>&1 &",
-            "MONITOR_NODE": f"cd {self.remote_dir} && nohup python3 Agents/monitor_node_service.py --master-host {self.master_host} {steps_arg} > run_monitor.log 2>&1 &"
-        }
-
         for node in self.nodes:
             role = node["role"]
-            cmd = commands.get(role)
-            if not cmd:
-                continue
-
             name = node["name"]
             ip = node["ip"]
-            print(f"--> Arrancando en {name} ({ip}) [{role}]...")
+            remote_dir = self.get_remote_dir(node)
+
+            py_cmd = None
+            cname = None
+
+            if role == "DIESEL_SLACK":
+                cname = "nodo_1_diesel"
+                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL --master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 --mode OFFLINE {steps_arg}"
+            elif role == "SOLAR_PV":
+                cname = "nodo_2_solar"
+                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR --master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 --mode OFFLINE {steps_arg}"
+            elif role == "BESS_STORAGE":
+                cname = "nodo_3_bess"
+                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS --master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 --mode OFFLINE {steps_arg}"
+            elif role in ["LOADS_RES_COM", "LOADS_TRIPLE"]:
+                cname = "nodos_cargas"
+                py_cmd = f"python3 Agents/multi_load_process.py --master-host {self.master_host} {steps_arg}"
+            elif role == "LOAD_IND":
+                cname = "nodo_monitor_hil"
+                py_cmd = f"python3 Agents/monitor_node_service.py --master-host {self.master_host} {steps_arg}"
+            elif role == "DATA_STORAGE":
+                cname = "nodo_data_storage"
+                py_cmd = f"python3 GUI/rpi_dashboard_service.py --master-host {self.master_host} --web-port 8000 {steps_arg}"
+
+            if not py_cmd:
+                continue
+
+            if engine == "docker":
+                final_cmd = f"docker rm -f {cname} 2>/dev/null; docker run -d --name {cname} --network host -v {remote_dir}:/app tesis-rpi:latest {py_cmd}"
+            else:
+                final_cmd = f"cd {remote_dir} && nohup {py_cmd} > run_native.log 2>&1 &"
+
+            print(f"--> Arrancando en {name} ({ip}) [{role}] ({engine})...")
             try:
                 ssh = self._get_ssh_client(node)
-                ssh.exec_command(cmd)
+                stdin, stdout, stderr = ssh.exec_command(final_cmd)
+                out = stdout.read().decode().strip()
+                err = stderr.read().decode().strip()
                 ssh.close()
-                print(f"    [OK] Proceso iniciado en {name}.")
+                if engine == "docker" and out:
+                    print(f"    [OK] Contenedor {cname} ({out[:12]}) iniciado en {name}.")
+                    if role == "DATA_STORAGE":
+                        print(f"    [WEB] Dashboard disponible en: http://{ip}:8000/web_dashboard.html")
+                else:
+                    print(f"    [OK] Proceso iniciado en {name}.")
+                    if role == "DATA_STORAGE":
+                        print(f"    [WEB] Dashboard disponible en: http://{ip}:8000/web_dashboard.html")
             except Exception as e:
                 print(f"    [FAIL] Error iniciando en {name}: {e}")
 
     def stop_cluster(self):
-        """Detiene los procesos en ejecucion en todas las Raspberry Pis."""
+        """Detiene contenedores Docker y procesos nativos en todas las Raspberry Pis."""
         print("\n" + "=" * 65)
-        print(" DETENIENDO TODOS LOS PROCESOS EN EL CLUSTER RPi")
+        print(" DETENIENDO TODOS LOS CONTENEDORES Y PROCESOS EN EL CLUSTER RPi")
         print("=" * 65)
-        kill_cmd = "pkill -f distributed_node_runner; pkill -f multi_load_process; pkill -f monitor_node_service"
+        stop_cmd = "docker stop nodo_1_diesel nodo_2_solar nodo_3_bess nodos_cargas nodo_monitor_hil nodo_data_storage 2>/dev/null; docker rm -f nodo_1_diesel nodo_2_solar nodo_3_bess nodos_cargas nodo_monitor_hil nodo_data_storage 2>/dev/null; pkill -f distributed_node_runner; pkill -f multi_load_process; pkill -f monitor_node_service; pkill -f rpi_dashboard_service"
 
         for node in self.nodes:
             name = node["name"]
             ip = node["ip"]
             try:
-                ssh = self._get_ssh_client(node, timeout=3)
-                ssh.exec_command(kill_cmd)
+                ssh = self._get_ssh_client(node, timeout=5)
+                ssh.exec_command(stop_cmd)
                 ssh.close()
-                print(f"[OK] Procesos detenidos en {name} ({ip}).")
+                print(f"[OK] Contenedores y procesos detenidos en {name} ({ip}).")
             except Exception as e:
                 print(f"[FAIL] Error deteniendo en {name} ({ip}): {e}")
 
     def status_cluster(self):
-        """Consulta los procesos activos en cada Raspberry Pi."""
+        """Consulta los contenedores Docker y procesos activos en cada Raspberry Pi."""
         print("\n" + "=" * 65)
-        print(" ESTADO DE PROCESOS EN EL CLUSTER RASPBERRY PI")
+        print(" ESTADO DE CONTENEDORES DOCKER Y PROCESOS EN EL CLUSTER RPi")
         print("=" * 65)
-        chk_cmd = "pgrep -fl python3 | grep -E 'distributed_node_runner|multi_load_process|monitor_node_service' || echo 'SIN PROCESOS ACTIVOS'"
+        chk_cmd = "echo '--- CONTENEDORES DOCKER ---' && (docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' || echo 'Error Docker') && echo '--- PROCESOS NATIVOS ---' && (pgrep -fl python3 | grep -E 'distributed_node_runner|multi_load_process|monitor_node_service|rpi_dashboard_service' || echo 'Ninguno')"
 
         for node in self.nodes:
             name = node["name"]
             ip = node["ip"]
             role = node["role"]
             try:
-                ssh = self._get_ssh_client(node, timeout=3)
+                ssh = self._get_ssh_client(node, timeout=5)
                 stdin, stdout, stderr = ssh.exec_command(chk_cmd)
                 out = stdout.read().decode().strip()
                 print(f"\n[{name} ({ip}) - {role}]:")
@@ -251,7 +315,8 @@ class ClusterDeployer:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Orquestador Multi-RPi para Microrred Distribuida")
-    parser.add_argument("--action", default="test", choices=["test", "sync", "start", "stop", "status", "all"], help="Accion a ejecutar")
+    parser.add_argument("--action", default="test", choices=["test", "sync", "build", "start", "stop", "status", "all"], help="Accion a ejecutar")
+    parser.add_argument("--engine", default="docker", choices=["docker", "native"], help="Motor de ejecucion (docker o native)")
     parser.add_argument("--steps", type=int, default=None, help="Numero de pasos para --action start")
     parser.add_argument("--list-file", default="raspberry_list.md", help="Ruta al archivo raspberry_list.md")
     args = parser.parse_args()
@@ -264,11 +329,15 @@ if __name__ == "__main__":
     if args.action in ["sync", "all"]:
         deployer.sync_code_to_all()
 
+    if args.action in ["build", "all"]:
+        deployer.build_images()
+
     if args.action == "start":
-        deployer.start_cluster(steps=args.steps)
+        deployer.start_cluster(steps=args.steps, engine=args.engine)
 
     if args.action == "status":
         deployer.status_cluster()
 
     if args.action == "stop":
         deployer.stop_cluster()
+

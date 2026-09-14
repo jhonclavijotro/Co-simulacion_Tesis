@@ -1,0 +1,7 @@
+pyzmq==27.1.0
+numpy==2.2.3
+scipy==1.15.2
+pandas==2.2.3
+paho-mqtt==2.1.0
+python-dateutil==2.9.0.post0
+influxdb-client==1.50.0

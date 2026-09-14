@@ -207,7 +207,14 @@ class DistributedNodeRunner:
                     self.req_master.send_json(inj_payload)
                     ack = self.req_master.recv_json()
                 except Exception as e:
-                    pass
+                    try:
+                        self.req_master.close(linger=0)
+                    except Exception:
+                        pass
+                    self.req_master = self.context.socket(zmq.REQ)
+                    self.req_master.setsockopt(zmq.RCVTIMEO, 500)
+                    self.req_master.setsockopt(zmq.SNDTIMEO, 500)
+                    self.req_master.connect(f"tcp://{self.master_host}:{self.port_rep}")
 
                 # Resumen en consola cada 2 pasos (1 vez por segundo)
                 if step_idx % 2 == 0:

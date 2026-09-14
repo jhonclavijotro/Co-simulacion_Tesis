@@ -59,7 +59,7 @@ class TestRadial13_8kVCluster(unittest.TestCase):
     def test_cluster_deployer_parsing(self):
         """Verifica que ClusterDeployer parsee raspberry_list.md como Fuente Unica de Verdad."""
         deployer = ClusterDeployer(list_path=self.rpi_list_md)
-        self.assertEqual(len(deployer.nodes), 5)
+        self.assertEqual(len(deployer.nodes), 6)
         
         # Verificar mapeo de roles
         self.assertEqual(deployer.nodes[0]["ip"], "10.0.0.151")
@@ -69,9 +69,12 @@ class TestRadial13_8kVCluster(unittest.TestCase):
         self.assertEqual(deployer.nodes[2]["ip"], "10.0.0.153")
         self.assertEqual(deployer.nodes[2]["role"], "BESS_STORAGE")
         self.assertEqual(deployer.nodes[3]["ip"], "10.0.0.154")
-        self.assertEqual(deployer.nodes[3]["role"], "LOADS_TRIPLE")
+        self.assertEqual(deployer.nodes[3]["role"], "LOADS_RES_COM")
         self.assertEqual(deployer.nodes[4]["ip"], "10.0.0.155")
-        self.assertEqual(deployer.nodes[4]["role"], "MONITOR_NODE")
+        self.assertEqual(deployer.nodes[4]["role"], "LOAD_IND")
+        self.assertEqual(deployer.nodes[5]["ip"], "10.0.0.160")
+        self.assertEqual(deployer.nodes[5]["role"], "DATA_STORAGE")
+        self.assertEqual(deployer.nodes[5]["user"], "jhonclavijotro")
 
 
 if __name__ == "__main__":
