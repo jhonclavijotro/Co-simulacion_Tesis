@@ -1,0 +1,16 @@
+# Dockerfile Multi-Nodo para Raspberry Pi 5 (ARM64)
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Instalar dependencias esenciales
+COPY Docker/requirements_docker.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar archivos del proyecto
+COPY . /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+CMD ["python3", "-c", "print('Contenedor RPi MAS Listo')"]

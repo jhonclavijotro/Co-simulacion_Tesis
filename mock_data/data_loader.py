@@ -11,6 +11,7 @@ class MockDataLoader:
         if data_dir is None:
             data_dir = os.path.dirname(os.path.abspath(__file__))
         self.data_dir = data_dir
+        self.formatos_dir = os.path.abspath(os.path.join(self.data_dir, "..", "Forms", "formatos"))
         
         self.solar_file = os.path.join(self.data_dir, "datos_meteorologicos_sinteticos.csv")
         self.eolic_file = os.path.join(self.data_dir, "datos_meteorologicos_eolicos_sinteticos.csv")
@@ -23,16 +24,44 @@ class MockDataLoader:
         self.load_all()
 
     def load_all(self):
-        if os.path.exists(self.solar_file):
+        # 1. Cargar Solar desde Forms/formatos si existe
+        formatos_solar = os.path.join(self.formatos_dir, "datos_radiacion_temperatura.csv")
+        if os.path.exists(formatos_solar):
+            with open(formatos_solar, mode="r", encoding="utf-8") as f:
+                reader = csv.reader(f, delimiter=";")
+                next(reader, None)
+                for row in reader:
+                    if len(row) >= 4:
+                        try:
+                            poa = float(row[1].replace(",", "."))
+                            tmp_k = float(row[3].replace(",", "."))
+                            self.solar_data.append({"POA": poa, "T_amb": tmp_k})
+                        except ValueError:
+                            continue
+        elif os.path.exists(self.solar_file):
             with open(self.solar_file, mode="r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 self.solar_data = [{"POA": float(r["POA"]), "T_amb": float(r["T_amb"])} for r in reader]
 
-        if os.path.exists(self.eolic_file):
+        # 2. Cargar Eólico desde Forms/formatos si existe
+        formatos_eolic = os.path.join(self.formatos_dir, "datos_vel_viento.csv")
+        if os.path.exists(formatos_eolic):
+            with open(formatos_eolic, mode="r", encoding="utf-8") as f:
+                reader = csv.reader(f, delimiter=";")
+                next(reader, None)
+                for row in reader:
+                    if len(row) >= 2:
+                        try:
+                            ws = float(row[1].replace(",", "."))
+                            self.eolic_data.append(ws)
+                        except ValueError:
+                            continue
+        elif os.path.exists(self.eolic_file):
             with open(self.eolic_file, mode="r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 self.eolic_data = [float(r["Ws"]) for r in reader]
 
+        # 3. Cargar Hídrico
         if os.path.exists(self.hydro_file):
             with open(self.hydro_file, mode="r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)

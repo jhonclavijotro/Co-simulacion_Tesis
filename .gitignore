@@ -27,11 +27,14 @@ __pycache__/
 # Output and simulation data
 *.csv
 !config/*.csv
+!Forms/*.csv
+!Forms/**/*.csv
 *.xlsx
 *.log
 resultados_solar.csv
 resultados.csv
 *.html
+!GUI/*.html
 share/
 
 # Excluir documentación de tesis (LaTeX)

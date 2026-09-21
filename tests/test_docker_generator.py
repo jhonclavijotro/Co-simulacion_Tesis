@@ -28,6 +28,10 @@ class TestDockerGenerator(unittest.TestCase):
         for n in [1, 2, 3, 4]:
             self.assertIn(f"nodo_{n}_dinamica:", content)
             self.assertIn(f"nodo_{n}_agente:", content)
+        
+        self.assertIn("limits:", content)
+        self.assertIn("cpus: '0.5'", content)
+        self.assertIn("memory: 256m", content)
 
 if __name__ == "__main__":
     unittest.main()

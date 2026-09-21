@@ -1,0 +1,46 @@
+{
+    "nodo_id": 2,
+    "tipo": "GENERACION",
+    "tecnologia": "SOLAR_FOTOVOLTAICA",
+    "descripcion": "Generador Solar PV con MPPT P&O y VSI trifasico desplegado en Raspberry Pi 5",
+    "despliegue": {
+        "dispositivo": "RASPBERRY_PI_5",
+        "ip": "192.168.1.150",
+        "puerto_control": 5557,
+        "contenedor_docker": "mas_node_solar"
+    },
+    "parametros_constructivos": {
+        "numero_paneles_total": 72,
+        "paneles_por_string": 18,
+        "numero_strings_paralelo": 4,
+        "potencia_pico_modulo_W": 350.0,
+        "potencia_nominal_total_kW": 25.2,
+        "tension_mppt_nominal_V": 36.5,
+        "corriente_mppt_nominal_A": 9.60,
+        "tension_circuito_abierto_Voc": 44.2,
+        "corriente_cortocircuito_Isc": 10.15
+    },
+    "convertidor_boost": {
+        "inductancia_L_H": 0.005,
+        "capacitancia_C_in_F": 0.001,
+        "frecuencia_conmutacion_Hz": 10000,
+        "tension_salida_dc_ref_V": 750.0
+    },
+    "inversor_red": {
+        "potencia_aparente_nominal_kVA": 30.0,
+        "tension_ac_nominal_V": 400.0,
+        "frecuencia_nominal_Hz": 60.0,
+        "filtro_L_H": 0.002,
+        "filtro_C_F": 0.00005,
+        "impedancia_virtual_R_ohm": 0.05,
+        "impedancia_virtual_X_ohm": 0.15
+    },
+    "control_consenso": {
+        "agente_habilitado": true,
+        "ganancia_c1": 2.0,
+        "ganancia_c2": 2.0,
+        "exponente_alfa": 0.8,
+        "exponente_beta": 1.2,
+        "zona_muerta_voltaje_pu": 0.002
+    }
+}

@@ -1,151 +1,194 @@
 import csv
 import numpy as np
-from Diesel.Diesel import MotorDiesel
 from common.Transformadas import Transformadas
 from common.GridInverter import GridConnectedInverter
 
 
 class SistemaDiesel:
-    """Sistema diesel como fuente equivalente conectada a red.
+    """Sistema Diésel como convertidor de fuente de tensión (VSI-dq) conectado a red.
 
-    Modela el motor diesel + PMSG + rectificador como fuente de
-    corriente DC. El gobernador regula velocidad, el GridInverter
-    regula Vdc e inyecta potencia a la red. V_pcc proviene del
-    solver central (FBS).
+    Homogeneizado según las directrices de diseño de la microrred:
+    Modela la generación Diésel mediante una fuente primaria de potencia activa
+    acoplada a un bus DC y un inversor trifásico de fuente de tensión (VSI) en marco dq,
+    sincronizado con la red mediante SRF-PLL.
 
-    Dinamica:
-      - Wm sigue a pref con lag de 1er orden (governor + inercia)
-      - Gobernador PI: fuel = Kp*(pref-Wm) + integral
-      - Motor 1er orden: Tm = lag(fuel) con te=0.035s
-      - Pm = Tm * Wm
-      - Idiesel = Pm * eta / Vdc
-      - Vdc = integral((Idiesel - Iinv_dc) / C_dc)
+    Esto unifica la API de simulación de los 5 nodos DER (Solar, Eólica, BESS, Hídrica, Diésel)
+    eliminando modelos analógicos electromecánicos pesados no requeridos en inversores electrónicos.
     """
 
-    def __init__(self, Kp_gov=0.001, Ki_gov=0.02, eta=0.95, tau_Wm=0.5):
-        self.motor = MotorDiesel(Ke=1.0, te=0.035)
-        self.eta = eta
-        self.C_dc = 0.001
-        self.tau_Wm = tau_Wm
+    def __init__(self, P_nominal=50000.0, Vdcref=400.0, eta=0.95, tau_P=0.05,
+                 m_p=6.283e-5, f_nom=60.0, droop_enabled=True):
+        """Inicializa el nodo Diésel homogeneizado como VSI-dq con droop primario.
 
-        self._gov_int = 0.5
-        self._Kp_gov = Kp_gov
-        self._Ki_gov = Ki_gov
+        Parámetros:
+            P_nominal:     Potencia activa nominal del grupo Diésel [W] (default: 50 kW).
+            Vdcref:        Tensión de referencia del bus DC [V] (default: 400 V).
+            eta:           Eficiencia de conversión global [0..1].
+            tau_P:         Constante de tiempo de respuesta de potencia [s].
+            m_p:           Pendiente droop de frecuencia [rad/(s*W)] (default: 5% a P_nom).
+            f_nom:         Frecuencia nominal de red [Hz] (default: 60 Hz).
+            droop_enabled: Habilita el lazo de droop primario omega-P.
+        """
+        self.P_nominal = float(P_nominal)
+        self.Vdcref = float(Vdcref)
+        self.eta = float(eta)
+        self.tau_P = float(tau_P)
+        self.m_p = float(m_p)
+        self.f_nom = float(f_nom)
+        self.omega_nom = 2.0 * np.pi * self.f_nom
+        self.droop_enabled = droop_enabled
+        self.C_dc = 0.002
 
+        # Lazo de regulación de Vdc
         self._vdc_int = 0.0
-        self._Kp_vdc = 0.5
-        self._Ki_vdc = 0.1
+        self._Kp_vdc = 0.8
+        self._Ki_vdc = 0.2
 
-        self.inversor = GridConnectedInverter()
+        self.inversor = GridConnectedInverter(Vdcref=self.Vdcref)
         self.transformadas = Transformadas()
         self.datos = []
         self.sample_time = 0.001
-        self.pref = 188.5
+        self.pref = self.P_nominal  # Setpoint de potencia activa [W]
 
         self.contexto = {
             "time": 0.0,
-            "pref": 188.5,
-            "Wm": 185.0,
-            "Tm": 0.0,
-            "Pm": 0.0,
-            "Pgen": 0.0,
-            "Idiesel": 0.0,
-            "Vdc": 300.0,
-            "Vdi": 0.0,
+            "pref": self.P_nominal,
+            "P_gen": self.P_nominal,
+            "Pm": self.P_nominal,
+            "Pgen": self.P_nominal,
+            "Idiesel": self.P_nominal / self.Vdcref,
+            "Vdc": self.Vdcref,
+            "Vdi": 230.0,
             "Vqi": 0.0,
             "theta0": 0.0,
-            "Fsys": 0.0,
+            "Fsys": self.f_nom,
             "Pw": 0.0,
             "Pq": 0.0,
             "Idi": 0.0,
             "Iqi": 0.0,
             "Vdt": 0.0,
+            "delta_omega": 0.0,
+            "delta_P": 0.0,
+            "P_droop": 0.0,
+            "P_target": self.P_nominal,
+            "P_max": self.P_nominal,
         }
 
     def step(self, dt=0.001, V_pcc=None, setpoints=None):
+        """Ejecuta un micro-paso de integración física del convertidor VSI Diésel.
+
+        Parámetros:
+            dt:        Paso de integración [s] (default: 1 ms).
+            V_pcc:     Tensión medida en el PCC [V o tupla (Va, Vb, Vc)].
+            setpoints: Diccionario opcional de consignas (P_ref, delta_P, delta_omega, Q_ref_kvar, etc.).
+        """
         ctx = self.contexto
 
+        # 1. Actualización de consignas exógenas y lazo de control secundario
+        delta_P = 0.0
+        delta_omega = 0.0
         if setpoints:
             if "pref_ajuste" in setpoints:
-                self.pref = setpoints["pref_ajuste"]
-                ctx["pref"] = self.pref
+                self.pref = float(setpoints["pref_ajuste"])
+            elif "P_ref" in setpoints:
+                self.pref = float(setpoints["P_ref"])
+            elif "P_ref_w" in setpoints:
+                self.pref = float(setpoints["P_ref_w"])
             if "Q_ref_kvar" in setpoints:
                 ctx["Pq"] = setpoints["Q_ref_kvar"] * 1000.0
 
-        tau_inv = 1.0 / self.tau_Wm
-        ctx["Wm"] = ctx["Wm"] + tau_inv * (self.pref - ctx["Wm"]) * dt
-        ctx["Wm"] = max(50.0, ctx["Wm"])
+            delta_P = float(setpoints.get("delta_P", 0.0))
+            delta_omega = float(setpoints.get("delta_omega", 0.0))
+            if "delta_f" in setpoints:
+                delta_omega = float(setpoints["delta_f"]) * 2.0 * np.pi
 
-        E = self.pref - ctx["Wm"]
-        self._gov_int += E * self._Ki_gov * dt
-        self._gov_int = max(-10.0, min(10.0, self._gov_int))
-        F = self._Kp_gov * E + self._gov_int
-        F = max(-10.0, min(10.0, F))
+        # Lazo Droop Primario omega-P con offset secundario
+        P_target = self.pref + delta_P
+        P_droop = 0.0
+        if self.droop_enabled and self.m_p > 0:
+            omega_pll = 2.0 * np.pi * ctx.get("Fsys", self.f_nom)
+            omega_ref = self.omega_nom + delta_omega
+            P_droop = -(omega_pll - omega_ref) / self.m_p
+            P_target += P_droop
 
-        Tm = self.motor.step(F, dt)
-        ctx["Tm"] = Tm
+        P_target = max(0.0, min(self.P_nominal * 1.2, P_target))
+        ctx["pref"] = self.pref
+        ctx["P_target"] = P_target
+        ctx["P_droop"] = P_droop
+        ctx["delta_P"] = delta_P
+        ctx["delta_omega"] = delta_omega
+        ctx["P_max"] = self.P_nominal
 
-        Pm = Tm * ctx["Wm"]
-        ctx["Pm"] = Pm
+        # 2. Dinámica de primer orden de entrega de potencia de la fuente primaria
+        dP = (P_target - ctx["P_gen"]) / max(1e-4, self.tau_P)
+        ctx["P_gen"] = max(0.0, min(ctx["P_gen"] + dP * dt, self.P_nominal * 1.2))
+        ctx["Pm"] = ctx["P_gen"]
+        ctx["Pgen"] = ctx["P_gen"] * self.eta
 
-        Pgen = Pm * self.eta
-        ctx["Pgen"] = Pgen
-
-        Idiesel = Pgen / max(ctx["Vdc"], 1.0)
+        # 3. Corriente equivalente inyectada al bus DC
+        v_dc_actual = max(100.0, ctx["Vdc"])
+        Idiesel = ctx["Pgen"] / v_dc_actual
         ctx["Idiesel"] = Idiesel
 
-        error_vdc = self.inversor.Vdcref - ctx["Vdc"]
+        # 4. Control PI de regulación de tensión en bus DC
+        error_vdc = self.Vdcref - v_dc_actual
         self._vdc_int += error_vdc * self._Ki_vdc * dt
-        self._vdc_int = max(-10.0, min(10.0, self._vdc_int))
-        Iinv_cmd = Idiesel - (self._Kp_vdc * error_vdc + self._vdc_int)
-        Iinv_cmd = max(0.0, Iinv_cmd)
+        self._vdc_int = max(-20.0, min(20.0, self._vdc_int))
+        Iinv_cmd = max(0.0, Idiesel - (self._Kp_vdc * error_vdc + self._vdc_int))
 
+        # 5. Integración del Inversor VSI en marco dq con consigna de reactiva
+        q_ref_val = ctx.get("Pq", 0.0)
         Pw, Pq, _, Iqi, Vdt, Idiref = self.inversor.step(
-            ctx["Vdc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, D=0.0)
+            v_dc_actual, ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, Q_ref=q_ref_val, D=0.0
+        )
 
-        Iinv_dc = Iinv_cmd
-        ctx["Idi"] = self.inversor.Idi
+        ctx["Idi"] = self.inversor.Idi_ref
         ctx["Iqi"] = Iqi
         ctx["Vdt"] = Vdt
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq
 
-        ic = Idiesel - Iinv_dc
-        ctx["Vdc"] = max(250.0, min(ctx["Vdc"] + (ic / self.C_dc) * dt, 450.0))
+        # 6. Balance de carga en el capacitor del bus DC
+        i_cap = Idiesel - Iinv_cmd
+        ctx["Vdc"] = max(200.0, min(ctx["Vdc"] + (i_cap / self.C_dc) * dt, 600.0))
 
+        # 7. Sincronización SRF-PLL con V_pcc
         if V_pcc is not None:
-            Va, Vb, Vc = V_pcc
+            if isinstance(V_pcc, (int, float)):
+                Va, Vb, Vc = self.transformadas.synthesize_vabc(V_pcc)
+            else:
+                Va, Vb, Vc = V_pcc
         else:
-            Va, Vb, Vc = 0.0, 0.0, 0.0
+            Va, Vb, Vc = self.transformadas.synthesize_vabc(230.0)
 
         Valpha, Vbeta, theta0, Vq_out, Vd_out, Fsys = \
             self.transformadas.aplicar_transformadas([Va, Vb, Vc], ctx["Vqi"])
+
         ctx["theta0"] = theta0
         ctx["Vqi"] = Vq_out
         ctx["Vdi"] = Vd_out
         ctx["Fsys"] = Fsys
+        ctx["time"] = round(ctx["time"] + dt, 4)
 
-        ctx["time"] = round(ctx["time"] + dt, 3)
         return dict(ctx)
 
-    def ejecutar(self, tiempo_simulacion=25):
+    def ejecutar(self, tiempo_simulacion=5.0):
+        """Ejecuta una simulación autónoma y guarda resultados en CSV."""
         while self.contexto["time"] < tiempo_simulacion:
             try:
                 res = self.step(self.sample_time)
                 self.datos.append([
-                    res["time"], res["pref"], res["Wm"], res["Tm"],
-                    res["Pm"], res["Pgen"], res["Idiesel"], res["Vdc"],
+                    res["time"], res["pref"], res["P_gen"],
+                    res["Pgen"], res["Idiesel"], res["Vdc"],
                     res["Pw"], res["Pq"], res["Fsys"],
                     res["Idi"], res["Iqi"],
                 ])
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Error en simulación Diésel: {e}")
                 break
 
-        header = ["Tiempo", "Pref", "Wm", "Tm",
-                   "Pm", "Pgen", "Idiesel", "Vdc",
-                   "Pw", "Pq", "Fsys",
-                   "Idi", "Iqi"]
+        header = ["Tiempo", "Pref", "P_gen", "Pgen", "Idiesel", "Vdc",
+                  "Pw", "Pq", "Fsys", "Idi", "Iqi"]
         with open("resultados_diesel.csv", "w", newline="") as f:
             w = csv.writer(f)
             w.writerow(header)
@@ -153,4 +196,7 @@ class SistemaDiesel:
 
 
 if __name__ == "__main__":
-    SistemaDiesel().ejecutar()
+    diesel = SistemaDiesel(P_nominal=40000.0)
+    for _ in range(100):
+        out = diesel.step(dt=0.001, V_pcc=230.0)
+    print(f"Prueba Diésel VSI-dq: Pw = {out['Pw']:.2f} W, Pq = {out['Pq']:.2f} VAR, Vdc = {out['Vdc']:.2f} V")

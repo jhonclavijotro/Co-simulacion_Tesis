@@ -46,8 +46,11 @@ class GridConnectedInverter:
 
     def step(self, V_dc, Vdi, Vqi, theta0, I_dc_in, dt, Q_ref=0.0, **kwargs):
         # Control de corriente por inversor unitario
-        error_vdc = self.Vdcref - V_dc
-        self.Idi_ref = max(0.0, error_vdc * 2.0 + I_dc_in)
+        # Conversión de potencia DC a corriente equivalente d-q AC:
+        # P_dc = V_dc * I_dc_in  ==> Idi_eq = P_dc / (1.5 * max(Vdi, 1.0))
+        error_vdc = V_dc - self.Vdcref
+        i_dc_equiv = (max(V_dc, 10.0) * max(0.0, I_dc_in)) / (1.5 * max(Vdi, 1.0))
+        self.Idi_ref = max(0.0, i_dc_equiv + error_vdc * 0.1)
         self.Iqi_ref = -Q_ref / (1.5 * max(Vdi, 1.0) * self.N_inv) if Vdi > 0 else 0.0
 
         # Inyección total agregada escalada por N_inv inversores en paralelo

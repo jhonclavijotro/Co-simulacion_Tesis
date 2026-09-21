@@ -1,0 +1,16 @@
+# Topología de Red Radial de Media Tensión (MT - 13.8 kV) en Modo Isla
+# Parámetros por línea de red y grafo de comunicación
+# Conductor: ACSR 4/0 AWG (Penguin), R_km = 0.338 ohm/km, X_km = 0.350 ohm/km
+# Nodos:
+#   1: Generador Diésel (Slack en Isla)
+#   2: Solar Fotovoltaico (PV)
+#   3: BESS (Baterías)
+#   4: Carga Residencial (en RPi 4)
+#   5: Carga Comercial (en RPi 4)
+#   6: Carga Industrial (en RPi 4)
+from_node,to_node,R_ohm,X_ohm,length_km,R_per_km,X_per_km,max_current_A,comm_connected
+1,2,0.4056,0.4200,1.20,0.338,0.350,340,1
+2,3,0.2704,0.2800,0.80,0.338,0.350,340,1
+2,4,0.2028,0.2100,0.60,0.338,0.350,340,0
+3,5,0.1690,0.1750,0.50,0.338,0.350,340,0
+3,6,0.3380,0.3500,1.00,0.338,0.350,340,0

@@ -109,9 +109,11 @@ class SistemaSolar:
         # Feedforward: D = 1 - Vref/Vdc (relacion algebraica exacta)
         ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_array"], ctx["V_dc"])
 
-        # Ejecutar un paso del inversor conectado a red
+        # Ejecutar un paso del inversor conectado a red con seguimiento de reactiva
+        q_ref_val = ctx.get("Pq", 0.0)
         Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
             ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["I_pv"], dt,
+            Q_ref=q_ref_val,
             D=ctx["duty_cycle"])
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq
@@ -128,7 +130,10 @@ class SistemaSolar:
 
         # Obtener la tension trifasica de la red o usar el valor externo del PCC
         if V_pcc is not None:
-            Va, Vb, Vc = V_pcc, 0.0, 0.0
+            if isinstance(V_pcc, (int, float)):
+                Va, Vb, Vc = self.transformadas.synthesize_vabc(V_pcc)
+            else:
+                Va, Vb, Vc = V_pcc
             ctx["V_actual"] = V_pcc
         else:
             Va, Vb, Vc = self.red.get_voltages(ctx["time"])

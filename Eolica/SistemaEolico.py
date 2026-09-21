@@ -129,7 +129,7 @@ class SistemaEolico:
             ctx["Vdc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, D=0.0)
 
         Iinv_dc = Iinv_cmd
-        ctx["Idi"] = self.inversor.Idi
+        ctx["Idi"] = self.inversor.Idi_ref
         ctx["Iqi"] = Iqi
         ctx["Vdt"] = Vdt
         ctx["Pw"] = Pw
@@ -140,7 +140,7 @@ class SistemaEolico:
         ctx["Vdc"] = max(250.0, min(ctx["Vdc"] + (ic / self.C_dc) * dt, 450.0))
 
         if V_pcc is not None:
-            Va, Vb, Vc = V_pcc, 0.0, 0.0
+            Va, Vb, Vc = self.transformadas.synthesize_vabc(V_pcc)
         else:
             Va, Vb, Vc = self.redtrifasica.step(ctx["time"], Pw, Pq)
 

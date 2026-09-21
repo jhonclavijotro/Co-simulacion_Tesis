@@ -8,14 +8,27 @@ class ForwardBackwardSweepSolver:
     el algoritmo Forward-Backward Sweep (FBS) desarrollado desde cero en Python.
     No requiere Pandapower u otras librerías externas.
     """
-    def __init__(self, V_base=400.0, S_base=100000.0):
+    def __init__(self, V_base=400.0, S_base=10000.0):
         self.V_base = V_base          # Tensión base nominal [V] (fase-fase o equivalente)
         self.S_base = S_base          # Potencia base [VA]
         self.branches = []            # Lista de ramas: {from_node, to_node, R, X, Z}
         self.nodes = []               # Lista de nodos únicos
         self.slack_node = 1           # Nodo slack (subestación / fuente principal)
+        self.operating_mode = "ONLINE"# Modo de operación: ONLINE (interconectado) u OFFLINE (isla)
+        self.V_slack_ref = 1.0        # Tensión de referencia en barra Slack [p.u.]
         self.tolerance = 1e-6         # Tolerancia de convergencia en p.u.
         self.max_iter = 100           # Número máximo de iteraciones
+
+    def set_operating_mode(self, mode: str, slack_node: int = 1, V_slack: float = 1.0):
+        """
+        Configura la transición de barra Slack según el modo de operación ciber-físico:
+          - ONLINE: Barra Slack en subestación / conexión a red externa (Nodo 1).
+          - OFFLINE: Barra Slack asumida por el generador diésel isócrono (Nodo 1) como fuente formadora de red (Grid-Forming, b1=1.0).
+        """
+        self.operating_mode = mode.upper()
+        self.slack_node = slack_node
+        self.V_slack_ref = V_slack
+        return self.operating_mode, self.slack_node, self.V_slack_ref
 
     def load_topology(self, csv_path):
         """Carga la topología de la red desde un archivo CSV."""
@@ -119,7 +132,27 @@ class ForwardBackwardSweepSolver:
                 converged = True
                 break
 
+        self.P_net = sum(P_injections.get(n, 0.0) for n in self.nodes if n != self.slack_node)
+        self.Q_net = sum(Q_injections.get(n, 0.0) for n in self.nodes if n != self.slack_node)
         return V, converged, iterations
+
+    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=3.5, f_nom=60.0):
+        """Calcula la respuesta dinámica de frecuencia mediante la ecuación de oscilación (Swing Equation).
+        df/dt = (Delta P_net / (2 * H * S_base)) * f_nom - D * (f - f_nom)
+        Límites normativos según NTC 1340 para redes aisladas: 58.8 Hz a 61.2 Hz (+/- 2%).
+        """
+        p_net = sum(float(v) for v in P_injections.values())
+        self.P_net = p_net
+
+        if self.operating_mode == "ONLINE":
+            return f_nom, p_net
+
+        delta_P_pu = p_net / self.S_base
+        # Saturación suave de desbalance instantáneo para evitar oscilaciones no físicas
+        delta_P_pu = max(-0.15, min(0.15, delta_P_pu))
+        df_dt = (delta_P_pu / (2.0 * max(0.5, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
+        f_new = max(58.8, min(61.2, f_prev + df_dt * dt))
+        return f_new, p_net
 
 if __name__ == "__main__":
     solver = ForwardBackwardSweepSolver(V_base=400.0, S_base=100000.0)
