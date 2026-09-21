@@ -8,7 +8,7 @@ class ForwardBackwardSweepSolver:
     el algoritmo Forward-Backward Sweep (FBS) desarrollado desde cero en Python.
     No requiere Pandapower u otras librerías externas.
     """
-    def __init__(self, V_base=400.0, S_base=100000.0):
+    def __init__(self, V_base=400.0, S_base=10000.0):
         self.V_base = V_base          # Tensión base nominal [V] (fase-fase o equivalente)
         self.S_base = S_base          # Potencia base [VA]
         self.branches = []            # Lista de ramas: {from_node, to_node, R, X, Z}
@@ -136,9 +136,10 @@ class ForwardBackwardSweepSolver:
         self.Q_net = sum(Q_injections.get(n, 0.0) for n in self.nodes if n != self.slack_node)
         return V, converged, iterations
 
-    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=1.0, f_nom=60.0):
+    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=3.5, f_nom=60.0):
         """Calcula la respuesta dinámica de frecuencia mediante la ecuación de oscilación (Swing Equation).
         df/dt = (Delta P_net / (2 * H * S_base)) * f_nom - D * (f - f_nom)
+        Límites normativos según NTC 1340 para redes aisladas: 58.8 Hz a 61.2 Hz (+/- 2%).
         """
         p_net = sum(float(v) for v in P_injections.values())
         self.P_net = p_net
@@ -147,8 +148,10 @@ class ForwardBackwardSweepSolver:
             return f_nom, p_net
 
         delta_P_pu = p_net / self.S_base
-        df_dt = (delta_P_pu / (2.0 * max(0.1, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
-        f_new = max(55.0, min(65.0, f_prev + df_dt * dt))
+        # Saturación suave de desbalance instantáneo para evitar oscilaciones no físicas
+        delta_P_pu = max(-0.15, min(0.15, delta_P_pu))
+        df_dt = (delta_P_pu / (2.0 * max(0.5, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
+        f_new = max(58.8, min(61.2, f_prev + df_dt * dt))
         return f_new, p_net
 
 if __name__ == "__main__":

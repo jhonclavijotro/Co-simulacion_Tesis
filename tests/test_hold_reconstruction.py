@@ -34,14 +34,14 @@ class TestHoldReconstruction(unittest.TestCase):
         """Verifica que en modo FOH se calcule y aplique la extrapolación lineal continua."""
         proc = NodeDynamicProcess(node_id=2, source_type="SOLAR", hold_mode="FOH")
         
-        # Paso 1: Flat-start inicial
+        # Paso 1: Flat-start inicial (V_pcc = 400V -> normalizado a 110V de excitación)
         res1 = proc.step_macro(V_pcc=400.0, Q_ref=1000.0)
-        self.assertEqual(proc.V_pcc_prev, 400.0)
+        self.assertAlmostEqual(proc.V_pcc_prev, 110.0, places=2)
         self.assertEqual(res1["step"], 1)
 
-        # Paso 2: Rampa de tensión V_pcc = 405.0 (+5V en 500ms -> dV/dt = +10 V/s)
+        # Paso 2: Rampa de tensión V_pcc = 405.0 (+5V -> normalizado a 111.375V)
         res2 = proc.step_macro(V_pcc=405.0, Q_ref=1000.0)
-        self.assertEqual(proc.V_pcc_prev, 405.0)
+        self.assertAlmostEqual(proc.V_pcc_prev, 111.375, places=2)
         self.assertEqual(res2["step"], 2)
         self.assertGreater(res2["P_w"], 0.0)
 

@@ -40,8 +40,8 @@ class PowerFlowClockServer:
     def __init__(
         self,
         topology_path: str,
-        v_base: float = 13800.0,
-        s_base: float = 1000000.0,
+        v_base: float = 400.0,
+        s_base: float = 10000.0,
         port_rep: int = 5555,
         port_pub: int = 5556,
         step_dt: float = 0.5,
@@ -154,10 +154,10 @@ class PowerFlowClockServer:
             print("Servidor ZMQ detenido.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Servidor PC Central: Flujo de Potencia 13.8 kV y Reloj ZMQ")
-    parser.add_argument("--topology", default=os.path.join(os.path.dirname(__file__), "..", "config", "topologia_MT_13_8kV_6nodos.csv"))
-    parser.add_argument("--v-base", type=float, default=13800.0, help="Tension nominal base [V]")
-    parser.add_argument("--s-base", type=float, default=1000000.0, help="Potencia nominal base [VA]")
+    parser = argparse.ArgumentParser(description="Servidor PC Central: Flujo de Potencia BT (400V) y Reloj ZMQ")
+    parser.add_argument("--topology", default=os.path.join(os.path.dirname(__file__), "..", "config", "topologia_BT_6nodos.csv"))
+    parser.add_argument("--v-base", type=float, default=400.0, help="Tension nominal base [V]")
+    parser.add_argument("--s-base", type=float, default=10000.0, help="Potencia nominal base [VA]")
     parser.add_argument("--port-rep", type=int, default=5555, help="Puerto REP de inyecciones")
     parser.add_argument("--port-pub", type=int, default=5556, help="Puerto PUB de reloj y voltajes")
     parser.add_argument("--dt", type=float, default=0.5, help="Paso macro de reloj [s]")

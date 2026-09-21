@@ -136,9 +136,10 @@ class SistemaDiesel:
         self._vdc_int = max(-20.0, min(20.0, self._vdc_int))
         Iinv_cmd = max(0.0, Idiesel - (self._Kp_vdc * error_vdc + self._vdc_int))
 
-        # 5. Integración del Inversor VSI en marco dq
+        # 5. Integración del Inversor VSI en marco dq con consigna de reactiva
+        q_ref_val = ctx.get("Pq", 0.0)
         Pw, Pq, _, Iqi, Vdt, Idiref = self.inversor.step(
-            v_dc_actual, ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, D=0.0
+            v_dc_actual, ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, Q_ref=q_ref_val, D=0.0
         )
 
         ctx["Idi"] = self.inversor.Idi_ref

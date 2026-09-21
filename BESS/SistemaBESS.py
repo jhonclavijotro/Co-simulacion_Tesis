@@ -178,6 +178,7 @@ class SistemaBESS:
         ctx["SoC"] = self.bateria.SoC
         ctx["P_bat"] = V_bat * I_bat
         ctx["Pw"] = P_ref_eff
+        ctx["Pq"] = float(Q_ref) * 1000.0
 
         ctx["time"] = round(ctx["time"] + dt, 3)
 
@@ -221,7 +222,7 @@ class SistemaBESS:
 
         Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
             ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"],
-            ctx["Idi"], dt
+            ctx["Idi"], dt, Q_ref=float(Q_ref) * 1000.0
         )
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq

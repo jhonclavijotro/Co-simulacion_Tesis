@@ -29,9 +29,11 @@ class DistributedNodeRunner:
         neighbors: list = None,
         hold_mode: str = "ZFOH",
         zfoh_lambda: float = 0.7,
-        v_base: float = 13800.0,
-        q_max: float = 100000.0,
-        p_max: float = 200000.0,
+        v_base: float = 400.0,
+        q_max: float = 10000.0,
+        p_max: float = 20000.0,
+        q_init: float = 0.0,
+        p_init: float = 0.0,
         operating_mode: str = "OFFLINE"
     ):
         self.node_id = int(node_id)
@@ -46,6 +48,8 @@ class DistributedNodeRunner:
         self.v_base = float(v_base)
         self.q_max = float(q_max)
         self.p_max = float(p_max)
+        self.q_init = float(q_init)
+        self.p_init = float(p_init)
         self.operating_mode = operating_mode.upper()
 
         # 1. Proceso de Dinamica Fisica (1 kHz)
@@ -64,8 +68,8 @@ class DistributedNodeRunner:
             mode=self.operating_mode,
             alpha=0.8,
             beta=1.2,
-            c1=1.0,
-            c2=1.0,
+            c1=0.25,
+            c2=0.15,
             epsilon=1e-3,
             max_stale_steps=4
         )
@@ -104,8 +108,8 @@ class DistributedNodeRunner:
         self.poller_p2p.register(self.sub_p2p, zmq.POLLIN)
 
         self.running = False
-        self.Q_ref = 0.0
-        self.P_ref = 0.0
+        self.Q_ref = float(self.q_init)
+        self.P_ref = float(self.p_init)
 
     def run(self, max_steps=None):
         print("=" * 65)
@@ -242,8 +246,11 @@ if __name__ == "__main__":
     parser.add_argument("--neighbors", nargs="*", default=[], help="Lista de vecinos en formato ip:puerto")
     parser.add_argument("--hold-mode", default="ZFOH", choices=["ZOH", "FOH", "ZFOH"], help="Esquema Hold")
     parser.add_argument("--lambda-val", type=float, default=0.7, help="Parametro lambda ZFOH")
-    parser.add_argument("--q-max", type=float, default=100000.0, help="Capacidad reactiva maxima [var]")
-    parser.add_argument("--p-max", type=float, default=200000.0, help="Capacidad activa maxima [W]")
+    parser.add_argument("--v-base", type=float, default=400.0, help="Tension base nominal [V]")
+    parser.add_argument("--q-max", type=float, default=10000.0, help="Capacidad reactiva maxima [var]")
+    parser.add_argument("--p-max", type=float, default=20000.0, help="Capacidad activa maxima [W]")
+    parser.add_argument("--q-init", type=float, default=0.0, help="Consigna inicial de reactiva [var]")
+    parser.add_argument("--p-init", type=float, default=0.0, help="Consigna inicial de activa [W]")
     parser.add_argument("--mode", default="OFFLINE", choices=["ONLINE", "OFFLINE"], help="Modo de operacion")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
     args = parser.parse_args()
@@ -258,8 +265,11 @@ if __name__ == "__main__":
         neighbors=args.neighbors,
         hold_mode=args.hold_mode,
         zfoh_lambda=args.lambda_val,
+        v_base=args.v_base,
         q_max=args.q_max,
         p_max=args.p_max,
+        q_init=args.q_init,
+        p_init=args.p_init,
         operating_mode=args.mode
     )
     runner.run(max_steps=args.steps)

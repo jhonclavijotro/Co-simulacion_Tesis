@@ -109,9 +109,11 @@ class SistemaSolar:
         # Feedforward: D = 1 - Vref/Vdc (relacion algebraica exacta)
         ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_array"], ctx["V_dc"])
 
-        # Ejecutar un paso del inversor conectado a red
+        # Ejecutar un paso del inversor conectado a red con seguimiento de reactiva
+        q_ref_val = ctx.get("Pq", 0.0)
         Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
             ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["I_pv"], dt,
+            Q_ref=q_ref_val,
             D=ctx["duty_cycle"])
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq

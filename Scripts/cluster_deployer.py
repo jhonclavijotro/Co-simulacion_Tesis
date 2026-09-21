@@ -213,7 +213,7 @@ class ClusterDeployer:
     def start_cluster(self, steps=None, engine="docker"):
         """Inicia los servicios en cada Raspberry Pi segun su rol asignado (Docker o Nativo)."""
         print("\n" + "=" * 65)
-        print(f" INICIANDO SERVICIOS DEL CLUSTER (MODO: {engine.upper()} - 13.8 kV)")
+        print(f" INICIANDO SERVICIOS DEL CLUSTER (MODO: {engine.upper()} - BAJA TENSIÓN 400V)")
         print(f" - Servidor PC Central: {self.master_host}")
         print("=" * 65)
 
@@ -230,13 +230,13 @@ class ClusterDeployer:
 
             if role == "DIESEL_SLACK":
                 cname = "nodo_1_diesel"
-                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL --master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 --mode OFFLINE {steps_arg}"
+                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL --master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 --mode OFFLINE --v-base 400.0 --p-max 10000.0 --q-max 6000.0 --q-init 1500.0 --p-init 3000.0 {steps_arg}"
             elif role == "SOLAR_PV":
                 cname = "nodo_2_solar"
-                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR --master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 --mode OFFLINE {steps_arg}"
+                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR --master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 --mode OFFLINE --v-base 400.0 --p-max 5000.0 --q-max 3000.0 --q-init 600.0 --p-init 2000.0 {steps_arg}"
             elif role == "BESS_STORAGE":
                 cname = "nodo_3_bess"
-                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS --master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 --mode OFFLINE {steps_arg}"
+                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS --master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 --mode OFFLINE --v-base 400.0 --p-max 3000.0 --q-max 2000.0 --q-init 1000.0 --p-init 1000.0 {steps_arg}"
             elif role in ["LOADS_RES_COM", "LOADS_TRIPLE"]:
                 cname = "nodos_cargas"
                 py_cmd = f"python3 Agents/multi_load_process.py --master-host {self.master_host} {steps_arg}"

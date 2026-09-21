@@ -27,17 +27,17 @@ class NodeDynamicProcess:
         self.data_loader = MockDataLoader()
         self.step_index = 0
 
-        # Inicialización del modelo dinámico
+        # Inicialización del modelo dinámico con capacidades para microrred de baja potencia
         if self.source_type == "SOLAR":
-            self.model = SistemaSolar()
+            self.model = SistemaSolar(N_inv=2)
         elif self.source_type == "EOLICA":
             self.model = SistemaEolico()
         elif self.source_type == "HIDRICA":
             self.model = SistemaHidrico()
         elif self.source_type == "BESS":
-            self.model = SistemaBESS()
+            self.model = SistemaBESS(N_inv=1)
         elif self.source_type == "DIESEL":
-            self.model = SistemaDiesel()
+            self.model = SistemaDiesel(P_nominal=10000.0)
         elif self.source_type == "DEMANDA":
             self.model = SistemaDemanda()
         else:
@@ -56,6 +56,16 @@ class NodeDynamicProcess:
         active_hold = (hold_mode or self.hold_mode).upper()
         active_lambda = float(zfoh_lambda if zfoh_lambda is not None else self.zfoh_lambda)
 
+        # Normalización de tensión al nivel de excitación del inversor de Baja Tensión (110 V)
+        v_num = float(V_pcc)
+        if v_num > 1000.0:
+            v_pu = v_num / 13800.0
+        elif v_num > 10.0:
+            v_pu = v_num / 400.0
+        else:
+            v_pu = v_num
+        v_inv_terminal = v_pu * 110.0
+
         # 1. Cargar datos de entrada según el tipo de fuente
         if self.source_type == "SOLAR":
             poa, temp = self.data_loader.get_solar_at(self.step_index)
@@ -70,10 +80,10 @@ class NodeDynamicProcess:
 
         # 2. Inicialización de memoria de extrapolación para paso 0 (flat start)
         if self.V_pcc_prev is None:
-            self.V_pcc_prev = float(V_pcc)
+            self.V_pcc_prev = float(v_inv_terminal)
 
         # Cálculo de la tasa de cambio de tensión en el macro-paso
-        dV_dt = (float(V_pcc) - self.V_pcc_prev) / float(macro_dt) if macro_dt > 0 else 0.0
+        dV_dt = (float(v_inv_terminal) - self.V_pcc_prev) / float(macro_dt) if macro_dt > 0 else 0.0
 
         # 3. Ejecutar integración física de 500 micro-pasos (1 kHz) con reconstrucción de señal
         n_substeps = max(1, int(round(macro_dt / micro_dt)))
@@ -89,16 +99,16 @@ class NodeDynamicProcess:
         for i in range(n_substeps):
             t_sub = i * micro_dt
             if active_hold == "FOH":
-                V_sub = float(V_pcc) + dV_dt * t_sub
+                V_sub = float(v_inv_terminal) + dV_dt * t_sub
             elif active_hold == "ZFOH":
-                V_sub = float(V_pcc) + active_lambda * dV_dt * t_sub
+                V_sub = float(v_inv_terminal) + active_lambda * dV_dt * t_sub
             else:  # ZOH por defecto
-                V_sub = float(V_pcc)
+                V_sub = float(v_inv_terminal)
 
             ctx = self.model.step(dt=micro_dt, V_pcc=V_sub, setpoints=setpoints)
 
         # Actualizar memoria de tensión previa para el próximo macro-paso
-        self.V_pcc_prev = float(V_pcc)
+        self.V_pcc_prev = float(v_inv_terminal)
         self.step_index += 1
 
         # Mapeo explícito de claves de potencia activa por tipo de fuente.
@@ -124,13 +134,17 @@ class NodeDynamicProcess:
         omega_i = 2.0 * math.pi * Fsys
 
         # Determinación de P_max disponible para el agente MAS
-        P_max = 50000.0
+        P_max = 10000.0
         if ctx and "P_max" in ctx:
             P_max = float(ctx["P_max"])
         elif hasattr(self.model, "P_disponible"):
             P_max = float(self.model.P_disponible)
         elif hasattr(self.model, "P_nominal"):
             P_max = float(self.model.P_nominal)
+        elif self.source_type == "SOLAR":
+            P_max = 5000.0
+        elif self.source_type == "BESS":
+            P_max = 3000.0
         
         P_ratio = (P_w / P_max) if P_max > 0 else 0.0
 

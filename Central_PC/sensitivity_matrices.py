@@ -10,7 +10,7 @@ class SensitivityMatrixSolver:
       - RING_ZBUS: Matriz de Impedancia Nodal Z_bus = inv(Y_bus) para redes anilladas/mesheadas.
       - FULL_JACOBIAN: Linearización con matriz Jacobiana invertida (J^-1).
     """
-    def __init__(self, V_base=400.0, S_base=100000.0, mesh_type="RADIAL"):
+    def __init__(self, V_base=400.0, S_base=10000.0, mesh_type="RADIAL"):
         self.V_base = V_base
         self.S_base = S_base
         self.mesh_type = mesh_type.upper()
@@ -139,8 +139,9 @@ class SensitivityMatrixSolver:
             return f_nom, p_net
 
         delta_P_pu = p_net / self.S_base
-        df_dt = (delta_P_pu / (2.0 * max(0.1, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
-        f_new = max(55.0, min(65.0, f_prev + df_dt * dt))
+        delta_P_pu = max(-0.15, min(0.15, delta_P_pu))
+        df_dt = (delta_P_pu / (2.0 * max(0.5, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
+        f_new = max(58.8, min(61.2, f_prev + df_dt * dt))
         return f_new, p_net
 
 if __name__ == "__main__":

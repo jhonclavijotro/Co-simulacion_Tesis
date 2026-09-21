@@ -18,7 +18,7 @@ class MasterClockZMQ:
       bajo condiciones reales de red (Objetivo 1 de la tesis).
     """
     def __init__(self, topology_csv, mode="FBS", mesh_type="RADIAL",
-                 V_base=400.0, S_base=100000.0, port_rep=5555, port_pub=5556,
+                 V_base=400.0, S_base=10000.0, port_rep=5555, port_pub=5556,
                  comm_scenario="IDEAL", comm_seed=None, max_hold_seconds=5.0):
         self.topology_csv = topology_csv
         self.mode = mode.upper()

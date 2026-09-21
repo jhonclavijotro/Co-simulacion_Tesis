@@ -1,0 +1,15 @@
+# Topología de Red Radial de Baja Tensión (BT - 400V) en Modo Isla
+# Red de microrred de baja potencia para ensayos de co-simulación y laboratorio
+# Nodos:
+#   1: Generador Diésel (Barra Slack de referencia en Isla)
+#   2: Solar Fotovoltaico (PV)
+#   3: BESS (Sistema de Almacenamiento en Baterías)
+#   4: Carga Residencial (Formato Demanda A: ~2.85 kW)
+#   5: Carga Comercial   (Formato Demanda B: ~1.96 kW)
+#   6: Carga Industrial  (Formato Demanda C: ~1.47 kW)
+from_node,to_node,R_ohm,X_ohm,length_km,R_per_km,X_per_km,max_current_A,comm_connected
+1,2,0.0450,0.0120,0.15,0.300,0.080,100,1
+2,3,0.0300,0.0080,0.10,0.300,0.080,100,1
+2,4,0.0400,0.0100,0.12,0.333,0.083,80,0
+3,5,0.0350,0.0090,0.10,0.350,0.090,80,0
+3,6,0.0500,0.0130,0.15,0.333,0.087,80,0
