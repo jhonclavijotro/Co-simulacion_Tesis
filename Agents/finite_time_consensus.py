@@ -55,7 +55,9 @@ class FixedTimeConsensusAgent:
       1. Zona Muerta Adaptativa (Anti-Chattering): Suavizado de la ley no lineal cerca del equilibrio (|e| < epsilon).
       2. Buffer de Frescura Temporal (State Age Tracking): Manejo de paquetes perdidos y retardo mediante
          retención ZOH con tiempo de expiración (max_stale_steps). Si un enlace expira, a_ij(t) = 0.
-      3. Saturación Anti-Windup: Límites estrictos en delta_V (+/-10%) y delta_Q (+/-Q_max).
+      3. Saturación Anti-Windup: Límites estrictos en delta_V (+/-10%), delta_Q (+/-Q_max) y delta_omega (+/-1.0 rad/s, ~+/-0.16 Hz).
+         El ancho de saturación de frecuencia está coordinado con la ganancia integral K_omega del acumulador externo (runner/script)
+         para evitar realimentación positiva con la dinámica de la Swing Equation.
     """
 
     def __init__(
@@ -70,7 +72,7 @@ class FixedTimeConsensusAgent:
         mode: str = "ONLINE",
         epsilon: float = 1e-3,
         max_delta_V: float = 0.10,        # Saturación máxima de tensión [p.u.] (+/- 10%)
-        max_delta_omega: float = 3.1416,  # Saturación máxima de frecuencia angular (+/- 0.5 Hz = +/- 3.1416 rad/s)
+        max_delta_omega: float = 1.0,     # Saturación máxima de frecuencia angular (±~0.16 Hz) — coherente con K_omega=0.3 del acumulador externo
         max_stale_steps: int = 4,         # Máximo de pasos reteniendo estado antes de declarar enlace caído
         f_ref: float = 60.0,              # Frecuencia nominal de referencia [Hz]
         omega_unit: str = "auto"           # Unidad de frecuencia angular: "hz", "rad_s", o "auto" (heurística < 100)

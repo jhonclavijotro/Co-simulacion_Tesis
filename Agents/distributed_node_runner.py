@@ -208,9 +208,11 @@ class DistributedNodeRunner:
                 )
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
                 self.P_ref = max(0.0, min(self.p_max, self.P_ref + dP))
-                # Acumular correcciones de tensión y frecuencia (acción integral del control secundario)
+                # Acumular correcciones de tensión y frecuencia (acción integral del control secundario).
+                # Saturación de omega_offset reducida a ±1.0 rad/s (~±0.16 Hz) para evitar retroalimentación
+                # positiva con la dinámica de la Swing Equation en el PC Central.
                 self.V_offset = max(-0.10, min(0.10, self.V_offset + dV))
-                self.omega_offset = max(-3.1416, min(3.1416, self.omega_offset + dw))
+                self.omega_offset = max(-1.0, min(1.0, self.omega_offset + dw))
 
                 # 6. Reportar inyeccion (P, Q) al PC Central
                 inj_payload = {

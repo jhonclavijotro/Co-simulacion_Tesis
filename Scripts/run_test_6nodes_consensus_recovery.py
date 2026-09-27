@@ -33,7 +33,12 @@ class SixNodeConsensusValidationRunner:
         output_csv: str = "output_data/test_6nodes_consensus_recovery.csv",
         v_base: float = 400.0,
         s_base: float = 10000.0,
-        dt: float = 0.5
+        dt: float = 0.5,
+        H_sys: float = 6.0,    # Inercia virtual del sistema (Swing Eq.) [s]
+        D_sys: float = 12.0,   # Amortiguamiento de frecuencia [pu/pu]
+        K_omega: float = 0.3,  # Ganancia integral del acumulador omega_offset
+        K_v: float = 1.0,      # Ganancia integral del acumulador V_offset
+        tau_lpf: float = 2.0   # Constante de tiempo del LPF sobre P_net [s]
     ):
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.topology_path = topology_path or os.path.join(base_dir, "config", "topologia_BT_6nodos.csv")
@@ -43,6 +48,11 @@ class SixNodeConsensusValidationRunner:
         self.v_base = float(v_base)
         self.s_base = float(s_base)
         self.dt = float(dt)
+        self.H_sys = float(H_sys)
+        self.D_sys = float(D_sys)
+        self.K_omega = float(K_omega)
+        self.K_v = float(K_v)
+        self.tau_lpf = float(tau_lpf)
 
         # 1. Solucionador FBS en Baja Tensión
         self.solver = ForwardBackwardSweepSolver(V_base=self.v_base, S_base=self.s_base)
@@ -53,6 +63,12 @@ class SixNodeConsensusValidationRunner:
         self.proc_diesel = NodeDynamicProcess(node_id=1, source_type="DIESEL")
         self.proc_solar  = NodeDynamicProcess(node_id=2, source_type="SOLAR")
         self.proc_bess   = NodeDynamicProcess(node_id=3, source_type="BESS")
+
+        # Desactivar droop primario del Diésel: en este ensayo de co-simulación distribuida la
+        # regulación de frecuencia está a cargo del control secundario FxTS.
+        # El droop default (m_p=6.283e-5) está calibrado para 50 kW nominal y satura P_target=0
+        # ante cualquier desvío de ±1 Hz en una planta de 10 kW, generando oscilaciones inter-paso.
+        self.proc_diesel.model.droop_enabled = False
 
         # Capacidades nominales de convertidores
         self.q_max = {1: 6000.0, 2: 3000.0, 3: 3000.0}
@@ -107,6 +123,8 @@ class SixNodeConsensusValidationRunner:
         print(f" - Duración:         {max_steps} pasos ({max_steps * self.dt:.1f} s)")
         print(f" - Grafo de Consenso: N1(Diésel-Líder) <-> N2(Solar) <-> N3(BESS)")
         print(f" - Archivo Salida:   {self.output_csv}")
+        print(f" - Swing Eq.:        H_sys={self.H_sys:.1f}s, D_sys={self.D_sys:.1f}, tau_lpf={self.tau_lpf:.1f}s")
+        print(f" - Control Sec.:     K_omega={self.K_omega:.2f}, K_v={self.K_v:.2f}")
         print("=" * 75)
 
         headers = [
@@ -199,19 +217,23 @@ class SixNodeConsensusValidationRunner:
             self.Q_refs[2] = max(0.0, min(self.q_max[2], self.Q_refs[2] + dQ2))
             self.Q_refs[3] = max(0.0, min(self.q_max[3], self.Q_refs[3] + dQ3))
 
-            # b) Consignas de Activa P_ref (Reparto de generación despachable)
+            # b) Consignas de Activa P_ref (Reparto de generación despachable: Diésel y BESS)
             self.P_refs[1] = max(0.0, min(self.p_max[1], self.P_refs[1] + dP1))
             self.P_refs[3] = max(0.0, min(self.p_max[3], self.P_refs[3] + dP3))
 
-            # c) Offsets integradores de Tensión V_offset (±10% p.u.)
-            self.V_offsets[1] = max(-0.10, min(0.10, self.V_offsets[1] + dV1))
-            self.V_offsets[2] = max(-0.10, min(0.10, self.V_offsets[2] + dV2))
-            self.V_offsets[3] = max(-0.10, min(0.10, self.V_offsets[3] + dV3))
+            # c) Offsets integradores de Tensión V_offset (±10% p.u.) con ganancia K_v
+            self.V_offsets[1] = max(-0.10, min(0.10, self.V_offsets[1] + self.K_v * dV1))
+            self.V_offsets[2] = max(-0.10, min(0.10, self.V_offsets[2] + self.K_v * dV2))
+            self.V_offsets[3] = max(-0.10, min(0.10, self.V_offsets[3] + self.K_v * dV3))
 
-            # d) Offsets integradores de Frecuencia omega_offset (±3.1416 rad/s = ±0.5 Hz)
-            self.omega_offsets[1] = max(-3.1416, min(3.1416, self.omega_offsets[1] + dw1))
-            self.omega_offsets[2] = max(-3.1416, min(3.1416, self.omega_offsets[2] + dw2))
-            self.omega_offsets[3] = max(-3.1416, min(3.1416, self.omega_offsets[3] + dw3))
+            # d) Offsets integradores de Frecuencia omega_offset con ganancia fraccional K_omega.
+            #    Saturación reducida a ±1.0 rad/s (~±0.16 Hz) para evitar retroalimentación con
+            #    la Swing Equation. Todos los generadores despachables (Diésel y BESS) participan.
+            #    El Solar (N2) no modifica su omega_offset pues es una fuente no despachable.
+            self.omega_offsets[1] = max(-1.0, min(1.0, self.omega_offsets[1] + self.K_omega * dw1))
+            self.omega_offsets[3] = max(-1.0, min(1.0, self.omega_offsets[3] + self.K_omega * dw3))
+            # El Solar no participa en restauración de frecuencia (seguidor de punto de máxima potencia)
+            self.omega_offsets[2] = 0.0
 
             # 5. Resolver Flujo de Potencia FBS en la Red
             P_inj = {1: P1, 2: P2, 3: P3, 4: -P4, 5: -P5, 6: -P6}
@@ -221,8 +243,10 @@ class SixNodeConsensusValidationRunner:
             for n in range(1, 7):
                 voltages_dict[n] = abs(voltages_complex.get(n, 1.0))
 
-            # 6. Dinámica de Frecuencia del Sistema (Swing Equation)
-            self.f_sys, p_net_w = self.solver.compute_frequency_dynamics(P_inj, f_prev=self.f_sys, dt=self.dt, f_nom=60.0)
+            # 6. Dinámica de Frecuencia del Sistema (Swing Equation sintonizada con LPF)
+            self.f_sys, p_net_w = self.solver.compute_frequency_dynamics(
+                P_inj, f_prev=self.f_sys, dt=self.dt, H_sys=self.H_sys, D_sys=self.D_sys, f_nom=60.0, tau_lpf=self.tau_lpf
+            )
 
             # Métricas
             err_q_12 = abs(q_ratio_1 - q_ratio_2)
@@ -267,7 +291,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Prueba de Validación de Consenso y Recuperación de Consignas")
     parser.add_argument("--steps", type=int, default=120, help="Pasos de simulación (120 = 60s @ 500ms)")
     parser.add_argument("--output-csv", default="output_data/test_6nodes_consensus_recovery.csv")
+    parser.add_argument("--H-sys", type=float, default=6.0, help="Inercia virtual Swing Eq. [s] (default: 6.0)")
+    parser.add_argument("--D-sys", type=float, default=12.0, help="Amortiguamiento Swing Eq. (default: 12.0)")
+    parser.add_argument("--K-omega", type=float, default=0.3, help="Ganancia integral omega_offset (default: 0.3)")
+    parser.add_argument("--K-v", type=float, default=1.0, help="Ganancia integral V_offset (default: 1.0)")
+    parser.add_argument("--tau-lpf", type=float, default=2.0, help="Constante de tiempo LPF sobre P_net [s] (default: 2.0)")
     args = parser.parse_args()
 
-    runner = SixNodeConsensusValidationRunner(output_csv=args.output_csv)
+    runner = SixNodeConsensusValidationRunner(
+        output_csv=args.output_csv,
+        H_sys=args.H_sys,
+        D_sys=args.D_sys,
+        K_omega=args.K_omega,
+        K_v=args.K_v,
+        tau_lpf=args.tau_lpf
+    )
     runner.run(max_steps=args.steps)
