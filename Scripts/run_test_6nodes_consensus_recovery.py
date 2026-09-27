@@ -34,11 +34,13 @@ class SixNodeConsensusValidationRunner:
         v_base: float = 400.0,
         s_base: float = 10000.0,
         dt: float = 0.5,
-        H_sys: float = 6.0,    # Inercia virtual del sistema (Swing Eq.) [s]
-        D_sys: float = 12.0,   # Amortiguamiento de frecuencia [pu/pu]
-        K_omega: float = 0.3,  # Ganancia integral del acumulador omega_offset
-        K_v: float = 1.0,      # Ganancia integral del acumulador V_offset
-        tau_lpf: float = 2.0   # Constante de tiempo del LPF sobre P_net [s]
+        H_sys: float = 6.0,      # Inercia virtual del sistema (Swing Eq.) [s]
+        D_sys: float = 12.0,     # Amortiguamiento de frecuencia [pu/pu]
+        K_omega: float = 0.3,    # Ganancia integral del acumulador omega_offset
+        K_v: float = 1.0,        # Ganancia integral del acumulador V_offset
+        tau_lpf: float = 2.0,    # Constante de tiempo del LPF sobre P_net [s]
+        K_p_freq: float = 400.0, # Ganancia proporcional de restauración de frecuencia a potencia [W/(rad/s)]
+        K_i_freq: float = 250.0  # Ganancia integral de restauración de frecuencia a potencia [W/(rad/s*s)]
     ):
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.topology_path = topology_path or os.path.join(base_dir, "config", "topologia_BT_6nodos.csv")
@@ -53,6 +55,9 @@ class SixNodeConsensusValidationRunner:
         self.K_omega = float(K_omega)
         self.K_v = float(K_v)
         self.tau_lpf = float(tau_lpf)
+        self.K_p_freq = float(K_p_freq)
+        self.K_i_freq = float(K_i_freq)
+        self.int_freq_error = 0.0
 
         # 1. Solucionador FBS en Baja Tensión
         self.solver = ForwardBackwardSweepSolver(V_base=self.v_base, S_base=self.s_base)
@@ -79,10 +84,12 @@ class SixNodeConsensusValidationRunner:
         self.agent_2 = FixedTimeConsensusAgent(agent_id=2, Q_max=self.q_max[2], P_max=self.p_max[2], mode="OFFLINE", c1=0.25, c2=0.15)
         self.agent_3 = FixedTimeConsensusAgent(agent_id=3, Q_max=self.q_max[3], P_max=self.p_max[3], mode="OFFLINE", c1=0.25, c2=0.15)
 
-        # Topología del grafo de comunicación: 1 <-> 2 <-> 3
-        self.agent_1.set_adjacency({2: 1.0})
+        # Topología del grafo de comunicación:
+        # Nodos 1 y 3 (Despachables) están interconectados directamente para consenso de P.
+        # Nodos 1, 2 y 3 están interconectados para soporte de tensión y consenso de Q.
+        self.agent_1.set_adjacency({2: 1.0, 3: 1.0})
         self.agent_2.set_adjacency({1: 1.0, 3: 1.0})
-        self.agent_3.set_adjacency({2: 1.0})
+        self.agent_3.set_adjacency({1: 1.0, 2: 1.0})
 
         # Cargar perfiles de demanda sintéticos
         formatos_dir = os.path.join(base_dir, "Forms", "formatos")
@@ -201,38 +208,69 @@ class SixNodeConsensusValidationRunner:
                 3: {"V": voltages_dict[3], "Q_ratio": q_ratio_3, "omega": omega_local, "P_ratio": p_ratio_3}
             }
 
+            # Desacoplamiento de potencia activa para fuentes no despachables (Solar MPPT):
+            # Para evitar que el inversor solar arrastre a los generadores despachables hacia
+            # cero (madrugada) o sobregeneración masiva (mediodía), el intercambio de P_ratio
+            # se neutraliza con el nodo 2, mientras que el Diésel (1) y el BESS (3) alcanzan
+            # consenso de reparto de activa directamente entre sí.
+            neighbor_states_1 = {
+                2: {"V": states[2]["V"], "Q_ratio": states[2]["Q_ratio"], "omega": omega_local, "P_ratio": p_ratio_1},
+                3: states[3]
+            }
+            neighbor_states_2 = {
+                1: states[1],
+                3: states[3]
+            }
+            neighbor_states_3 = {
+                1: states[1],
+                2: {"V": states[2]["V"], "Q_ratio": states[2]["Q_ratio"], "omega": omega_local, "P_ratio": p_ratio_3}
+            }
+
             dV1, dQ1, dw1, dP1 = self.agent_1.update_consensus(
-                voltages_dict[1], Q1, omega_i=omega_local, P_i=P1, neighbor_states={2: states[2]}, dt=self.dt, return_all=True
+                voltages_dict[1], Q1, omega_i=omega_local, P_i=P1, neighbor_states=neighbor_states_1, dt=self.dt, return_all=True
             )
             dV2, dQ2, dw2, dP2 = self.agent_2.update_consensus(
-                voltages_dict[2], Q2, omega_i=omega_local, P_i=P2, neighbor_states={1: states[1], 3: states[3]}, dt=self.dt, return_all=True
+                voltages_dict[2], Q2, omega_i=omega_local, P_i=P2, neighbor_states=neighbor_states_2, dt=self.dt, return_all=True
             )
             dV3, dQ3, dw3, dP3 = self.agent_3.update_consensus(
-                voltages_dict[3], Q3, omega_i=omega_local, P_i=P3, neighbor_states={2: states[2]}, dt=self.dt, return_all=True
+                voltages_dict[3], Q3, omega_i=omega_local, P_i=P3, neighbor_states=neighbor_states_3, dt=self.dt, return_all=True
             )
 
             # 4. Actualización con Acción Integral y Saturadores de Seguridad
-            # a) Consignas de Reactiva Q_ref (Reparto proporcional)
+            # a) Consignas de Reactiva Q_ref (Reparto proporcional de soporte de tensión)
             self.Q_refs[1] = max(0.0, min(self.q_max[1], self.Q_refs[1] + dQ1))
             self.Q_refs[2] = max(0.0, min(self.q_max[2], self.Q_refs[2] + dQ2))
             self.Q_refs[3] = max(0.0, min(self.q_max[3], self.Q_refs[3] + dQ3))
 
-            # b) Consignas de Activa P_ref (Reparto de generación despachable: Diésel y BESS)
-            self.P_refs[1] = max(0.0, min(self.p_max[1], self.P_refs[1] + dP1))
-            self.P_refs[3] = max(0.0, min(self.p_max[3], self.P_refs[3] + dP3))
+            # b) Lazo Restaurativo Secundario de Frecuencia hacia Potencia Activa (Control PI)
+            # El error angular de frecuencia respecto a nominal (e_w = omega_nom - omega_sys)
+            # comanda la potencia activa de recuperación necesaria para balancear la carga neta.
+            err_w = (2.0 * math.pi * 60.0) - omega_local
+            self.int_freq_error = max(-20.0, min(20.0, self.int_freq_error + err_w * self.dt))
+            delta_P_restore = self.K_p_freq * err_w + self.K_i_freq * self.int_freq_error
+
+            # Factores de participación por capacidad de generación despachable:
+            # Diésel (10 kW) = 2/3 (66.7%), BESS (5 kW) = 1/3 (33.3%)
+            p_disp_total = self.p_max[1] + self.p_max[3]
+            gamma_1 = self.p_max[1] / p_disp_total
+            gamma_3 = self.p_max[3] / p_disp_total
+
+            # Despacho base adaptable con la demanda nominal esperada
+            p_base_1 = 3500.0 * mult_demanda
+            p_base_3 = 1750.0 * mult_demanda
+
+            # Consignas de Activa P_ref: Despacho base + Restauración de frecuencia + Consenso P
+            self.P_refs[1] = max(0.0, min(self.p_max[1], p_base_1 + gamma_1 * delta_P_restore + dP1))
+            self.P_refs[3] = max(0.0, min(self.p_max[3], p_base_3 + gamma_3 * delta_P_restore + dP3))
 
             # c) Offsets integradores de Tensión V_offset (±10% p.u.) con ganancia K_v
             self.V_offsets[1] = max(-0.10, min(0.10, self.V_offsets[1] + self.K_v * dV1))
             self.V_offsets[2] = max(-0.10, min(0.10, self.V_offsets[2] + self.K_v * dV2))
             self.V_offsets[3] = max(-0.10, min(0.10, self.V_offsets[3] + self.K_v * dV3))
 
-            # d) Offsets integradores de Frecuencia omega_offset con ganancia fraccional K_omega.
-            #    Saturación reducida a ±1.0 rad/s (~±0.16 Hz) para evitar retroalimentación con
-            #    la Swing Equation. Todos los generadores despachables (Diésel y BESS) participan.
-            #    El Solar (N2) no modifica su omega_offset pues es una fuente no despachable.
+            # d) Offsets integradores de Frecuencia omega_offset para gobernadores
             self.omega_offsets[1] = max(-1.0, min(1.0, self.omega_offsets[1] + self.K_omega * dw1))
             self.omega_offsets[3] = max(-1.0, min(1.0, self.omega_offsets[3] + self.K_omega * dw3))
-            # El Solar no participa en restauración de frecuencia (seguidor de punto de máxima potencia)
             self.omega_offsets[2] = 0.0
 
             # 5. Resolver Flujo de Potencia FBS en la Red
@@ -296,6 +334,8 @@ if __name__ == "__main__":
     parser.add_argument("--K-omega", type=float, default=0.3, help="Ganancia integral omega_offset (default: 0.3)")
     parser.add_argument("--K-v", type=float, default=1.0, help="Ganancia integral V_offset (default: 1.0)")
     parser.add_argument("--tau-lpf", type=float, default=2.0, help="Constante de tiempo LPF sobre P_net [s] (default: 2.0)")
+    parser.add_argument("--k-p-freq", type=float, default=400.0, help="Ganancia proporcional restauración frecuencia [W/(rad/s)] (default: 400.0)")
+    parser.add_argument("--k-i-freq", type=float, default=250.0, help="Ganancia integral restauración frecuencia [W/(rad/s*s)] (default: 250.0)")
     args = parser.parse_args()
 
     runner = SixNodeConsensusValidationRunner(
@@ -304,6 +344,8 @@ if __name__ == "__main__":
         D_sys=args.D_sys,
         K_omega=args.K_omega,
         K_v=args.K_v,
-        tau_lpf=args.tau_lpf
+        tau_lpf=args.tau_lpf,
+        K_p_freq=args.k_p_freq,
+        K_i_freq=args.k_i_freq
     )
     runner.run(max_steps=args.steps)
