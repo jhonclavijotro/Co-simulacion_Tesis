@@ -110,6 +110,8 @@ class DistributedNodeRunner:
         self.running = False
         self.Q_ref = float(self.q_init)
         self.P_ref = float(self.p_init)
+        self.V_offset = 0.0       # Acumulador integrador de corrección de tensión [p.u.]
+        self.omega_offset = 0.0   # Acumulador integrador de corrección de frecuencia [rad/s]
 
     def run(self, max_steps=None):
         print("=" * 65)
@@ -148,10 +150,13 @@ class DistributedNodeRunner:
                 f_sys = clock_msg.get("f_sys_hz", 60.0)
 
                 # 2. Paso de Dinamica Fisica (1 kHz integrado a 500 ms)
+                # Aplicar offset de tensión acumulado del consenso a la referencia del inversor
+                v_pcc_corrected = v_pcc_volts + self.V_offset * self.v_base
                 phys_out = self.dynamic_proc.step_macro(
-                    V_pcc=v_pcc_volts,
+                    V_pcc=v_pcc_corrected,
                     Q_ref=self.Q_ref,
                     P_ref=self.P_ref,
+                    delta_omega=self.omega_offset,
                     macro_dt=0.5,
                     micro_dt=0.001
                 )
@@ -182,7 +187,8 @@ class DistributedNodeRunner:
                                 neighbor_cache[int(s_id)] = {
                                     "V": msg_n.get("V", 1.0),
                                     "Q_ratio": msg_n.get("Q_ratio", 0.0),
-                                    "omega": msg_n.get("omega", 376.99)
+                                    "omega": msg_n.get("omega", 376.99),
+                                    "P_ratio": msg_n.get("P_ratio", 0.0)
                                 }
                         except Exception:
                             break
@@ -190,15 +196,21 @@ class DistributedNodeRunner:
                         break
 
                 # 5. Actualizar ley de control FxTS
+                omega_local = 2.0 * math.pi * f_sys
                 dV, dQ, dw, dP = self.agent.update_consensus(
                     V_i=v_pcc_pu,
                     Q_i=Q_var,
+                    omega_i=omega_local,
+                    P_i=P_w,
                     neighbor_states=neighbor_cache,
                     dt=0.5,
                     return_all=True
                 )
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
                 self.P_ref = max(0.0, min(self.p_max, self.P_ref + dP))
+                # Acumular correcciones de tensión y frecuencia (acción integral del control secundario)
+                self.V_offset = max(-0.10, min(0.10, self.V_offset + dV))
+                self.omega_offset = max(-3.1416, min(3.1416, self.omega_offset + dw))
 
                 # 6. Reportar inyeccion (P, Q) al PC Central
                 inj_payload = {
@@ -222,17 +234,24 @@ class DistributedNodeRunner:
 
                 # Resumen en consola cada 2 pasos (1 vez por segundo)
                 if step_idx % 2 == 0:
-                    print(f"[{self.source_type} N{self.node_id}] Paso {step_idx:04d} (t={time_s:5.1f}s) | V={v_pcc_pu:.4f}pu ({v_pcc_volts:.1f}V) | P={P_w/1000:6.1f}kW | Q={Q_var/1000:5.1f}kvar (Ratio={q_ratio:.3f}) | dQ={dQ:+.1f}")
+                    print(f"[{self.source_type} N{self.node_id}] Paso {step_idx:04d} (t={time_s:5.1f}s) | V={v_pcc_pu:.4f}pu (\u03b4V={self.V_offset:+.4f}) | f={f_sys:.2f}Hz (\u03b4\u03c9={self.omega_offset:+.3f}) | P={P_w/1000:6.1f}kW | Q={Q_var/1000:5.1f}kvar | dQ={dQ:+.1f}")
 
         except KeyboardInterrupt:
             print(f"\nDeteniendo nodo {self.node_id}...")
         finally:
-            self.sub_clock.close()
-            self.req_master.close()
-            self.pub_p2p.close()
-            self.sub_p2p.close()
-            self.context.term()
+            self.close()
             print(f"Nodo {self.node_id} finalizado.")
+
+    def close(self):
+        """Cierra sockets y libera el contexto ZeroMQ limpiamente."""
+        try:
+            self.sub_clock.close(linger=0)
+            self.req_master.close(linger=0)
+            self.pub_p2p.close(linger=0)
+            self.sub_p2p.close(linger=0)
+            self.context.term()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

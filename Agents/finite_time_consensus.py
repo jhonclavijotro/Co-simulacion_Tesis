@@ -72,7 +72,8 @@ class FixedTimeConsensusAgent:
         max_delta_V: float = 0.10,        # Saturación máxima de tensión [p.u.] (+/- 10%)
         max_delta_omega: float = 3.1416,  # Saturación máxima de frecuencia angular (+/- 0.5 Hz = +/- 3.1416 rad/s)
         max_stale_steps: int = 4,         # Máximo de pasos reteniendo estado antes de declarar enlace caído
-        f_ref: float = 60.0               # Frecuencia nominal de referencia [Hz]
+        f_ref: float = 60.0,              # Frecuencia nominal de referencia [Hz]
+        omega_unit: str = "auto"           # Unidad de frecuencia angular: "hz", "rad_s", o "auto" (heurística < 100)
     ):
         self.agent_id = int(agent_id)
         self.Q_max = max(1e-3, float(Q_max))
@@ -88,6 +89,7 @@ class FixedTimeConsensusAgent:
         self.max_stale_steps = int(max_stale_steps)
         self.f_ref = float(f_ref)
         self.omega_ref = 2.0 * math.pi * self.f_ref
+        self.omega_unit = omega_unit.lower()  # "hz", "rad_s", o "auto"
 
         self.adj_vector: Dict[int, float] = {}  # Dict {neighbor_id: weight} (Fila i de Matriz de adyacencia A)
         self.V_ref = 1.0                        # Referencia nominal de tensión [p.u.]
@@ -166,7 +168,12 @@ class FixedTimeConsensusAgent:
         # Normalización de frecuencia local a rad/s si se proporciona
         if omega_i is not None:
             w_val = float(omega_i)
-            omega_local = w_val * 2.0 * math.pi if w_val < 100.0 else w_val
+            if self.omega_unit == "hz":
+                omega_local = w_val * 2.0 * math.pi
+            elif self.omega_unit == "rad_s":
+                omega_local = w_val
+            else:  # "auto": heurística basada en magnitud
+                omega_local = w_val * 2.0 * math.pi if w_val < 100.0 else w_val
         else:
             omega_local = self.omega_ref
 
@@ -198,7 +205,12 @@ class FixedTimeConsensusAgent:
             # Frecuencia del vecino
             if "omega" in state_j:
                 w_j_raw = float(state_j["omega"])
-                w_j = w_j_raw * 2.0 * math.pi if w_j_raw < 100.0 else w_j_raw
+                if self.omega_unit == "hz":
+                    w_j = w_j_raw * 2.0 * math.pi
+                elif self.omega_unit == "rad_s":
+                    w_j = w_j_raw
+                else:  # "auto"
+                    w_j = w_j_raw * 2.0 * math.pi if w_j_raw < 100.0 else w_j_raw
             elif "Fsys" in state_j:
                 w_j = float(state_j["Fsys"]) * 2.0 * math.pi
             elif "f" in state_j:
@@ -270,11 +282,18 @@ class FixedTimeConsensusAgent:
             T_f <= 2^((1-alpha)/2) / [ c1 * (1 - alpha) * lambda_2^((1+alpha)/2) ]
                  + 2^((1-beta)/2)  / [ c2 * (beta - 1)  * lambda_2^((1+beta)/2) ]
 
+        NOTA: Esta cota es válida para el sistema continuo dx/dt = u(x). La implementación
+        opera con integración de Euler explícito a paso dt, lo cual introduce error O(dt)
+        y requiere la condición de estabilidad CFL discreta:
+            dt * d_max * (c1 + c2) < 1.0
+        donde d_max = max_i(sum_j a_ij) es el grado máximo del grafo de comunicación.
+        El tiempo real de convergencia discreto será mayor que esta cota teórica.
+
         Parámetros:
             lambda_2: Conectividad algebraica (autovalor de Fiedler) de la matriz Laplaciana L.
 
         Retorna:
-            Cota superior del tiempo de convergencia T_f [segundos].
+            Cota superior del tiempo de convergencia T_f [segundos] (sistema continuo).
         """
         if lambda_2 <= 1e-6:
             return float("inf")
@@ -286,6 +305,28 @@ class FixedTimeConsensusAgent:
             self.c2 * (self.beta - 1.0) * (lambda_2 ** ((1.0 + self.beta) / 2.0))
         )
         return t1 + t2
+
+    def verify_discrete_cfl_stability(self, dt: float = 0.5, max_degree: float = None) -> tuple:
+        """Verifica la condición analítica de estabilidad CFL para integración de Euler explícito.
+
+        Condición: dt * d_max * (c1 + c2) < 1.0
+        donde d_max es el grado nodal máximo del grafo de adyacencia ponderada.
+
+        Parámetros:
+            dt:         Paso de discretización macro [s] (default: 0.5 s).
+            max_degree: Grado nodal máximo ponderado d_max. Si es None, usa sum(adj_vector.values()).
+
+        Retorna:
+            (is_stable: bool, cfl_number: float, max_stable_dt: float)
+        """
+        if max_degree is None:
+            max_degree = sum(self.adj_vector.values()) if self.adj_vector else 1.0
+        d_val = max(1e-6, float(max_degree))
+        sum_gains = self.c1 + self.c2
+        cfl_number = float(dt) * d_val * sum_gains
+        max_stable_dt = 1.0 / (d_val * sum_gains) if sum_gains > 0 else float("inf")
+        is_stable = cfl_number < 1.0
+        return is_stable, round(cfl_number, 4), round(max_stable_dt, 4)
 
 
 # Alias retrocompatible para clases existentes en el proyecto

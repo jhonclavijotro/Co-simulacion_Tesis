@@ -149,6 +149,40 @@ class TestFiniteTimeConsensus(unittest.TestCase):
         T_inf = agent.calculate_lyapunov_settling_time(0.0)
         self.assertEqual(T_inf, float("inf"))
 
+    def test_discrete_cfl_stability_verification(self):
+        """Verifica el cálculo de la condición CFL discreta dt * d_max * (c1 + c2) < 1.0."""
+        agent = FiniteTimeConsensusAgent(agent_id=2, c1=0.25, c2=0.15)
+        agent.set_adjacency({1: 1.0, 3: 1.0})  # d_max = 2.0
+
+        # Para dt = 0.5: cfl = 0.5 * 2.0 * (0.25 + 0.15) = 0.40 < 1.0 (estable)
+        is_stable, cfl, max_dt = agent.verify_discrete_cfl_stability(dt=0.5)
+        self.assertTrue(is_stable)
+        self.assertAlmostEqual(cfl, 0.40, places=2)
+        self.assertAlmostEqual(max_dt, 1.25, places=2)
+
+        # Para dt = 1.5: cfl = 1.5 * 2.0 * 0.40 = 1.20 > 1.0 (inestable)
+        is_stable_high, cfl_high, _ = agent.verify_discrete_cfl_stability(dt=1.5)
+        self.assertFalse(is_stable_high)
+        self.assertGreater(cfl_high, 1.0)
+
+    def test_omega_unit_explicit_modes(self):
+        """Verifica que omega_unit gestione adecuadamente entradas en Hz y rad/s."""
+        agent_hz = FiniteTimeConsensusAgent(agent_id=1, omega_unit="hz")
+        agent_rad = FiniteTimeConsensusAgent(agent_id=1, omega_unit="rad_s")
+
+        # Entrada de 60.0: en modo 'hz' debe interpretarse como 60 Hz (~376.99 rad/s)
+        # en modo 'rad_s' debe interpretarse como 60.0 rad/s (contingencia/baja frecuencia)
+        neighbors_hz = {2: {"omega": 60.0}}
+        neighbors_rad = {2: {"omega": 376.99}}
+
+        _, _, dw_hz, _ = agent_hz.update_consensus(V_i=1.0, Q_i=0.0, omega_i=60.0, P_i=0.0,
+                                                   neighbor_states=neighbors_hz, dt=0.5, return_all=True)
+        _, _, dw_rad, _ = agent_rad.update_consensus(V_i=1.0, Q_i=0.0, omega_i=376.99, P_i=0.0,
+                                                     neighbor_states=neighbors_rad, dt=0.5, return_all=True)
+
+        self.assertAlmostEqual(dw_hz, 0.0, places=4)
+        self.assertAlmostEqual(dw_rad, 0.0, places=4)
+
 
 if __name__ == "__main__":
     unittest.main()

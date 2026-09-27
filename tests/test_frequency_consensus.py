@@ -174,6 +174,50 @@ class TestFrequencyConsensus(unittest.TestCase):
         finally:
             master.close()
 
+    def test_distributed_node_runner_integral_offsets_and_p2p_pratio(self):
+        """Verifica que DistributedNodeRunner mantenga acumuladores integradores V_offset y omega_offset
+        y que neighbor_cache procese P_ratio."""
+        from Agents.distributed_node_runner import DistributedNodeRunner
+        runner = DistributedNodeRunner(
+            node_id=2,
+            source_type="SOLAR",
+            master_host="127.0.0.1",
+            p2p_port=6400,
+            port_rep=6401,
+            port_pub=6402,
+            q_max=20000.0,
+            p_max=50000.0
+        )
+        try:
+            self.assertEqual(runner.V_offset, 0.0)
+            self.assertEqual(runner.omega_offset, 0.0)
+
+            # Simular recepción de mensaje vecino con P_ratio
+            runner.agent.set_adjacency({1: 1.0})
+            neighbor_msg = {"V": 1.02, "Q_ratio": 0.35, "omega": 376.99, "P_ratio": 0.45}
+            neighbor_cache = {1: neighbor_msg}
+            self.assertIn("P_ratio", neighbor_cache[1])
+
+            dV, dQ, dw, dP = runner.agent.update_consensus(
+                V_i=0.98,
+                Q_i=5000.0,
+                omega_i=375.0,
+                P_i=10000.0,
+                neighbor_states=neighbor_cache,
+                dt=0.5,
+                return_all=True
+            )
+            # Simular acumulación integradora del control secundario
+            runner.V_offset = max(-0.10, min(0.10, runner.V_offset + dV))
+            runner.omega_offset = max(-3.1416, min(3.1416, runner.omega_offset + dw))
+
+            self.assertNotEqual(runner.V_offset, 0.0)
+            self.assertNotEqual(runner.omega_offset, 0.0)
+            self.assertGreater(runner.V_offset, 0.0)
+            self.assertGreater(runner.omega_offset, 0.0)
+        finally:
+            runner.close()
+
 
 if __name__ == "__main__":
     unittest.main()
