@@ -38,7 +38,8 @@ def sig_pow(y: float, gamma: float, epsilon: float = 1e-3) -> float:
 
 class FixedTimeConsensusAgent:
     """
-    Agente de Control Secundario Distribuido basado en Consenso en Tiempo Fijo (FxTS) Resiliente a Red.
+    Agente de Control Secundario Distribuido basado en Consenso en Tiempo Fijo (FxTS)
+    (con resiliencia ante pérdidas y retardos vía proxy de red).
     Regula la tensión local V_i y garantiza el reparto proporcional de potencia reactiva Q_i / Q_max_i.
 
     Fundamentación Teórica:
@@ -260,13 +261,13 @@ class FixedTimeConsensusAgent:
             u_w += (self.c1 * sig_pow(e_leader_w, self.alpha, self.epsilon)
                     + self.c2 * sig_pow(e_leader_w, self.beta, self.epsilon))
 
-        # Cálculo de la corrección incremental de control restaurativo (+dt * u)
+        # Cálculo de la corrección incremental (+dt * u) reescalada a unidades absolutas (V, var, rad/s, W)
         raw_delta_V = dt * u_v
         raw_delta_Q = dt * u_q * self.Q_max
         raw_delta_omega = dt * u_w
         raw_delta_P = dt * u_p * self.P_max
 
-        # Saturación Anti-Windup en los límites de capacidad
+        # Saturación del incremento instantáneo (delta) según límites físicos y de tasa máxima
         self.delta_V = max(-self.max_delta_V, min(self.max_delta_V, raw_delta_V))
         self.delta_Q = max(-self.Q_max, min(self.Q_max, raw_delta_Q))
         self.delta_omega = max(-self.max_delta_omega, min(self.max_delta_omega, raw_delta_omega))

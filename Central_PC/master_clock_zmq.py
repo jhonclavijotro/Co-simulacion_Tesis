@@ -43,8 +43,8 @@ class MasterClockZMQ:
         self.dt = 0.5  # 500 ms por paso maestro
         self.f_sys = 60.0
         self.f_nom = 60.0
-        self.H_sys = 2.0
-        self.D_sys = 1.0
+        self.H_sys = 6.0
+        self.D_sys = 12.0
         self.operating_mode = "ONLINE"
 
         # Emulador de Canal de Comunicación
@@ -176,7 +176,7 @@ class MasterClockZMQ:
             "tripped_nodes": list(self.tripped_nodes)
         }
 
-        # Publicar los nuevos voltajes a todos los nodos
+        # Publicar payload de estado de red (voltajes, frecuencia, telemetría y disparos) a todos los nodos
         self.pub_socket.send_json(payload)
         return payload
 

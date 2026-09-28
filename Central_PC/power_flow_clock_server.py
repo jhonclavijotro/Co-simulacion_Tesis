@@ -33,7 +33,7 @@ def get_local_ip(target_subnet="10.0.0."):
 class PowerFlowClockServer:
     """
     Servidor Autónomo para el PC Central:
-    - Ejecuta el Flujo de Potencia Radial MT (FBS) a 13.8 kV.
+    - Ejecuta el Flujo de Potencia Radial BT (FBS) a 400 V.
     - Sincroniza el Reloj Maestro ZeroMQ a 500 ms (2 Hz).
     - Opera en Modo Isla (OFFLINE) con Nodo 1 (Diésel) como barra Slack.
     """
@@ -67,12 +67,14 @@ class PowerFlowClockServer:
             comm_scenario="IDEAL"
         )
         self.master.dt = self.step_dt
+        self.master.H_sys = 6.0
+        self.master.D_sys = 12.0
         self.master.set_operating_mode(self.operating_mode, slack_node=1, V_slack=1.0)
         self.running = False
 
     def run(self, max_steps: int = None):
         print("=" * 65)
-        print(" SERVIDOR CENTRAL PC: SOLVER MT (13.8 kV) & RELOJ MAESTRO ZMQ")
+        print(" SERVIDOR CENTRAL PC: SOLVER BT (400 V) & RELOJ MAESTRO ZMQ")
         print("=" * 65)
         print(f" - IP PC Central:        {self.local_ip}")
         print(f" - Topologia:            {os.path.basename(self.topology_path)}")
@@ -131,7 +133,7 @@ class PowerFlowClockServer:
                         if time.perf_counter() > poll_deadline - 0.05:
                             break
 
-                # Resolver flujo de potencia FBS a 13.8 kV
+                # Resolver flujo de potencia FBS (Forward-Backward Sweep)
                 result = self.master.run_step(injections)
 
                 # Resumen en consola cada 2 pasos (1 vez por segundo)

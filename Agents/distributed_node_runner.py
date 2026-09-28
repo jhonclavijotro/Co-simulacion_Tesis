@@ -52,6 +52,11 @@ class DistributedNodeRunner:
         self.p_init = float(p_init)
         self.operating_mode = operating_mode.upper()
 
+        # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa
+        self.int_freq_error = 0.0
+        self.k_p_freq = 400.0  # W/(rad/s)
+        self.k_i_freq = 250.0  # W/(rad/s*s)
+
         # 1. Proceso de Dinamica Fisica (1 kHz)
         self.dynamic_proc = NodeDynamicProcess(
             node_id=self.node_id,
@@ -73,7 +78,7 @@ class DistributedNodeRunner:
             epsilon=1e-3,
             max_stale_steps=4
         )
-        # Matriz de adyacencia inicializada
+        # Inicializar ponderaciones de adyacencia derivando el ID del vecino a partir de su puerto ZMQ (node_id = puerto - 6000)
         adj_init = {int(tgt.split(":")[-1]) - 6000: 1.0 for tgt in self.neighbors_targets if ":" in tgt}
         self.agent.set_adjacency(adj_init)
 
@@ -207,10 +212,18 @@ class DistributedNodeRunner:
                     return_all=True
                 )
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
-                self.P_ref = max(0.0, min(self.p_max, self.P_ref + dP))
+
+                # Lazo Restaurativo Secundario de Frecuencia hacia Potencia Activa (Control PI)
+                if self.source_type in ["DIESEL", "BESS"]:
+                    err_w = (2.0 * math.pi * 60.0) - omega_local
+                    self.int_freq_error = max(-20.0, min(20.0, self.int_freq_error + err_w * 0.5))
+                    delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
+                    base_p = self.p_init if self.p_init > 0 else 3000.0
+                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_restore + dP))
+                else:
+                    self.P_ref = max(0.0, min(self.p_max, self.P_ref + dP))
+
                 # Acumular correcciones de tensión y frecuencia (acción integral del control secundario).
-                # Saturación de omega_offset reducida a ±1.0 rad/s (~±0.16 Hz) para evitar retroalimentación
-                # positiva con la dinámica de la Swing Equation en el PC Central.
                 self.V_offset = max(-0.10, min(0.10, self.V_offset + dV))
                 self.omega_offset = max(-1.0, min(1.0, self.omega_offset + dw))
 

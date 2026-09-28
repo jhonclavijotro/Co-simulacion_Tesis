@@ -56,7 +56,7 @@ class NodeDynamicProcess:
         active_hold = (hold_mode or self.hold_mode).upper()
         active_lambda = float(zfoh_lambda if zfoh_lambda is not None else self.zfoh_lambda)
 
-        # Normalización de tensión al nivel de excitación del inversor de Baja Tensión (110 V)
+        # Detección heurística de escala de tensión (MT > 1kV -> 13.8kV, BT > 10V -> 400V, else pu)
         v_num = float(V_pcc)
         if v_num > 1000.0:
             v_pu = v_num / 13800.0
@@ -85,7 +85,7 @@ class NodeDynamicProcess:
         # Cálculo de la tasa de cambio de tensión en el macro-paso
         dV_dt = (float(v_inv_terminal) - self.V_pcc_prev) / float(macro_dt) if macro_dt > 0 else 0.0
 
-        # 3. Ejecutar integración física de 500 micro-pasos (1 kHz) con reconstrucción de señal
+        # 3. Ejecutar integración física por n_substeps (macro_dt / micro_dt) con reconstrucción de señal
         n_substeps = max(1, int(round(macro_dt / micro_dt)))
         setpoints = {
             "Q_ref_kvar": Q_ref / 1000.0,

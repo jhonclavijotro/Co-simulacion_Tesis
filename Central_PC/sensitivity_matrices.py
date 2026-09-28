@@ -131,7 +131,10 @@ class SensitivityMatrixSolver:
         return self.operating_mode, self.slack_node, V_slack
 
     def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=1.0, f_nom=60.0):
-        """Calcula la dinámica de frecuencia en modo isla para SensitivityMatrixSolver."""
+        """
+        Calcula la dinámica de frecuencia en modo isla (OFFLINE) mediante la ecuación de oscilación
+        (Swing Equation) y amortiguamiento D_sys, considerando el desbalance neto de potencia activa.
+        """
         p_net = sum(float(v) for v in P_injections.values())
         self.P_net = p_net
 
