@@ -52,5 +52,24 @@ class TestSensitivityMesh(unittest.TestCase):
         self.assertIn(1, history[0]["voltages"])
         self.assertIn(4, history[0]["voltages"])
 
+    def test_ieee_6bus_mt_mesh_solver(self):
+        """Valida que la topología mallada MT IEEE 6 barras (Opción A, 11 ramas) cargue y resuelva."""
+        top_mt_mesh = os.path.join(os.path.dirname(__file__), "..", "config", "topologia_MT_IEEE6Bus_mallada.csv")
+        self.assertTrue(os.path.exists(top_mt_mesh))
+        solver = SensitivityMatrixSolver(mesh_type="RING_ZBUS", V_base=13800.0, S_base=10000000.0)
+        solver.load_topology(top_mt_mesh)
+        self.assertEqual(len(solver.nodes), 6)
+        self.assertEqual(len(solver.branches), 11)
+
+        # Inyecciones caso Opción A: N2=5 MW, N3=6 MW, N4=-7MW, N5=-7MW, N6=-7MW
+        P_inj = {2: 5.0e6, 3: 6.0e6, 4: -7.0e6, 5: -7.0e6, 6: -7.0e6}
+        Q_inj = {2: 3.5e6, 3: 4.2e6, 4: -7.0e6, 5: -7.0e6, 6: -7.0e6}
+        v_sol, conv, _ = solver.solve(P_inj, Q_inj)
+        self.assertTrue(conv)
+        self.assertEqual(len(v_sol), 6)
+        for n in range(1, 7):
+            self.assertGreater(abs(v_sol[n]), 0.80)  # Magnitud en pu (> 0.80 pu)
+            self.assertLess(abs(v_sol[n]), 1.20)     # Magnitud en pu (< 1.20 pu)
+
 if __name__ == "__main__":
     unittest.main()
