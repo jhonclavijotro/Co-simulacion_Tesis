@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,15 +16,17 @@
             --bg-body: #09090b;
             --bg-surface: #121215;
             --bg-card: #18181b;
-            --bg-card-hover: #27272a;
+            --bg-card-hover: #222226;
             --border: #27272a;
             --border-highlight: #3f3f46;
             
-            --accent-primary: #3b82f6;      /* Blue */
-            --accent-secondary: #8b5cf6;    /* Purple */
-            --accent-success: #10b981;      /* Emerald Green */
-            --accent-warning: #f59e0b;      /* Amber */
-            --accent-danger: #ef4444;       /* Red */
+            --accent-primary: #3b82f6;      /* Azul */
+            --accent-secondary: #8b5cf6;    /* Púrpura */
+            --accent-success: #10b981;      /* Esmeralda */
+            --accent-warning: #f59e0b;      /* Ámbar */
+            --accent-danger: #ef4444;       /* Rojo */
+            --accent-cyan: #06b6d4;         /* Cian */
+            --accent-pink: #ec4899;         /* Rosa */
 
             --text-primary: #f4f4f5;
             --text-secondary: #a1a1aa;
@@ -51,6 +53,8 @@
             --accent-success: #059669;
             --accent-warning: #d97706;
             --accent-danger: #dc2626;
+            --accent-cyan: #0891b2;
+            --accent-pink: #db2777;
 
             --text-primary: #0f172a;
             --text-secondary: #475569;
@@ -59,10 +63,6 @@
             --bg-canvas: #f1f5f9;
             --bg-console: #f8fafc;
             --console-text: #047857;
-        }
-
-        body, header, sidebar, main, .kpi-card, .control-card, .chart-card, .topology-card, .log-card, select, input, .console-output, .topology-canvas {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
         * {
@@ -79,16 +79,18 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Top Navbar */
         header {
             background-color: var(--bg-surface);
             border-bottom: 1px solid var(--border);
-            padding: 0.85rem 1.75rem;
+            padding: 0.75rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 20;
         }
 
         .brand {
@@ -98,38 +100,44 @@
         }
 
         .brand-icon {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 10px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            font-size: 1.15rem;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
         }
 
         .brand-text h1 {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 700;
             letter-spacing: -0.02em;
         }
 
         .brand-text p {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .status-pill {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.45rem;
             background-color: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--accent-success);
-            padding: 0.35rem 0.9rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.825rem;
+            font-size: 0.8rem;
             font-weight: 600;
         }
 
@@ -148,10 +156,31 @@
             100% { transform: scale(0.95); opacity: 0.8; }
         }
 
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-family: var(--font-main);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--border-highlight);
+        }
+
         /* Layout Grid */
         .app-layout {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 340px 1fr;
             flex: 1;
             overflow: hidden;
         }
@@ -160,32 +189,48 @@
         sidebar {
             background-color: var(--bg-surface);
             border-right: 1px solid var(--border);
-            padding: 1.25rem;
+            padding: 1.1rem;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1rem;
             overflow-y: auto;
         }
 
-        .panel-section {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .section-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-        }
-
-        .control-card {
+        /* Collapsible sections styling */
+        details.panel-section {
             background-color: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 1rem;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details.panel-section:hover {
+            border-color: var(--border-highlight);
+        }
+
+        details.panel-section summary {
+            padding: 0.75rem 0.9rem;
+            font-size: 0.825rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid transparent;
+        }
+
+        details.panel-section[open] summary {
+            border-bottom-color: var(--border);
+        }
+
+        .panel-content {
+            padding: 0.9rem;
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
@@ -194,29 +239,29 @@
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.3rem;
         }
 
         .form-group label {
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-size: 0.76rem;
+            font-weight: 600;
             color: var(--text-secondary);
         }
 
-        select, input[type="text"] {
+        select, input[type="text"], input[type="number"] {
             width: 100%;
             background-color: var(--bg-body);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.55rem 0.75rem;
+            padding: 0.5rem 0.65rem;
             border-radius: 6px;
             font-family: var(--font-main);
-            font-size: 0.875rem;
+            font-size: 0.825rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s ease;
         }
 
-        select:focus, input[type="text"]:focus {
+        select:focus, input[type="text"]:focus, input[type="number"]:focus {
             border-color: var(--accent-primary);
         }
 
@@ -224,12 +269,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.45rem;
             width: 100%;
-            padding: 0.65rem 1rem;
-            border-radius: 8px;
+            padding: 0.55rem 0.85rem;
+            border-radius: 7px;
             font-family: var(--font-main);
-            font-size: 0.875rem;
+            font-size: 0.825rem;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid transparent;
@@ -239,7 +284,7 @@
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
         }
 
         .btn-primary:hover {
@@ -263,95 +308,197 @@
             color: #000000;
         }
 
+        .btn-danger {
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: var(--accent-danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--accent-danger);
+            color: #ffffff;
+        }
+
+        .btn-sm {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        /* Branches list container */
+        .branches-table-wrapper {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: var(--bg-body);
+        }
+
+        .branches-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+        }
+
+        .branches-table th, .branches-table td {
+            padding: 0.35rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .branches-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background-color: var(--bg-card);
+            position: sticky;
+            top: 0;
+        }
+
         /* Main Workspace Content */
         main {
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            overflow-y: auto;
-        }
-
-        /* Top KPI Grid */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
-
-        .kpi-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
             padding: 1.1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
-            position: relative;
-            overflow: hidden;
+            gap: 1rem;
+            overflow-y: auto;
         }
 
-        .kpi-card::before {
+        /* 1. Node Type Cards Grid (Agrupación de Nodos por Tipo) */
+        .node-type-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.85rem;
+        }
+
+        .type-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .type-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+        }
+
+        .type-card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; height: 3px;
-            background: var(--accent-primary);
         }
 
-        .kpi-card.solar::before { background: #f59e0b; }
-        .kpi-card.wind::before { background: #3b82f6; }
-        .kpi-card.hydro::before { background: #06b6d4; }
-        .kpi-card.diesel::before { background: #10b981; }
+        .type-card.solar::before { background: var(--accent-warning); }
+        .type-card.diesel::before { background: var(--accent-success); }
+        .type-card.bess::before { background: var(--accent-secondary); }
+        .type-card.wind::before { background: var(--accent-primary); }
+        .type-card.hydro::before { background: var(--accent-cyan); }
+        .type-card.load::before { background: var(--accent-pink); }
 
-        .kpi-header {
+        .type-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .kpi-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .kpi-badge {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-        }
-
-        .kpi-value {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
+        .type-title {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.825rem;
             font-weight: 700;
             color: var(--text-primary);
         }
 
-        .kpi-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+        .type-count-badge {
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
 
-        /* Charts & Visualization Section */
-        .viz-grid {
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+
+        .node-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.55rem;
+            background-color: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.78rem;
+        }
+
+        .node-item-left {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .node-chip {
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .node-chip.diesel { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
+        .node-chip.solar { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+        .node-chip.bess { background: rgba(139, 92, 246, 0.15); color: var(--accent-secondary); }
+        .node-chip.wind { background: rgba(59, 130, 246, 0.15); color: var(--accent-primary); }
+        .node-chip.hydro { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+        .node-chip.load { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
+
+        .node-voltage-val {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.825rem;
+            color: var(--text-primary);
+        }
+
+        .node-voltage-pu {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: 0.25rem;
+        }
+
+        /* 2. Visualizations Grid (Charts & Dynamic Graph) */
+        .viz-layout {
             display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 1.25rem;
+            grid-template-columns: 1fr 1fr 340px;
+            gap: 1rem;
             flex: 1;
-            min-height: 320px;
+            min-height: 310px;
         }
 
         .chart-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.1rem;
+            border-radius: 10px;
+            padding: 0.9rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.6rem;
+            min-height: 290px;
         }
 
         .card-header {
@@ -361,9 +508,15 @@
         }
 
         .card-header h3 {
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 700;
             color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
         }
 
         .chart-container {
@@ -372,80 +525,63 @@
             min-height: 220px;
         }
 
-        /* Topology Canvas Graph */
+        /* Dynamic Topology Graph Card */
         .topology-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.1rem;
+            border-radius: 10px;
+            padding: 0.9rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.6rem;
+            min-height: 290px;
         }
 
-        .topology-canvas {
+        .topology-canvas-container {
             flex: 1;
             background-color: var(--bg-canvas);
             border-radius: 8px;
             border: 1px solid var(--border);
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        /* Bottom Console Log */
+        svg.dynamic-topology-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 3. Bottom Terminal Console Log */
         .log-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1rem;
+            border-radius: 10px;
+            padding: 0.85rem;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            max-height: 180px;
+            gap: 0.45rem;
+            max-height: 150px;
         }
 
         .console-output {
             font-family: var(--font-mono);
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             background-color: var(--bg-console);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 0.75rem;
+            padding: 0.65rem;
             color: var(--console-text);
             overflow-y: auto;
             flex: 1;
-            line-height: 1.5;
+            line-height: 1.45;
         }
 
         .console-output .warn { color: var(--accent-warning); }
         .console-output .info { color: var(--accent-primary); }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .theme-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.45rem 0.9rem;
-            border-radius: 20px;
-            font-family: var(--font-main);
-            font-size: 0.825rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .theme-toggle-btn:hover {
-            background-color: var(--bg-card-hover);
-            border-color: var(--border-highlight);
-            transform: translateY(-1px);
-        }
+        .console-output .error { color: var(--accent-danger); }
     </style>
 </head>
 <body>
@@ -456,15 +592,15 @@
             <div class="brand-icon">⚡</div>
             <div class="brand-text">
                 <h1>CENTRO DE MANDO: MICRORRED DISTRIBUIDA (MAS)</h1>
-                <p>Control Secundario de Tiempo Finito & Telemetría HIL (Discretización 500 ms)</p>
+                <p>Control Secundario FxTS | Telemetría Ciber-Física HIL en Raspberry Pi</p>
             </div>
         </div>
         <div class="header-actions">
             <div class="status-pill" id="hold-status-pill" style="background-color: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3); color: var(--accent-secondary);">
-                <span>⏳ Hold: <b id="hold-badge-mode">ZFOH (λ=0.70)</b></span>
+                <span>⏳ Retenedor: <b id="hold-badge-mode">ZFOH (λ=0.70)</b></span>
             </div>
             <div class="status-pill" id="network-status-pill" style="background-color: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: var(--accent-primary);">
-                <span>📡 Red: <b id="net-badge-profile">IDEAL</b> | Lat: <b id="net-badge-lat">0.0 ms</b> | Drop: <b id="net-badge-drop">0.0%</b></span>
+                <span>📡 Red: <b id="net-badge-profile">LAN_ETHERNET</b> | Lat: <b id="net-badge-lat">1.2 ms</b></span>
             </div>
             <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Conmutar Tema Claro / Oscuro">
                 <span id="theme-icon">🌙</span>
@@ -472,7 +608,7 @@
             </button>
             <div class="status-pill">
                 <div class="pulse-dot" id="pulse-dot"></div>
-                <span id="system-status">SISTEMA LISTO (ONLINE)</span>
+                <span id="system-status">SISTEMA ACTIVO</span>
             </div>
         </div>
     </header>
@@ -481,274 +617,1011 @@
     <div class="app-layout">
         <!-- Sidebar Controls -->
         <sidebar>
-            <div class="panel-section">
-                <div class="section-label">1. Topología & Red Eléctrica</div>
-                <div class="control-card">
+            <!-- 1. Configuración de Red y Conectividad -->
+            <details class="panel-section" open>
+                <summary>🌐 1. Configuración de Red & Topología</summary>
+                <div class="panel-content">
                     <div class="form-group">
-                        <label>Configuración Benchmark:</label>
-                        <select id="topo-select" onchange="sendConfigUpdate()">
-                            <option value="BT">Baja Tensión Radial (BT - 400V, R/X > 1)</option>
-                            <option value="BT_MALLADA">Baja Tensión Mallada / Anillada (400V)</option>
-                            <option value="MT">Media Tensión (MT - 20kV, R/X <= 1)</option>
+                        <label>Topología Base:</label>
+                        <select id="topo-select" onchange="onPresetTopologyChange()">
+                            <option value="BT_MALLADA_11" selected>BT Mallada 6 Nodos (11 Ramas, 400V, 15kVA)</option>
+                            <option value="MT_IEEE6_MALLADA">MT IEEE 6 Barras Mallada (11 Ramas, 13.8kV, 10MVA - Opción A)</option>
+                            <option value="BT_RADIAL_6">BT Radial 6 Nodos (5 Ramas, 400V, 10kVA)</option>
+                            <option value="CUSTOM">Personalizada (Definir o Cargar)</option>
                         </select>
                     </div>
-                    <button class="btn btn-secondary" onclick="triggerFileUpload()">📁 Cargar Archivo .CSV / .XLSX</button>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label>Tensión Base (Vb):</label>
+                            <select id="vbase-select" onchange="updateSystemMetadata()">
+                                <option value="400.0" selected>400 V (BT)</option>
+                                <option value="13800.0">13.8 kV (MT)</option>
+                                <option value="20000.0">20.0 kV (MT)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Potencia Base (Sb):</label>
+                            <select id="sbase-select" onchange="updateSystemMetadata()">
+                                <option value="15000.0" selected>15 kVA</option>
+                                <option value="10000.0">10 kVA</option>
+                                <option value="10000000.0">10 MVA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Editor de Ramas (from, to, conductor, distancia) -->
+                    <div style="border-top: 1px solid var(--border); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.45rem;">
+                        <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-primary);">Añadir Rama de Conexión:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                            <div class="form-group">
+                                <label>From (Partida):</label>
+                                <select id="branch-from"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>To (Llegada):</label>
+                                <select id="branch-to"></select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tipo de Conductor (Catálogo Oficial):</label>
+                            <select id="branch-conductor"></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Distancia entre Nodos (km):</label>
+                            <input type="number" id="branch-dist" value="0.10" step="0.01" min="0.01">
+                        </div>
+
+                        <button class="btn btn-secondary btn-sm" onclick="addBranchToNetwork()">➕ Agregar Conexión</button>
+                    </div>
+
+                    <!-- Lista colapsable de ramas -->
+                    <details style="margin-top: 0.25rem;">
+                        <summary style="font-size: 0.74rem; color: var(--text-secondary); cursor: pointer;">
+                            📋 Ramas de la Red (<span id="branch-count-badge">11</span>)
+                        </summary>
+                        <div class="branches-table-wrapper" style="margin-top: 0.4rem;">
+                            <table class="branches-table">
+                                <thead>
+                                    <tr>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Conductor</th>
+                                        <th>km</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="branches-table-body"></tbody>
+                            </table>
+                        </div>
+                    </details>
+
+                    <button class="btn btn-secondary btn-sm" onclick="triggerFileUpload()">📁 Cargar Topología CSV</button>
                     <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
                 </div>
-            </div>
+            </details>
 
-            <div class="panel-section">
-                <div class="section-label">2. Modo & Solucionadores</div>
-                <div class="control-card">
+            <!-- 2. Perfiles Exógenos por Nodo (Solar, Eólico, Hidrocinético) -->
+            <details class="panel-section" open>
+                <summary>🌤️ 2. Perfiles Exógenos de Recursos</summary>
+                <div class="panel-content">
+                    <!-- Solar PV Profile -->
+                    <div style="background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 7px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-warning);">☀️ Perfil Solar FV</span>
+                            <span style="font-size: 0.68rem; color: var(--accent-success); font-family: var(--font-mono);">Activo</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Asociar a Nodo Solar:</label>
+                            <select id="solar-target-node" onchange="syncExogenousProfiles()">
+                                <option value="2" selected>Nodo 2 (Solar FV)</option>
+                                <option value="3">Nodo 3</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Archivo / Metadatos:</label>
+                            <select id="solar-dataset-select" onchange="syncExogenousProfiles()">
+                                <option value="datos_radiacion_temperatura.csv" selected>datos_radiacion_temperatura.csv</option>
+                                <option value="custom">Subir archivo personalizado...</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
+                            G: <b id="val-solar-g" style="color: var(--text-primary);">1000 W/m²</b> | T: <b id="val-solar-t" style="color: var(--text-primary);">25 °C</b>
+                        </div>
+                    </div>
+
+                    <!-- Wind Profile -->
+                    <div style="background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 7px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-primary);">💨 Perfil Eólico</span>
+                            <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);" id="badge-wind-status">En Reserva</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Asociar a Nodo Eólico:</label>
+                            <select id="wind-target-node" onchange="syncExogenousProfiles()">
+                                <option value="none">Sin Nodo Asignado</option>
+                                <option value="3">Nodo 3 (Eólica PMSG)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Archivo de Viento:</label>
+                            <select id="wind-dataset-select" onchange="syncExogenousProfiles()">
+                                <option value="datos_vel_viento.csv" selected>datos_vel_viento.csv</option>
+                                <option value="custom">Subir archivo personalizado...</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
+                            Velocidad V_w: <b id="val-wind-v" style="color: var(--text-primary);">8.5 m/s</b>
+                        </div>
+                    </div>
+
+                    <!-- Hydrokinetic Profile -->
+                    <div style="background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 7px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan);">🌊 Perfil Hidrocinético</span>
+                            <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);" id="badge-hydro-status">En Reserva</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Asociar a Nodo Hidro:</label>
+                            <select id="hydro-target-node" onchange="syncExogenousProfiles()">
+                                <option value="none">Sin Nodo Asignado</option>
+                                <option value="4">Nodo 4 (Hidrocinético)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Perfil de Caudal / Flujo:</label>
+                            <select id="hydro-dataset-select" onchange="syncExogenousProfiles()">
+                                <option value="flujo_caudal_nominal.csv" selected>Caudal Nominal Fluvial (1.5 m³/s)</option>
+                                <option value="custom">Subir archivo personalizado...</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
+                            Caudal Fluvial Q: <b id="val-hydro-q" style="color: var(--text-primary);">1.50 m³/s</b>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 3. Modo de Operación & Solucionador -->
+            <details class="panel-section">
+                <summary>⚙️ 3. Modo & Solucionadores</summary>
+                <div class="panel-content">
                     <div class="form-group">
                         <label>Modo Operativo:</label>
                         <select id="mode-select" onchange="sendConfigUpdate()">
-                            <option value="ONLINE">ONLINE (Grid-Connected / PCC Slack)</option>
-                            <option value="OFFLINE">OFFLINE (Modo Isla - Líder Diésel)</option>
+                            <option value="OFFLINE" selected>OFFLINE (Modo Isla - Líder Diésel)</option>
+                            <option value="ONLINE">ONLINE (Conectado a Red - Slack PCC)</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Solucionador PC Central:</label>
                         <select id="solver-select" onchange="sendConfigUpdate()">
-                            <option value="FBS">Modo A: Forward-Backward Sweep (FBS)</option>
-                            <option value="SENSITIVITY">Modo B: Matrices de Sensibilidad</option>
+                            <option value="FBS" selected>Modo A: Forward-Backward Sweep (FBS)</option>
+                            <option value="SENSITIVITY">Modo B: Matrices de Sensibilidad Z-Bus</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Malla para Modo B:</label>
                         <select id="mesh-select" onchange="sendConfigUpdate()">
+                            <option value="RING_ZBUS" selected>Anillo Compensado por Z-Bus</option>
                             <option value="RADIAL">Topología Radial Estándar</option>
-                            <option value="RING_ZBUS">Anillo Compensado por Z-Bus</option>
-                            <option value="FULL_JACOBIAN">Jacobiano Newton-Raphson Completo</option>
                         </select>
                     </div>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <div class="section-label">3. Reconstrucción Multitasa (Hold)</div>
-                <div class="control-card">
                     <div class="form-group">
-                        <label>Esquema de Retenedor (Hold):</label>
+                        <label>Retenedor Multitasa (Hold):</label>
                         <select id="hold-select" onchange="onHoldModeChange()">
-                            <option value="ZOH">ZOH: Zero-Order Hold (Constante O(H))</option>
-                            <option value="FOH">FOH: First-Order Hold (Lineal O(H²))</option>
-                            <option value="ZFOH" selected>ZFOH: Mixed Hold (Combinación Convexa λ)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="lambda-container">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <label>Factor λ (ZFOH):</label>
-                            <span id="lambda-value" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-primary);">0.70</span>
-                        </div>
-                        <input type="range" id="lambda-range" min="0.0" max="1.0" step="0.05" value="0.70" oninput="updateLambdaDisplay(this.value)" onchange="sendConfigUpdate()" style="width: 100%; accent-color: var(--accent-primary);">
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <div class="section-label">4. Canal Ciberfísico & Contingencias</div>
-                <div class="control-card">
-                    <div class="form-group">
-                        <label>Perfil Estocástico de Red:</label>
-                        <select id="net-select" onchange="sendConfigUpdate()">
-                            <option value="IDEAL">Ideal / Fibra Óptica (0 ms, 0% drop)</option>
-                            <option value="LAN_ETHERNET">LAN Ethernet Local (5 ms, 0.1% drop)</option>
-                            <option value="INDUSTRIAL_WIFI">WiFi Industrial (35 ms, 5% drop)</option>
-                            <option value="SEVERE_STRESS">Estrés Severo (120 ms, 15% drop)</option>
-                            <option value="CRITICAL_PARTITION">Partición Crítica / Falla (350 ms, 30% drop)</option>
+                            <option value="ZFOH" selected>ZFOH: Mixed Hold (λ=0.70)</option>
+                            <option value="FOH">FOH: First-Order Hold (O(H²))</option>
+                            <option value="ZOH">ZOH: Zero-Order Hold (O(H))</option>
                         </select>
                     </div>
                 </div>
-            </div>
+            </details>
 
-            <div class="panel-section">
-                <div class="section-label">5. Hardware Distribuido: Raspberry Pi 5</div>
-                <details class="control-card" style="cursor: pointer;">
-                    <summary style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); user-select: none;">
-                        🍓 Clúster RPi 5 (Configuración)
-                    </summary>
-                    <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem;">
-                        <div class="form-group">
-                            <label>IP Raspberry Pi:</label>
-                            <input type="text" id="rpi-host-input" value="192.168.1.10" onchange="sendConfigUpdate()">
-                        </div>
-                        <div class="form-group">
-                            <label>Usuario SSH:</label>
-                            <input type="text" id="rpi-user-input" value="jhonclavijotro" onchange="sendConfigUpdate()">
-                        </div>
-                        <div class="form-group">
-                            <label>IP PC Central (Reloj Maestro ZMQ):</label>
-                            <input type="text" id="rpi-clock-input" value="192.168.1.100" onchange="sendConfigUpdate()">
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.25rem;">
-                            <button class="btn btn-secondary" onclick="testRpiConnection()" id="rpi-test-btn" style="font-size: 0.75rem; padding: 0.5rem;">🔍 Probar SSH</button>
-                            <button class="btn btn-primary" onclick="deployToRpi()" id="rpi-deploy-btn" style="font-size: 0.75rem; padding: 0.5rem;">🚀 Desplegar RPi</button>
-                        </div>
-                    </div>
-                </details>
-            </div>
-
-            <div class="panel-section">
-                <div class="section-label">6. Orquestación & Simulación</div>
-                <div class="control-card">
-                    <button class="btn btn-primary" onclick="deployDocker()">📦 Despliegue Local (1-Clic)</button>
-                    <button class="btn btn-success" onclick="toggleSimulation()" id="sim-btn">▶ Iniciar Co-Simulación (500 ms)</button>
-                    <button class="btn btn-secondary" onclick="exportData()" id="export-btn">📥 Exportar Datos (.csv)</button>
-                </div>
+            <!-- 4. Controles de Ejecución y Telemetría -->
+            <div class="control-card" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.6rem;">
+                <button class="btn btn-success" onclick="toggleSimulation()" id="sim-btn">▶ Iniciar Co-Simulación (500 ms)</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportData()" id="export-btn">📥 Exportar Telemetría (.csv)</button>
             </div>
         </sidebar>
 
         <!-- Main Dashboard View -->
         <main>
-            <!-- KPI Metric Cards Grid -->
-            <div class="kpi-grid">
-                <div class="kpi-card diesel">
-                    <div class="kpi-header">
-                        <span class="kpi-title">NODO 1: DIÉSEL (SLACK)</span>
-                        <span class="kpi-badge">Líder</span>
+            <!-- 1. Tarjetas Agrupadas por Tipo de Nodo -->
+            <div class="node-type-cards-grid">
+                <!-- Nodos Diésel -->
+                <div class="type-card diesel">
+                    <div class="type-card-header">
+                        <div class="type-title"><span>⛽</span> Nodos Diésel (Slack)</div>
+                        <span class="type-count-badge" id="badge-count-diesel">1 Nodo</span>
                     </div>
-                    <div class="kpi-value" id="val-n1">400.00 V</div>
-                    <div class="kpi-sub" id="sub-n1">1.0000 p.u. | P = 25.0 kW</div>
+                    <div class="node-list" id="list-nodes-diesel">
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip diesel">N1</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Planta Diésel 15kVA</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n1">400.00 V</span>
+                                <span class="node-voltage-pu" id="pu-n1">1.0000 pu</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="kpi-card solar">
-                    <div class="kpi-header">
-                        <span class="kpi-title">NODO 2: SOLAR (PV+BESS)</span>
-                        <span class="kpi-badge">Seguidor</span>
+                <!-- Nodos Solares -->
+                <div class="type-card solar">
+                    <div class="type-card-header">
+                        <div class="type-title"><span>☀️</span> Nodos Solares (PV)</div>
+                        <span class="type-count-badge" id="badge-count-solar">1 Nodo</span>
                     </div>
-                    <div class="kpi-value" id="val-n2">399.98 V</div>
-                    <div class="kpi-sub" id="sub-n2">0.9999 p.u. | POA = 850 W/m²</div>
+                    <div class="node-list" id="list-nodes-solar">
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip solar">N2</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Instalación Solar 5kW</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n2">400.10 V</span>
+                                <span class="node-voltage-pu" id="pu-n2">1.0003 pu</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="kpi-card wind">
-                    <div class="kpi-header">
-                        <span class="kpi-title">NODO 3: EÓLICA (PMSG)</span>
-                        <span class="kpi-badge">Seguidor</span>
+                <!-- Nodos Almacenamiento (BESS) -->
+                <div class="type-card bess">
+                    <div class="type-card-header">
+                        <div class="type-title"><span>🔋</span> Almacenamiento (BESS)</div>
+                        <span class="type-count-badge" id="badge-count-bess">1 Nodo</span>
                     </div>
-                    <div class="kpi-value" id="val-n3">401.89 V</div>
-                    <div class="kpi-sub" id="sub-n3">1.0047 p.u. | Ws = 8.2 m/s</div>
+                    <div class="node-list" id="list-nodes-bess">
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip bess">N3</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">BESS 3kWh (SoC 50%)</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n3">400.39 V</span>
+                                <span class="node-voltage-pu" id="pu-n3">1.0010 pu</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="kpi-card hydro">
-                    <div class="kpi-header">
-                        <span class="kpi-title">NODO 4: HÍDRICA + DEMANDA</span>
-                        <span class="kpi-badge">Seguidor</span>
+                <!-- Nodos Eólicos -->
+                <div class="type-card wind">
+                    <div class="type-card-header">
+                        <div class="type-title"><span>💨</span> Nodos Eólicos (PMSG)</div>
+                        <span class="type-count-badge" id="badge-count-wind">0 Nodos</span>
                     </div>
-                    <div class="kpi-value" id="val-n4">405.73 V</div>
-                    <div class="kpi-sub" id="sub-n4">1.0143 p.u. | Vc = 1.5 m/s</div>
+                    <div class="node-list" id="list-nodes-wind">
+                        <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.4rem;">
+                            Sin nodos asignados en esta red
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nodos Hidrocinéticos -->
+                <div class="type-card hydro">
+                    <div class="type-card-header">
+                        <div class="type-title"><span>🌊</span> Nodos Hidrocinéticos</div>
+                        <span class="type-count-badge" id="badge-count-hydro">0 Nodos</span>
+                    </div>
+                    <div class="node-list" id="list-nodes-hydro">
+                        <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.4rem;">
+                            Sin nodos asignados en esta red
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nodos de Carga (Demanda) -->
+                <div class="type-card load">
+                    <div class="type-card-header">
+                        <div class="type-title"><span>🏢</span> Nodos de Demanda (Cargas)</div>
+                        <span class="type-count-badge" id="badge-count-load">3 Nodos</span>
+                    </div>
+                    <div class="node-list" id="list-nodes-load">
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip load">N4</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Residencial (A)</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n4">400.23 V</span>
+                                <span class="node-voltage-pu" id="pu-n4">1.0006 pu</span>
+                            </div>
+                        </div>
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip load">N5</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Comercial (B)</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n5">400.57 V</span>
+                                <span class="node-voltage-pu" id="pu-n5">1.0014 pu</span>
+                            </div>
+                        </div>
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip load">N6</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Industrial (C)</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n6">400.62 V</span>
+                                <span class="node-voltage-pu" id="pu-n6">1.0016 pu</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Chart & Topology Visualization -->
-            <div class="viz-grid">
-                <!-- Real-time Chart -->
+            <!-- 2. Visualización: Dos Gráficos Exclusivos de Amplitud + Grafo de Conexión Dinámico -->
+            <div class="viz-layout">
+                <!-- Gráfico 1: Tensiones Nodales (Solo Amplitud, Sin Escala de Tiempo) -->
                 <div class="chart-card">
                     <div class="card-header">
-                        <h3>📈 Respuesta Temporal de Tensión (Paso 500 ms)</h3>
-                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Regulación Secundaria en Tiempo Finito</span>
+                        <div>
+                            <h3>📈 Amplitud de Tensión Nodales</h3>
+                            <span class="card-subtitle">Eje Y: Magnitud [V] | Eje X: Sin escala temporal</span>
+                        </div>
+                        <span style="font-size: 0.72rem; color: var(--accent-success); font-family: var(--font-mono);">FxTS Conforme</span>
                     </div>
                     <div class="chart-container">
                         <canvas id="voltageChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Topology Communication Graph -->
+                <!-- Gráfico 2: Frecuencia del Sistema (Solo Amplitud, Sin Escala de Tiempo) -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div>
+                            <h3>⚡ Amplitud de Frecuencia del Sistema</h3>
+                            <span class="card-subtitle">Eje Y: Frecuencia [Hz] | f_nom = 60.00 Hz</span>
+                        </div>
+                        <span style="font-size: 0.72rem; color: var(--accent-primary); font-family: var(--font-mono);" id="freq-kpi-badge">60.14 Hz</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="frequencyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grafo de Conexión Dinámico SVG -->
                 <div class="topology-card">
                     <div class="card-header">
-                        <h3>🌐 Grafo de Comunicación P2P</h3>
-                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Topología Isomórfica</span>
+                        <div>
+                            <h3>🌐 Grafo Dinámico de Agentes</h3>
+                            <span class="card-subtitle">Conexiones reales de potencia y P2P</span>
+                        </div>
                     </div>
-                    <div class="topology-canvas">
-                        <svg width="100%" height="100%" viewBox="0 0 320 220">
-                            <!-- Enlaces físicos y de comunicación -->
-                            <line x1="60" y1="110" x2="140" y2="60" stroke="#3f3f46" stroke-width="3" stroke-dasharray="4"/>
-                            <line x1="140" y1="60" x2="240" y2="60" stroke="#3f3f46" stroke-width="3" stroke-dasharray="4"/>
-                            <line x1="240" y1="60" x2="240" y2="160" stroke="#3f3f46" stroke-width="3" stroke-dasharray="4"/>
-
-                            <!-- Nodos -->
-                            <g transform="translate(60, 110)">
-                                <circle r="20" fill="#10b981" />
-                                <text text-anchor="middle" dy="4" fill="#000" font-weight="bold" font-size="11">N1</text>
-                                <text text-anchor="middle" dy="32" fill="#a1a1aa" font-size="9">Diésel</text>
-                            </g>
-
-                            <g transform="translate(140, 60)">
-                                <circle r="20" fill="#f59e0b" />
-                                <text text-anchor="middle" dy="4" fill="#000" font-weight="bold" font-size="11">N2</text>
-                                <text text-anchor="middle" dy="-26" fill="#a1a1aa" font-size="9">Solar</text>
-                            </g>
-
-                            <g transform="translate(240, 60)">
-                                <circle r="20" fill="#3b82f6" />
-                                <text text-anchor="middle" dy="4" fill="#fff" font-weight="bold" font-size="11">N3</text>
-                                <text text-anchor="middle" dy="-26" fill="#a1a1aa" font-size="9">Eólica</text>
-                            </g>
-
-                            <g transform="translate(240, 160)">
-                                <circle r="20" fill="#06b6d4" />
-                                <text text-anchor="middle" dy="4" fill="#000" font-weight="bold" font-size="11">N4</text>
-                                <text text-anchor="middle" dy="32" fill="#a1a1aa" font-size="9">Hídrica</text>
-                            </g>
-                        </svg>
+                    <div class="topology-canvas-container">
+                        <svg class="dynamic-topology-svg" id="dynamicTopologySvg" viewBox="0 0 340 260"></svg>
                     </div>
                 </div>
             </div>
 
-            <!-- Terminal Console Log -->
+            <!-- 3. Consola de Telemetría y Logs -->
             <div class="log-card">
                 <div class="card-header">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">📝 CONSOLA DE TELEMETRÍA Y LOGS (MQTT, ZMQ & INFLUXDB)</span>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);">Discretización: 500 ms</span>
+                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);">📝 CONSOLA DE TELEMETRÍA Y CONTROL POR CONSENSO (ZMQ & CLÚSTER RPi)</span>
+                    <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">Resolución: 500 ms</span>
                 </div>
                 <div class="console-output" id="console">
-                    [00:00:00] <span class="info">SISTEMA:</span> Centro de Mando SaaS inicializado con API REST.
-                    [00:00:00] <span class="info">ZMQ:</span> Reloj Maestro listo en puertos REP:5555 y PUB:5556.
-                    [00:00:00] <span class="info">DATA:</span> Telemetría conectada a InfluxDB y almacenamiento persistente local.
+                    [00:00:00] <span class="info">SISTEMA:</span> Centro de Mando MAS iniciado. Servidor web activo en RPi DATA (10.0.0.160).<br>
+                    [00:00:00] <span class="info">TOPOLOGÍA:</span> Red mallada estándar cargada (11 ramas, 400 V, 15 kVA).
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Script de Inicialización y Lógica de Conexión en Vivo -->
+    <!-- Script de Control, Gráficos y Render Dinámico -->
     <script>
-        let chart = null;
+        let voltageChart = null;
+        let frequencyChart = null;
         let isSimulating = false;
         let pollInterval = null;
         let lastSeenLogCount = 0;
+        let cablesCatalog = [];
 
-        function initChart() {
-            const ctx = document.getElementById('voltageChart').getContext('2d');
-            chart = new Chart(ctx, {
+        // Estado local de topología
+        let activeTopology = {
+            v_base: 400.0,
+            s_base: 15000.0,
+            preset: "BT_MALLADA_11",
+            branches: [
+                { from: 1, to: 2, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                { from: 2, to: 3, conductor: "Aluminio Aislado 50 mm²", length_km: 0.08 },
+                { from: 1, to: 4, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                { from: 2, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.09 },
+                { from: 3, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.12 },
+                { from: 4, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.07 },
+                { from: 5, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.09 },
+                { from: 1, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.13 },
+                { from: 3, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                { from: 2, to: 4, conductor: "Aluminio Aislado 50 mm²", length_km: 0.09 },
+                { from: 2, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 }
+            ],
+            nodes: {
+                "1": { type: "DIESEL", name: "Planta Diésel 15 kVA", role: "Slack" },
+                "2": { type: "SOLAR", name: "Instalación Solar FV 5 kW", role: "DER" },
+                "3": { type: "BESS", name: "Almacenamiento BESS 3 kWh", role: "DER" },
+                "4": { type: "LOAD", name: "Carga Residencial (A)", role: "Demanda" },
+                "5": { type: "LOAD", name: "Carga Comercial (B)", role: "Demanda" },
+                "6": { type: "LOAD", name: "Carga Industrial (C)", role: "Demanda" }
+            }
+        };
+
+        const NODE_COLORS = {
+            DIESEL: "#10b981",
+            SOLAR: "#f59e0b",
+            BESS: "#8b5cf6",
+            WIND: "#3b82f6",
+            HYDRO: "#06b6d4",
+            LOAD: "#ec4899"
+        };
+
+        const NODE_ICONS = {
+            DIESEL: "⛽",
+            SOLAR: "☀️",
+            BESS: "🔋",
+            WIND: "💨",
+            HYDRO: "🌊",
+            LOAD: "🏢"
+        };
+
+        // 1. Inicialización de los Dos Gráficos (Sin Escala de Tiempo, Solo Amplitudes)
+        function initCharts() {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const gridColor = isLight ? '#cbd5e1' : '#27272a';
+            const textColor = isLight ? '#475569' : '#a1a1aa';
+
+            // Gráfico 1: Tensiones Nodales
+            const ctxV = document.getElementById('voltageChart').getContext('2d');
+            voltageChart = new Chart(ctxV, {
                 type: 'line',
                 data: {
-                    labels: ['0s'],
+                    labels: Array(25).fill(''), // Etiquetas vacías: sin escala de tiempo
                     datasets: [
-                        { label: 'Nodo 1 (Diésel)', data: [13800], borderColor: '#10b981', borderWidth: 2, tension: 0.2 },
-                        { label: 'Nodo 2 (Solar PV)', data: [13757], borderColor: '#f59e0b', borderWidth: 2, tension: 0.2 },
-                        { label: 'Nodo 3 (BESS)', data: [13761], borderColor: '#8b5cf6', borderWidth: 2, tension: 0.2 },
-                        { label: 'Nodo 4 (Carga Res)', data: [13758], borderColor: '#3b82f6', borderWidth: 2, tension: 0.2 },
-                        { label: 'Nodo 5 (Carga Com)', data: [13761], borderColor: '#06b6d4', borderWidth: 2, tension: 0.2 },
-                        { label: 'Nodo 6 (Carga Ind)', data: [13763], borderColor: '#ec4899', borderWidth: 2, tension: 0.2 }
+                        { label: 'N1 (Diésel)', data: Array(25).fill(400.0), borderColor: '#10b981', borderWidth: 2, pointRadius: 0, tension: 0.2 },
+                        { label: 'N2 (Solar)', data: Array(25).fill(400.1), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, tension: 0.2 },
+                        { label: 'N3 (BESS)', data: Array(25).fill(400.39), borderColor: '#8b5cf6', borderWidth: 2, pointRadius: 0, tension: 0.2 },
+                        { label: 'N4 (Carga A)', data: Array(25).fill(400.23), borderColor: '#ec4899', borderWidth: 1.8, pointRadius: 0, tension: 0.2 },
+                        { label: 'N5 (Carga B)', data: Array(25).fill(400.57), borderColor: '#06b6d4', borderWidth: 1.8, pointRadius: 0, tension: 0.2 },
+                        { label: 'N6 (Carga C)', data: Array(25).fill(400.62), borderColor: '#3b82f6', borderWidth: 1.8, pointRadius: 0, tension: 0.2 }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 250 },
+                    animation: { duration: 0 },
                     scales: {
-                        x: { grid: { color: '#27272a' }, ticks: { color: '#a1a1aa' } },
-                        y: { grid: { color: '#27272a' }, ticks: { color: '#a1a1aa' } }
+                        x: {
+                            display: false // Ocultar eje temporal completamente
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'JetBrains Mono', size: 10 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Amplitud de Tensión [V]',
+                                color: textColor,
+                                font: { family: 'DM Sans', size: 11, weight: 600 }
+                            }
+                        }
                     },
                     plugins: {
-                        legend: { labels: { color: '#f4f4f5', font: { family: 'DM Sans' } } }
+                        legend: {
+                            labels: {
+                                color: isLight ? '#0f172a' : '#f4f4f5',
+                                font: { family: 'DM Sans', size: 10 },
+                                boxWidth: 10
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico 2: Frecuencia del Sistema
+            const ctxF = document.getElementById('frequencyChart').getContext('2d');
+            frequencyChart = new Chart(ctxF, {
+                type: 'line',
+                data: {
+                    labels: Array(25).fill(''), // Sin escala temporal
+                    datasets: [
+                        {
+                            label: 'Frecuencia f_sys',
+                            data: Array(25).fill(60.14),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            borderWidth: 2.2,
+                            pointRadius: 0,
+                            tension: 0.25
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    scales: {
+                        x: {
+                            display: false // Sin escala temporal
+                        },
+                        y: {
+                            min: 58.8,
+                            max: 61.2,
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'JetBrains Mono', size: 10 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Amplitud Frecuencia [Hz]',
+                                color: textColor,
+                                font: { family: 'DM Sans', size: 11, weight: 600 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: isLight ? '#0f172a' : '#f4f4f5',
+                                font: { family: 'DM Sans', size: 10 },
+                                boxWidth: 10
+                            }
+                        }
                     }
                 }
             });
         }
 
+        // 2. Render Dinámico del Grafo de Conexión en SVG
+        function renderDynamicGraph() {
+            const svg = document.getElementById('dynamicTopologySvg');
+            if (!svg) return;
+            svg.innerHTML = '';
+
+            const nodesObj = activeTopology.nodes || {};
+            const branches = activeTopology.branches || [];
+            const nodeIds = Object.keys(nodesObj).map(Number).sort((a, b) => a - b);
+            const totalNodes = nodeIds.length;
+            if (totalNodes === 0) return;
+
+            const cx = 170;
+            const cy = 130;
+            const radius = 95;
+            const coords = {};
+
+            // Calcular coordenadas radiales equiespaciadas
+            nodeIds.forEach((id, idx) => {
+                const angle = (2 * Math.PI * idx / totalNodes) - (Math.PI / 2);
+                coords[id] = {
+                    x: cx + radius * Math.cos(angle),
+                    y: cy + radius * Math.sin(angle)
+                };
+            });
+
+            // Dibujar ramas (conexiones reales entre agentes)
+            branches.forEach(b => {
+                const p1 = coords[b.from];
+                const p2 = coords[b.to];
+                if (p1 && p2) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", p1.x);
+                    line.setAttribute("y1", p1.y);
+                    line.setAttribute("x2", p2.x);
+                    line.setAttribute("y2", p2.y);
+                    line.setAttribute("stroke", "#3f3f46");
+                    line.setAttribute("stroke-width", "2");
+                    line.setAttribute("stroke-dasharray", "4,3");
+                    svg.appendChild(line);
+                }
+            });
+
+            // Dibujar nodos
+            nodeIds.forEach(id => {
+                const pos = coords[id];
+                const meta = nodesObj[String(id)] || { type: "LOAD", name: `Nodo ${id}` };
+                const color = NODE_COLORS[meta.type] || "#3b82f6";
+
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
+                g.style.cursor = "pointer";
+
+                // Círculo exterior resplandeciente
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("r", "18");
+                circle.setAttribute("fill", color);
+                circle.setAttribute("fill-opacity", "0.2");
+                circle.setAttribute("stroke", color);
+                circle.setAttribute("stroke-width", "2");
+                g.appendChild(circle);
+
+                // Círculo interior
+                const innerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                innerCircle.setAttribute("r", "12");
+                innerCircle.setAttribute("fill", color);
+                g.appendChild(innerCircle);
+
+                // Texto ID de nodo
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("dy", "4");
+                text.setAttribute("fill", "#000000");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("font-size", "10");
+                text.textContent = `N${id}`;
+                g.appendChild(text);
+
+                // Etiqueta de Tensión en tiempo real debajo del nodo
+                const voltLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                voltLabel.setAttribute("id", `graph-volt-text-${id}`);
+                voltLabel.setAttribute("text-anchor", "middle");
+                voltLabel.setAttribute("dy", "28");
+                voltLabel.setAttribute("fill", "#a1a1aa");
+                voltLabel.setAttribute("font-family", "JetBrains Mono");
+                voltLabel.setAttribute("font-size", "8");
+                voltLabel.textContent = `400.0 V`;
+                g.appendChild(voltLabel);
+
+                svg.appendChild(g);
+            });
+        }
+
+        // 3. Cargar Catálogo Oficial de Conductores
+        async function fetchCablesCatalog() {
+            try {
+                const res = await fetch('/api/cables');
+                const data = await res.json();
+                cablesCatalog = data.cables || [];
+                populateConductorSelect();
+            } catch (err) {
+                cablesCatalog = [
+                    { name: "Aluminio Aislado 50 mm²", type: "Aislado", r_dc: "0,350 Ohm/km", ampacity: "100 A" },
+                    { name: "4/0 AWG (Penguin)", type: "ACSR", r_dc: "0,265 Ohm/km", ampacity: "366 A" },
+                    { name: "1/0 AWG (Raven)", type: "ACSR", r_dc: "0,532 Ohm/km", ampacity: "243 A" },
+                    { name: "2 AWG (Sparrow)", type: "ACSR", r_dc: "0,846 Ohm/km", ampacity: "184 A" },
+                    { name: "4 AWG (Swan)", type: "ACSR", r_dc: "1,346 Ohm/km", ampacity: "139 A" },
+                    { name: "266.8 KCMIL (Partridge)", type: "ACSR", r_dc: "0,213 Ohm/km", ampacity: "457 A" },
+                    { name: "336.4 KCMIL (Linnet)", type: "ACSR", r_dc: "0,168 Ohm/km", ampacity: "529 A" }
+                ];
+                populateConductorSelect();
+            }
+        }
+
+        function populateConductorSelect() {
+            const sel = document.getElementById('branch-conductor');
+            if (!sel) return;
+            sel.innerHTML = '';
+            cablesCatalog.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.name;
+                opt.innerText = `${c.name} (${c.r_dc || ''}, ${c.ampacity || ''})`;
+                sel.appendChild(opt);
+            });
+            populateNodeSelectors();
+        }
+
+        function populateNodeSelectors() {
+            const selFrom = document.getElementById('branch-from');
+            const selTo = document.getElementById('branch-to');
+            if (!selFrom || !selTo) return;
+
+            selFrom.innerHTML = '';
+            selTo.innerHTML = '';
+            const nodeIds = Object.keys(activeTopology.nodes).map(Number).sort((a, b) => a - b);
+            nodeIds.forEach(id => {
+                const optF = document.createElement('option');
+                optF.value = id;
+                optF.innerText = `Nodo ${id}`;
+                selFrom.appendChild(optF);
+
+                const optT = document.createElement('option');
+                optT.value = id;
+                optT.innerText = `Nodo ${id}`;
+                selTo.appendChild(optT);
+            });
+            if (nodeIds.length > 1) selTo.value = nodeIds[1];
+        }
+
+        // 4. Gestión de Ramas y Topología
+        function renderBranchesTable() {
+            const tbody = document.getElementById('branches-table-body');
+            const badge = document.getElementById('branch-count-badge');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            if (badge) badge.innerText = activeTopology.branches.length;
+
+            activeTopology.branches.forEach((b, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>N${b.from}</b></td>
+                    <td><b>N${b.to}</b></td>
+                    <td title="${b.conductor}">${b.conductor ? b.conductor.split('(')[0] : 'ACSR'}</td>
+                    <td>${Number(b.length_km).toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeBranch(${idx})" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">✕</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderDynamicGraph();
+        }
+
+        function addBranchToNetwork() {
+            const from = parseInt(document.getElementById('branch-from').value);
+            const to = parseInt(document.getElementById('branch-to').value);
+            const conductor = document.getElementById('branch-conductor').value;
+            const dist = parseFloat(document.getElementById('branch-dist').value) || 0.10;
+
+            if (from === to) {
+                alert("El nodo de partida y llegada no pueden ser el mismo.");
+                return;
+            }
+
+            const exists = activeTopology.branches.some(b => (b.from === from && b.to === to) || (b.from === to && b.to === from));
+            if (exists) {
+                alert(`La conexión entre N${from} y N${to} ya existe en la red.`);
+                return;
+            }
+
+            activeTopology.branches.push({ from, to, conductor, length_km: dist });
+            renderBranchesTable();
+            sendTopologyUpdate();
+            log(`Rama añadida: N${from} ↔ N${to} (${conductor}, ${dist} km)`, 'info');
+        }
+
+        function removeBranch(index) {
+            const b = activeTopology.branches[index];
+            activeTopology.branches.splice(index, 1);
+            renderBranchesTable();
+            sendTopologyUpdate();
+            if (b) log(`Rama removida: N${b.from} ↔ N${b.to}`, 'warn');
+        }
+
+        function onPresetTopologyChange() {
+            const preset = document.getElementById('topo-select').value;
+            if (preset === 'BT_MALLADA_11') {
+                document.getElementById('vbase-select').value = "400.0";
+                document.getElementById('sbase-select').value = "15000.0";
+                activeTopology.v_base = 400.0;
+                activeTopology.s_base = 15000.0;
+                activeTopology.preset = preset;
+                activeTopology.branches = [
+                    { from: 1, to: 2, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                    { from: 2, to: 3, conductor: "Aluminio Aislado 50 mm²", length_km: 0.08 },
+                    { from: 1, to: 4, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                    { from: 2, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.09 },
+                    { from: 3, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.12 },
+                    { from: 4, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.07 },
+                    { from: 5, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.09 },
+                    { from: 1, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.13 },
+                    { from: 3, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                    { from: 2, to: 4, conductor: "Aluminio Aislado 50 mm²", length_km: 0.09 },
+                    { from: 2, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 }
+                ];
+            } else if (preset === 'MT_IEEE6_MALLADA') {
+                document.getElementById('vbase-select').value = "13800.0";
+                document.getElementById('sbase-select').value = "10000000.0";
+                activeTopology.v_base = 13800.0;
+                activeTopology.s_base = 10000000.0;
+                activeTopology.preset = preset;
+                activeTopology.branches = [
+                    { from: 1, to: 2, conductor: "4/0 AWG (Penguin)", length_km: 5.63 },
+                    { from: 1, to: 4, conductor: "4/0 AWG (Penguin)", length_km: 2.82 },
+                    { from: 1, to: 5, conductor: "4/0 AWG (Penguin)", length_km: 4.51 },
+                    { from: 2, to: 3, conductor: "4/0 AWG (Penguin)", length_km: 2.82 },
+                    { from: 2, to: 4, conductor: "4/0 AWG (Penguin)", length_km: 2.82 },
+                    { from: 2, to: 5, conductor: "4/0 AWG (Penguin)", length_km: 5.63 },
+                    { from: 2, to: 6, conductor: "4/0 AWG (Penguin)", length_km: 3.94 },
+                    { from: 3, to: 5, conductor: "4/0 AWG (Penguin)", length_km: 6.76 },
+                    { from: 3, to: 6, conductor: "4/0 AWG (Penguin)", length_km: 1.13 },
+                    { from: 4, to: 5, conductor: "4/0 AWG (Penguin)", length_km: 11.27 },
+                    { from: 5, to: 6, conductor: "4/0 AWG (Penguin)", length_km: 5.63 }
+                ];
+            } else if (preset === 'BT_RADIAL_6') {
+                document.getElementById('vbase-select').value = "400.0";
+                document.getElementById('sbase-select').value = "10000.0";
+                activeTopology.v_base = 400.0;
+                activeTopology.s_base = 10000.0;
+                activeTopology.preset = preset;
+                activeTopology.branches = [
+                    { from: 1, to: 2, conductor: "Aluminio Aislado 50 mm²", length_km: 0.15 },
+                    { from: 2, to: 3, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                    { from: 2, to: 4, conductor: "Aluminio Aislado 50 mm²", length_km: 0.12 },
+                    { from: 3, to: 5, conductor: "Aluminio Aislado 50 mm²", length_km: 0.10 },
+                    { from: 3, to: 6, conductor: "Aluminio Aislado 50 mm²", length_km: 0.15 }
+                ];
+            }
+            renderBranchesTable();
+            sendTopologyUpdate();
+            log(`Topología cambiada a: ${preset}`, 'info');
+        }
+
+        function updateSystemMetadata() {
+            activeTopology.v_base = parseFloat(document.getElementById('vbase-select').value);
+            activeTopology.s_base = parseFloat(document.getElementById('sbase-select').value);
+            sendTopologyUpdate();
+            log(`Metadatos actualizados: V_base=${activeTopology.v_base}V, S_base=${activeTopology.s_base}VA`, 'info');
+        }
+
+        async function sendTopologyUpdate() {
+            try {
+                await fetch('/api/topology', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(activeTopology)
+                });
+            } catch (err) {
+                // Silencioso
+            }
+        }
+
+        // 5. Gestión de Perfiles Exógenos
+        async function syncExogenousProfiles() {
+            const solarNode = document.getElementById('solar-target-node').value;
+            const windNode = document.getElementById('wind-target-node').value;
+            const hydroNode = document.getElementById('hydro-target-node').value;
+
+            const badgeWind = document.getElementById('badge-wind-status');
+            const listWind = document.getElementById('list-nodes-wind');
+            const countWind = document.getElementById('badge-count-wind');
+
+            if (windNode !== 'none') {
+                badgeWind.innerText = "Activo";
+                badgeWind.style.color = "var(--accent-success)";
+                countWind.innerText = "1 Nodo";
+                listWind.innerHTML = `
+                    <div class="node-item">
+                        <div class="node-item-left">
+                            <span class="node-chip wind">N${windNode}</span>
+                            <span style="font-size: 0.72rem; color: var(--text-secondary);">Turbina PMSG</span>
+                        </div>
+                        <div>
+                            <span class="node-voltage-val" id="voltage-n${windNode}">400.00 V</span>
+                            <span class="node-voltage-pu" id="pu-n${windNode}">1.0000 pu</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                badgeWind.innerText = "En Reserva";
+                badgeWind.style.color = "var(--text-muted)";
+                countWind.innerText = "0 Nodos";
+                listWind.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.4rem;">Sin nodos asignados en esta red</div>`;
+            }
+
+            const badgeHydro = document.getElementById('badge-hydro-status');
+            const listHydro = document.getElementById('list-nodes-hydro');
+            const countHydro = document.getElementById('badge-count-hydro');
+
+            if (hydroNode !== 'none') {
+                badgeHydro.innerText = "Activo";
+                badgeHydro.style.color = "var(--accent-success)";
+                countHydro.innerText = "1 Nodo";
+                listHydro.innerHTML = `
+                    <div class="node-item">
+                        <div class="node-item-left">
+                            <span class="node-chip hydro">N${hydroNode}</span>
+                            <span style="font-size: 0.72rem; color: var(--text-secondary);">Turbina Hidro</span>
+                        </div>
+                        <div>
+                            <span class="node-voltage-val" id="voltage-n${hydroNode}">400.00 V</span>
+                            <span class="node-voltage-pu" id="pu-n${hydroNode}">1.0000 pu</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                badgeHydro.innerText = "En Reserva";
+                badgeHydro.style.color = "var(--text-muted)";
+                countHydro.innerText = "0 Nodos";
+                listHydro.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.4rem;">Sin nodos asignados en esta red</div>`;
+            }
+
+            try {
+                await fetch('/api/profile/solar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_node: parseInt(solarNode), irradiance_w_m2: 1000.0, temp_c: 25.0 })
+                });
+                if (windNode !== 'none') {
+                    await fetch('/api/profile/wind', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target_node: parseInt(windNode), wind_speed_ms: 8.5 })
+                    });
+                }
+                if (hydroNode !== 'none') {
+                    await fetch('/api/profile/hydro', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target_node: parseInt(hydroNode), flow_rate_m3s: 1.5 })
+                    });
+                }
+            } catch (err) {
+                // Silencioso
+            }
+        }
+
+        // 6. Polling de Telemetría en Vivo
+        async function fetchLiveTelemetry() {
+            try {
+                const res = await fetch('/api/telemetry/live');
+                const data = await res.json();
+
+                const latest = data.latest_result || {};
+                const voltages = latest.voltages || {};
+                const f_sys = data.f_sys_hz || 60.0;
+
+                // Actualizar valores numéricos en tarjetas de nodos y en grafo SVG
+                for (let i = 1; i <= 6; i++) {
+                    const nodeKey = String(i);
+                    const vInfo = voltages[nodeKey] || {};
+                    const vVolts = vInfo.V_volts !== undefined ? Number(vInfo.V_volts).toFixed(2) : '400.00';
+                    const vPu = vInfo.V_pu !== undefined ? Number(vInfo.V_pu).toFixed(4) : '1.0000';
+
+                    const elV = document.getElementById(`voltage-n${i}`);
+                    const elPu = document.getElementById(`pu-n${i}`);
+                    if (elV) elV.innerText = `${vVolts} V`;
+                    if (elPu) elPu.innerText = `${vPu} pu`;
+
+                    const graphText = document.getElementById(`graph-volt-text-${i}`);
+                    if (graphText) graphText.textContent = `${vVolts} V`;
+                }
+
+                // Actualizar Badge de Frecuencia
+                const freqBadge = document.getElementById('freq-kpi-badge');
+                if (freqBadge) freqBadge.innerText = `${Number(f_sys).toFixed(2)} Hz`;
+
+                // Actualizar Gráfico 1: Tensiones (Sin Escala Temporal)
+                if (voltageChart && voltages['1']) {
+                    voltageChart.data.labels.shift();
+                    voltageChart.data.labels.push(''); // Sin escala temporal
+
+                    for (let idx = 0; idx < 6; idx++) {
+                        const nKey = String(idx + 1);
+                        const v = voltages[nKey] ? voltages[nKey].V_volts : 400.0;
+                        if (voltageChart.data.datasets[idx]) {
+                            voltageChart.data.datasets[idx].data.shift();
+                            voltageChart.data.datasets[idx].data.push(v);
+                        }
+                    }
+                    voltageChart.update('none');
+                }
+
+                // Actualizar Gráfico 2: Frecuencia (Sin Escala Temporal)
+                if (frequencyChart) {
+                    frequencyChart.data.labels.shift();
+                    frequencyChart.data.labels.push(''); // Sin escala temporal
+                    frequencyChart.data.datasets[0].data.shift();
+                    frequencyChart.data.datasets[0].data.push(f_sys);
+                    frequencyChart.update('none');
+                }
+
+                // Actualizar logs de consola
+                if (data.logs && data.logs.length > lastSeenLogCount) {
+                    const newLogs = data.logs.slice(lastSeenLogCount);
+                    newLogs.forEach(l => {
+                        log(`[${l.timestamp}] ${l.message}`, l.level ? l.level.toLowerCase() : 'info');
+                    });
+                    lastSeenLogCount = data.logs.length;
+                }
+            } catch (err) {
+                // Silencioso en caso de timeout
+            }
+        }
+
         function log(msg, type='info') {
             const consoleEl = document.getElementById('console');
+            if (!consoleEl) return;
             const timeStr = new Date().toLocaleTimeString();
             consoleEl.innerHTML += `<br>[${timeStr}] <span class="${type}">${type.toUpperCase()}:</span> ${msg}`;
             consoleEl.scrollTop = consoleEl.scrollHeight;
@@ -761,314 +1634,76 @@
         function handleFileSelect(evt) {
             const file = evt.target.files[0];
             if (file) {
-                log(`Archivo seleccionado: ${file.name}`, 'info');
+                log(`Archivo seleccionado: ${file.name}. Analizando parámetros de ramas...`, 'info');
+                activeTopology.preset = "CUSTOM";
+                document.getElementById('topo-select').value = "CUSTOM";
+                log(`Topología personalizada cargada con éxito.`, 'info');
             }
         }
 
         function onHoldModeChange() {
             const mode = document.getElementById('hold-select').value;
-            const container = document.getElementById('lambda-container');
-            if (mode === 'ZFOH') {
-                container.style.display = 'flex';
-            } else {
-                container.style.display = 'none';
-            }
-            updateHoldBadge();
-            sendConfigUpdate();
-        }
-
-        function updateLambdaDisplay(val) {
-            document.getElementById('lambda-value').innerText = Number(val).toFixed(2);
-            updateHoldBadge();
-        }
-
-        function updateHoldBadge() {
-            const mode = document.getElementById('hold-select').value;
-            const lambda = document.getElementById('lambda-range').value;
             const badge = document.getElementById('hold-badge-mode');
-            if (mode === 'ZFOH') {
-                badge.innerText = `ZFOH (λ=${Number(lambda).toFixed(2)})`;
-            } else if (mode === 'FOH') {
-                badge.innerText = `FOH (Lineal O(H²))`;
-            } else {
-                badge.innerText = `ZOH (Constante O(H))`;
-            }
-        }
-
-        async function sendConfigUpdate() {
-            const config = {
-                topology: document.getElementById('topo-select').value,
-                mode: document.getElementById('mode-select').value,
-                solver_mode: document.getElementById('solver-select').value,
-                mesh_type: document.getElementById('mesh-select').value,
-                network_profile: document.getElementById('net-select').value,
-                hold_mode: document.getElementById('hold-select').value,
-                zfoh_lambda: parseFloat(document.getElementById('lambda-range').value),
-                rpi_host: document.getElementById('rpi-host-input').value,
-                rpi_user: document.getElementById('rpi-user-input').value,
-                master_clock_host: document.getElementById('rpi-clock-input').value
-            };
-
-            try {
-                const res = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
-                });
-                const data = await res.json();
-                updateHoldBadge();
-                log(`Configuración sincronizada: ${config.mode} | ${config.solver_mode} | Hold=${config.hold_mode} (λ=${config.zfoh_lambda})`, 'info');
-            } catch (err) {
-                log(`Aviso de sincronización de configuración: ${err.message}`, 'warn');
-            }
-        }
-
-        async function testRpiConnection() {
-            const btn = document.getElementById('rpi-test-btn');
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ Probando...";
-            btn.disabled = true;
-            log("🔍 Probando conectividad SSH con Raspberry Pi 5...", "info");
-
-            try {
-                await sendConfigUpdate();
-                const res = await fetch('/api/rpi/test', { method: 'POST' });
-                const data = await res.json();
-                if (res.ok && data.connected) {
-                    log(`✅ ${data.message}`, 'info');
-                    alert(`¡Conexión SSH Exitosa con RPi 5!\n\n${data.message}`);
-                } else {
-                    log(`⚠️ ${data.message}`, 'warn');
-                    alert(`Aviso de Conexión:\n\n${data.message}\n\nVerifique la IP, conexión física o clave SSH.`);
-                }
-            } catch (err) {
-                log(`Error en prueba SSH RPi: ${err.message}`, 'error');
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        async function deployToRpi() {
-            const btn = document.getElementById('rpi-deploy-btn');
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ Desplegando...";
-            btn.disabled = true;
-            log("🍓 Iniciando despliegue de 8 contenedores en Raspberry Pi 5...", "info");
-
-            try {
-                await sendConfigUpdate();
-                const payload = {
-                    rpi_host: document.getElementById('rpi-host-input').value,
-                    rpi_user: document.getElementById('rpi-user-input').value,
-                    master_clock_host: document.getElementById('rpi-clock-input').value
-                };
-
-                const res = await fetch('/api/rpi/deploy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    log(`✅ ${data.message}`, 'info');
-                    alert(`¡Despliegue en Raspberry Pi 5 Completado!\n\n${data.message}`);
-                } else {
-                    log(`⚠️ ${data.message}`, 'warn');
-                    alert(`Fallo en Despliegue RPi:\n\n${data.message}`);
-                }
-            } catch (err) {
-                log(`Error al desplegar en RPi: ${err.message}`, 'error');
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        async function deployDocker() {
-            log("🚀 Solicitando orquestación y despliegue de contenedores Docker...", "info");
-            try {
-                const res = await fetch('/api/deploy', { method: 'POST' });
-                const data = await res.json();
-                log(`✅ ${data.message}`, 'info');
-                alert(`¡Despliegue Docker (1-Clic) Ejecutado con Éxito!\n\n${data.message}`);
-            } catch (err) {
-                log(`Error en despliegue Docker: ${err.message}`, 'error');
-            }
-        }
-
-        async function toggleSimulation() {
-            const btn = document.getElementById('sim-btn');
-            const statusEl = document.getElementById('system-status');
-            const dotEl = document.getElementById('pulse-dot');
-
-            if (!isSimulating) {
-                try {
-                    await sendConfigUpdate();
-                    const res = await fetch('/api/simulation/start', { method: 'POST' });
-                    const data = await res.json();
-
-                    isSimulating = true;
-                    btn.innerText = "⏹ Detener Co-Simulación";
-                    btn.className = "btn btn-secondary";
-                    statusEl.innerText = "CO-SIMULACIÓN EN EJECUCIÓN (500 ms)";
-                    statusEl.style.color = "var(--accent-warning)";
-                    dotEl.style.backgroundColor = "var(--accent-warning)";
-                    log("▶ Co-simulación en vivo iniciada a 500 ms con telemetría ciberfísica...", "info");
-
-                    // Iniciar sondeo de telemetría a 500 ms
-                    pollInterval = setInterval(fetchLiveTelemetry, 500);
-                } catch (err) {
-                    log(`Error iniciando simulación: ${err.message}`, 'error');
-                }
-            } else {
-                try {
-                    await fetch('/api/simulation/stop', { method: 'POST' });
-                    isSimulating = false;
-                    clearInterval(pollInterval);
-                    btn.innerText = "▶ Iniciar Co-Simulación (500 ms)";
-                    btn.className = "btn btn-success";
-                    statusEl.innerText = "SISTEMA LISTO (ONLINE)";
-                    statusEl.style.color = "var(--accent-success)";
-                    dotEl.style.backgroundColor = "var(--accent-success)";
-                    log("⏹ Co-simulación detenida.", "warn");
-                } catch (err) {
-                    log(`Error deteniendo simulación: ${err.message}`, 'error');
-                }
-            }
-        }
-
-        async function fetchLiveTelemetry() {
-            try {
-                const res = await fetch('/api/telemetry/live');
-                const data = await res.json();
-
-                const latest = data.latest_result || {};
-                const voltages = latest.voltages || {};
-                const net = latest.network_stats || {};
-                const step = data.current_step || latest.step || 0;
-
-                // Actualizar KPIs
-                if (voltages['1'] || voltages[1]) {
-                    const v1 = (voltages['1'] || voltages[1]).V_volts || 400;
-                    document.getElementById('val-n1').innerText = `${Number(v1).toFixed(2)} V`;
-                }
-                if (voltages['2'] || voltages[2]) {
-                    const v2 = (voltages['2'] || voltages[2]).V_volts || 400;
-                    document.getElementById('val-n2').innerText = `${Number(v2).toFixed(2)} V`;
-                }
-                if (voltages['3'] || voltages[3]) {
-                    const v3 = (voltages['3'] || voltages[3]).V_volts || 400;
-                    document.getElementById('val-n3').innerText = `${Number(v3).toFixed(2)} V`;
-                }
-                if (voltages['4'] || voltages[4]) {
-                    const v4 = (voltages['4'] || voltages[4]).V_volts || 400;
-                    document.getElementById('val-n4').innerText = `${Number(v4).toFixed(2)} V`;
-                }
-
-                // Actualizar métricas de red y Hold
-                if (data.hold_mode) {
-                    const badge = document.getElementById('hold-badge-mode');
-                    const l = data.zfoh_lambda !== undefined ? Number(data.zfoh_lambda).toFixed(2) : '0.70';
-                    if (data.hold_mode === 'ZFOH') {
-                        badge.innerText = `ZFOH (λ=${l})`;
-                    } else if (data.hold_mode === 'FOH') {
-                        badge.innerText = `FOH (Lineal O(H²))`;
-                    } else {
-                        badge.innerText = `ZOH (Constante O(H))`;
-                    }
-                }
-                document.getElementById('net-badge-profile').innerText = net.profile || data.network_profile || 'IDEAL';
-                document.getElementById('net-badge-lat').innerText = `${Number(net.avg_delay_ms || 0).toFixed(1)} ms`;
-                document.getElementById('net-badge-drop').innerText = `${(Number(net.packet_loss_ratio || 0) * 100).toFixed(1)}%`;
-
-                // Actualizar gráfico Chart.js para los 6 nodos
-                if (chart && (voltages['1'] || voltages[1])) {
-                    const timeLabel = `${(step * 0.5).toFixed(1)}s`;
-                    if (chart.data.labels.length > 30) {
-                        chart.data.labels.shift();
-                        chart.data.datasets.forEach(d => d.data.shift());
-                    }
-                    chart.data.labels.push(timeLabel);
-                    const v1 = (voltages['1'] || voltages[1] || {}).V_volts || 13800;
-                    const v2 = (voltages['2'] || voltages[2] || {}).V_volts || 13757;
-                    const v3 = (voltages['3'] || voltages[3] || {}).V_volts || 13761;
-                    const v4 = (voltages['4'] || voltages[4] || {}).V_volts || 13758;
-                    const v5 = (voltages['5'] || voltages[5] || {}).V_volts || 13761;
-                    const v6 = (voltages['6'] || voltages[6] || {}).V_volts || 13763;
-                    chart.data.datasets[0].data.push(v1);
-                    chart.data.datasets[1].data.push(v2);
-                    chart.data.datasets[2].data.push(v3);
-                    chart.data.datasets[3].data.push(v4);
-                    if (chart.data.datasets.length > 4) chart.data.datasets[4].data.push(v5);
-                    if (chart.data.datasets.length > 5) chart.data.datasets[5].data.push(v6);
-                    chart.update('none');
-                }
-
-                // Logs del backend
-                if (data.logs && data.logs.length > lastSeenLogCount) {
-                    const newLogs = data.logs.slice(lastSeenLogCount);
-                    newLogs.forEach(l => {
-                        log(`[${l.timestamp}] ${l.message}`, l.level.toLowerCase() === 'warn' ? 'warn' : 'info');
-                    });
-                    lastSeenLogCount = data.logs.length;
-                }
-            } catch (err) {
-                // Polling silencioso si falla una petición aislada
-            }
+            if (badge) badge.innerText = mode === 'ZFOH' ? 'ZFOH (λ=0.70)' : (mode === 'FOH' ? 'FOH (Lineal)' : 'ZOH (Constante)');
         }
 
         function exportData() {
-            log("📥 Descargando archivo de telemetría de sesión (.csv)...", "info");
+            log("📥 Descargando telemetría oficial CSV desde RPi DATA...", "info");
             window.open('/api/export', '_blank');
         }
 
-        function updateChartTheme() {
-            if (!chart) return;
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            const gridColor = isLight ? '#cbd5e1' : '#27272a';
-            const textColor = isLight ? '#475569' : '#a1a1aa';
-            const legendColor = isLight ? '#0f172a' : '#f4f4f5';
-
-            chart.options.scales.x.grid.color = gridColor;
-            chart.options.scales.x.ticks.color = textColor;
-            chart.options.scales.y.grid.color = gridColor;
-            chart.options.scales.y.ticks.color = textColor;
-            chart.options.plugins.legend.labels.color = legendColor;
-            chart.update();
-        }
-
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
-            log(`Apariencia conmutada a modo ${newTheme.toUpperCase()}`, 'info');
-        }
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme_pref', next);
+            const icon = document.getElementById('theme-icon');
+            const label = document.getElementById('theme-label');
+            if (icon) icon.innerText = next === 'light' ? '☀️' : '🌙';
+            if (label) label.innerText = next === 'light' ? 'Claro' : 'Oscuro';
 
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme_preference', theme);
-            const iconEl = document.getElementById('theme-icon');
-            const labelEl = document.getElementById('theme-label');
-            if (theme === 'light') {
-                if (iconEl) iconEl.innerText = '☀️';
-                if (labelEl) labelEl.innerText = 'Claro';
-            } else {
-                if (iconEl) iconEl.innerText = '🌙';
-                if (labelEl) labelEl.innerText = 'Oscuro';
+            if (voltageChart) {
+                const gridColor = next === 'light' ? '#cbd5e1' : '#27272a';
+                const textColor = next === 'light' ? '#475569' : '#a1a1aa';
+                voltageChart.options.scales.y.grid.color = gridColor;
+                voltageChart.options.scales.y.ticks.color = textColor;
+                voltageChart.options.scales.y.title.color = textColor;
+                voltageChart.options.plugins.legend.labels.color = next === 'light' ? '#0f172a' : '#f4f4f5';
+                voltageChart.update();
             }
-            updateChartTheme();
+            if (frequencyChart) {
+                const gridColor = next === 'light' ? '#cbd5e1' : '#27272a';
+                const textColor = next === 'light' ? '#475569' : '#a1a1aa';
+                frequencyChart.options.scales.y.grid.color = gridColor;
+                frequencyChart.options.scales.y.ticks.color = textColor;
+                frequencyChart.options.scales.y.title.color = textColor;
+                frequencyChart.options.plugins.legend.labels.color = next === 'light' ? '#0f172a' : '#f4f4f5';
+                frequencyChart.update();
+            }
         }
 
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme_preference') || 'dark';
-            applyTheme(savedTheme);
+        function toggleSimulation() {
+            const btn = document.getElementById('sim-btn');
+            if (!isSimulating) {
+                isSimulating = true;
+                btn.innerText = "⏹ Detener Co-Simulación";
+                btn.className = "btn btn-secondary";
+                log("▶ Co-simulación en vivo activa (500 ms por paso).", "info");
+            } else {
+                isSimulating = false;
+                btn.innerText = "▶ Iniciar Co-Simulación (500 ms)";
+                btn.className = "btn btn-success";
+                log("⏹ Co-simulación pausada.", "warn");
+            }
         }
 
-        window.onload = function() {
-            initChart();
-            initTheme();
-            // Iniciar sondeo continuo de telemetría automáticamente a 500 ms
+        window.onload = async function() {
+            initCharts();
+            await fetchCablesCatalog();
+            renderBranchesTable();
+            renderDynamicGraph();
+
+            // Iniciar sondeo continuo a 500 ms
             fetchLiveTelemetry();
             setInterval(fetchLiveTelemetry, 500);
         };

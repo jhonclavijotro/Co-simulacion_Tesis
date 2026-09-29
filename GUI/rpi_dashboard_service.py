@@ -14,6 +14,39 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 GUI_DIR = os.path.dirname(os.path.abspath(__file__))
 
+def load_cables_catalog():
+    """Carga el catálogo de cables desde Forms/cables.csv."""
+    cables_file = os.path.abspath(os.path.join(GUI_DIR, "..", "Forms", "cables.csv"))
+    cables = []
+    if os.path.exists(cables_file):
+        try:
+            with open(cables_file, "r", encoding="utf-8-sig") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    name = row.get("Nombre / Calibre", "").strip()
+                    if name:
+                        cables.append({
+                            "name": name,
+                            "type": row.get("Tipo de cable", "").strip(),
+                            "material": row.get("Material del conductor", "").strip(),
+                            "r_dc": row.get("Resistencia DC max a 20°C", "").strip(),
+                            "ampacity": row.get("Ampacidad (A)", "").strip(),
+                            "section": row.get("Sección Conductor (mm²)", "").strip()
+                        })
+        except Exception as e:
+            print(f"[WARN] Error cargando cables.csv: {e}")
+    if not cables:
+        cables = [
+            {"name": "4/0 AWG (Penguin)", "type": "ACSR", "r_dc": "0,265 Ohm/km", "ampacity": "366,0 A"},
+            {"name": "1/0 AWG (Raven)", "type": "ACSR", "r_dc": "0,532 Ohm/km", "ampacity": "243,0 A"},
+            {"name": "2 AWG (Sparrow)", "type": "ACSR", "r_dc": "0,846 Ohm/km", "ampacity": "184,0 A"},
+            {"name": "4 AWG (Swan)", "type": "ACSR", "r_dc": "1,346 Ohm/km", "ampacity": "139,0 A"},
+            {"name": "266.8 KCMIL (Partridge)", "type": "ACSR", "r_dc": "0,213 Ohm/km", "ampacity": "457,0 A"},
+            {"name": "336.4 KCMIL (Linnet)", "type": "ACSR", "r_dc": "0,168 Ohm/km", "ampacity": "529,0 A"},
+            {"name": "Aluminio Aislado 50 mm²", "type": "Aislado", "r_dc": "0,350 Ohm/km", "ampacity": "100,0 A"}
+        ]
+    return cables
+
 # Estado global compartido en memoria para la API REST del Dashboard
 latest_telemetry_state = {
     "current_step": 0,
@@ -23,15 +56,46 @@ latest_telemetry_state = {
     "hold_mode": "ZFOH",
     "zfoh_lambda": 0.70,
     "network_profile": "LAN_ETHERNET",
+    "topology_config": {
+        "v_base": 400.0,
+        "s_base": 15000.0,
+        "preset": "BT_MALLADA_11",
+        "branches": [
+            {"from": 1, "to": 2, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.10, "R_ohm": 0.035, "X_ohm": 0.009},
+            {"from": 2, "to": 3, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.08, "R_ohm": 0.028, "X_ohm": 0.007},
+            {"from": 1, "to": 4, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.10, "R_ohm": 0.035, "X_ohm": 0.009},
+            {"from": 2, "to": 5, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.09, "R_ohm": 0.030, "X_ohm": 0.008},
+            {"from": 3, "to": 6, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.12, "R_ohm": 0.040, "X_ohm": 0.010},
+            {"from": 4, "to": 5, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.07, "R_ohm": 0.025, "X_ohm": 0.006},
+            {"from": 5, "to": 6, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.09, "R_ohm": 0.030, "X_ohm": 0.008},
+            {"from": 1, "to": 5, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.13, "R_ohm": 0.045, "X_ohm": 0.011},
+            {"from": 3, "to": 5, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.10, "R_ohm": 0.035, "X_ohm": 0.009},
+            {"from": 2, "to": 4, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.09, "R_ohm": 0.030, "X_ohm": 0.008},
+            {"from": 2, "to": 6, "conductor": "Aluminio Aislado 50 mm²", "length_km": 0.10, "R_ohm": 0.035, "X_ohm": 0.009}
+        ],
+        "nodes": {
+            "1": {"type": "DIESEL", "name": "Planta Diésel 15 kVA", "role": "Slack Líder"},
+            "2": {"type": "SOLAR", "name": "Instalación Solar FV 5 kW", "role": "DER Seguidor"},
+            "3": {"type": "BESS", "name": "Almacenamiento BESS 3 kWh", "role": "DER Seguidor"},
+            "4": {"type": "LOAD", "name": "Carga Residencial (Nodo 4)", "role": "Demanda Dinámica"},
+            "5": {"type": "LOAD", "name": "Carga Comercial (Nodo 5)", "role": "Demanda Dinámica"},
+            "6": {"type": "LOAD", "name": "Carga Industrial (Nodo 6)", "role": "Demanda Dinámica"}
+        }
+    },
+    "exogenous_profiles": {
+        "solar": {"target_node": 2, "source_file": "datos_radiacion_temperatura.csv", "irradiance_w_m2": 1000.0, "temp_c": 25.0, "status": "Activo"},
+        "wind": {"target_node": 3, "source_file": "datos_vel_viento.csv", "wind_speed_ms": 8.5, "status": "En Reserva"},
+        "hydro": {"target_node": 4, "source_file": "flujo_caudal_nominal.csv", "flow_rate_m3s": 1.5, "status": "En Reserva"}
+    },
     "latest_result": {
         "step": 0,
         "voltages": {
-            "1": {"V_volts": 13800.0, "V_pu": 1.0000, "P": 0.0, "Q": 0.0},
-            "2": {"V_volts": 13757.0, "V_pu": 0.9969, "P": 1748.0, "Q": 0.0},
-            "3": {"V_volts": 13761.0, "V_pu": 0.9972, "P": 0.0, "Q": 0.0},
-            "4": {"V_volts": 13758.0, "V_pu": 0.9970, "P": -2.85, "Q": -0.94},
-            "5": {"V_volts": 13761.0, "V_pu": 0.9972, "P": -1.96, "Q": -0.40},
-            "6": {"V_volts": 13763.0, "V_pu": 0.9974, "P": -1.47, "Q": -0.30}
+            "1": {"V_volts": 400.0, "V_pu": 1.0000, "P": 0.0, "Q": 0.0},
+            "2": {"V_volts": 400.1, "V_pu": 1.0003, "P": 2000.0, "Q": 0.0},
+            "3": {"V_volts": 400.39, "V_pu": 1.0010, "P": 750.0, "Q": 0.0},
+            "4": {"V_volts": 400.23, "V_pu": 1.0006, "P": -2850.0, "Q": -940.0},
+            "5": {"V_volts": 400.57, "V_pu": 1.0014, "P": -1960.0, "Q": -400.0},
+            "6": {"V_volts": 400.62, "V_pu": 1.0016, "P": -1470.0, "Q": -300.0}
         },
         "network_stats": {
             "profile": "LAN_ETHERNET",
@@ -39,7 +103,7 @@ latest_telemetry_state = {
             "packet_loss_ratio": 0.0
         }
     },
-    "q_ratios": {"1": 0.0, "2": 0.0, "3": 0.0},
+    "q_ratios": {"1": 0.3074, "2": 0.3074, "3": 0.3074},
     "errors": {"err_q_12": 0.0, "err_q_23": 0.0, "err_v_12": 0.0, "err_v_23": 0.0},
     "logs": [
         {"timestamp": time.strftime("%H:%M:%S"), "message": "Servicio de Dashboard & Storage RPi DATA inicializado.", "level": "info"}
@@ -79,6 +143,22 @@ class DashboardHTTPHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json(copy_state)
             return
 
+        elif parsed.path == "/api/cables":
+            self._send_json({"cables": load_cables_catalog()})
+            return
+
+        elif parsed.path == "/api/topology":
+            with state_lock:
+                top_cfg = dict(latest_telemetry_state.get("topology_config", {}))
+            self._send_json(top_cfg)
+            return
+
+        elif parsed.path == "/api/profiles":
+            with state_lock:
+                profiles = dict(latest_telemetry_state.get("exogenous_profiles", {}))
+            self._send_json(profiles)
+            return
+
         elif parsed.path == "/api/status":
             self._send_json({
                 "status": "ONLINE",
@@ -113,6 +193,85 @@ class DashboardHTTPHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         super().do_GET()
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        content_length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
+        try:
+            req_data = json.loads(body) if body else {}
+        except Exception:
+            req_data = {}
+
+        if parsed.path == "/api/topology":
+            with state_lock:
+                top = latest_telemetry_state.setdefault("topology_config", {})
+                if "v_base" in req_data:
+                    top["v_base"] = float(req_data["v_base"])
+                if "s_base" in req_data:
+                    top["s_base"] = float(req_data["s_base"])
+                if "branches" in req_data:
+                    top["branches"] = req_data["branches"]
+                if "nodes" in req_data:
+                    top["nodes"] = req_data["nodes"]
+                if "preset" in req_data:
+                    top["preset"] = req_data["preset"]
+                latest_telemetry_state["logs"].append({
+                    "timestamp": time.strftime("%H:%M:%S"),
+                    "message": f"Topología actualizada: Vb={top.get('v_base')}V, Sb={top.get('s_base')}VA, {len(top.get('branches', []))} ramas.",
+                    "level": "info"
+                })
+            self._send_json({"status": "success", "topology": top})
+            return
+
+        elif parsed.path == "/api/profile/solar":
+            with state_lock:
+                prof = latest_telemetry_state.setdefault("exogenous_profiles", {}).setdefault("solar", {})
+                prof.update(req_data)
+                latest_telemetry_state["logs"].append({
+                    "timestamp": time.strftime("%H:%M:%S"),
+                    "message": f"Perfil solar asignado a Nodo {prof.get('target_node')}: G={prof.get('irradiance_w_m2')} W/m2, T={prof.get('temp_c')} °C",
+                    "level": "info"
+                })
+            self._send_json({"status": "success", "solar": prof})
+            return
+
+        elif parsed.path == "/api/profile/wind":
+            with state_lock:
+                prof = latest_telemetry_state.setdefault("exogenous_profiles", {}).setdefault("wind", {})
+                prof.update(req_data)
+                latest_telemetry_state["logs"].append({
+                    "timestamp": time.strftime("%H:%M:%S"),
+                    "message": f"Perfil eólico asignado a Nodo {prof.get('target_node')}: V_w={prof.get('wind_speed_ms')} m/s",
+                    "level": "info"
+                })
+            self._send_json({"status": "success", "wind": prof})
+            return
+
+        elif parsed.path == "/api/profile/hydro":
+            with state_lock:
+                prof = latest_telemetry_state.setdefault("exogenous_profiles", {}).setdefault("hydro", {})
+                prof.update(req_data)
+                latest_telemetry_state["logs"].append({
+                    "timestamp": time.strftime("%H:%M:%S"),
+                    "message": f"Perfil hidrocinético asignado a Nodo {prof.get('target_node')}: Q={prof.get('flow_rate_m3s')} m3/s",
+                    "level": "info"
+                })
+            self._send_json({"status": "success", "hydro": prof})
+            return
+
+        elif parsed.path == "/api/config":
+            with state_lock:
+                if "hold_mode" in req_data:
+                    latest_telemetry_state["hold_mode"] = req_data["hold_mode"]
+                if "zfoh_lambda" in req_data:
+                    latest_telemetry_state["zfoh_lambda"] = float(req_data["zfoh_lambda"])
+                if "network_profile" in req_data:
+                    latest_telemetry_state["network_profile"] = req_data["network_profile"]
+            self._send_json({"status": "success", "message": "Configuración sincronizada"})
+            return
+
+        self._send_json({"error": "Ruta no encontrada"}, 404)
 
 
 class ReusableThreadingServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
