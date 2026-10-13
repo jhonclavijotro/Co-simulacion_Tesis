@@ -1,8 +1,4 @@
-# Plantilla de Perfiles de Demanda para 5 Nodos de Carga (D1 a D5)
-# Discretizacion nominal: 500 ms (0.5 s por paso, 2 Hz)
-# P en kilowatts (kW), Q en kilovolt-amperios reactivos (kVAR)
-# Factor de potencia tipico residencial/comercial: 0.92 - 0.98 inductivo
-tiempo_s,P_D1_kW,Q_D1_kVAR,P_D2_kW,Q_D2_kVAR,P_D3_kW,Q_D3_kVAR,P_D4_kW,Q_D4_kVAR,P_D5_kW,Q_D5_kVAR
+tiempo_s,P_D1_kW,Q_D1_kvar,P_D2_kW,Q_D2_kvar,P_D3_kW,Q_D3_kvar,P_D4_kW,Q_D4_kvar,P_D5_kW,Q_D5_kvar
 0.0,5.00,1.20,8.00,2.50,12.00,5.00,6.00,1.80,4.50,1.10
 0.5,5.00,1.20,8.00,2.50,12.00,5.00,6.00,1.80,4.50,1.10
 1.0,5.20,1.25,8.10,2.55,12.10,5.05,6.05,1.82,4.55,1.12

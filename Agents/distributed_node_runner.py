@@ -135,16 +135,16 @@ class DistributedNodeRunner:
 
         try:
             while self.running:
-                step_count += 1
-                if max_steps and step_count > max_steps:
-                    break
-
                 # 1. Esperar tick de reloj y tensiones del PC Central
                 try:
                     clock_msg = self.sub_clock.recv_json()
                 except zmq.Again:
                     print("[AVISO] Esperando sincronizacion del PC Central...")
                     continue
+
+                step_count += 1
+                if max_steps and step_count > max_steps:
+                    break
 
                 step_idx = clock_msg.get("step", step_count)
                 time_s = clock_msg.get("time_sec", step_idx * 0.5)

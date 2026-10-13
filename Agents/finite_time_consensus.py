@@ -16,6 +16,17 @@ def sig_pow(y: float, gamma: float, epsilon: float = 1e-3) -> float:
         Si |y| <  epsilon:  sig(y)^gamma ≈ k_p * y               (lineal proporcional)
         donde k_p = epsilon^(gamma - 1) garantiza continuidad C0 en y = ±epsilon.
 
+    Referencias y Trazabilidad Teórica:
+        - Operador no lineal sig(y)^gamma:
+          Bhat, S. P., & Bernstein, D. S. (2000). Finite-time stability of continuous
+          autonomous systems. SIAM Journal on Control and Optimization, 38(3), 751-766.
+        - Aplicación a consenso distribuido en microrredes:
+          Shrivastava, S., Subudhi, B., & Sahu, J. (2023). Distributed Finite-Time Control
+          of Islanded Microgrid for Ancillary Services Provision. Electronics, 12(3), 636.
+          https://doi.org/10.3390/electronics12030636
+        - Regularización por capa límite (boundary layer) anti-chattering:
+          Slotine, J. J. E., & Li, W. (1991). Applied Nonlinear Control. Prentice Hall.
+
     Parámetros:
         y:       Error de consenso (escalar).
         gamma:   Exponente de la función no lineal (alpha < 1 o beta > 1).
@@ -47,6 +58,13 @@ class FixedTimeConsensusAgent:
         u_v,i = sum_{j in N_i} a_ij * [ c1 * sig(V_j - V_i)^alpha + c2 * sig(V_j - V_i)^beta ]
         u_q,i = sum_{j in N_i} a_ij * [ c1 * sig(q_ratio_j - q_ratio_i)^alpha + c2 * sig(q_ratio_j - q_ratio_i)^beta ]
       donde 0 < alpha < 1 acelera la convergencia fina cerca de cero y beta > 1 acelera ante grandes desvíos.
+
+      Referencias:
+        - Polyakov, A. (2012). Nonlinear feedback design for fixed-time stabilization of linear
+          control systems. IEEE Transactions on Automatic Control, 57(8), 2106-2110.
+          https://doi.org/10.1109/TAC.2011.2179869
+        - Shrivastava, S., Subudhi, B., & Sahu, J. (2023). Electronics, 12(3), 636.
+          https://doi.org/10.3390/electronics12030636
 
     Soporta dos modos de operación:
       - ONLINE (Conectado a Red): El nodo slack principal es dictado por la subestación.

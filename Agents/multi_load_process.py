@@ -26,11 +26,15 @@ class MultiLoadProcess:
         self.port_rep = port_rep
         self.port_pub = port_pub
 
-        # Modelos de Carga y Series de Tiempo de Forms/formatos
-        self.formatos_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Forms", "formatos"))
-        self.demanda_4_data = self._load_demanda_csv(os.path.join(self.formatos_dir, "datos_demanda_A.csv"))
-        self.demanda_5_data = self._load_demanda_csv(os.path.join(self.formatos_dir, "datos_demanda_B.csv"))
-        self.demanda_6_data = self._load_demanda_csv(os.path.join(self.formatos_dir, "datos_demanda_C.csv"))
+        # Modelos de Carga y Series de Tiempo de Forms/ensayos_red_hil
+        base_forms = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Forms"))
+        self.ensayos_dir = os.path.join(base_forms, "ensayos_red_hil")
+        legacy_dir = os.path.join(base_forms, "formatos")
+        
+        target_dir = self.ensayos_dir if os.path.exists(self.ensayos_dir) else legacy_dir
+        self.demanda_4_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_A.csv"))
+        self.demanda_5_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_B.csv"))
+        self.demanda_6_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_C.csv"))
 
         # Configuración Sockets ZeroMQ
         self.context = zmq.Context()
@@ -50,14 +54,23 @@ class MultiLoadProcess:
         data = []
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter=";")
-                next(reader, None)  # Saltar cabecera: date;P;Q;S;Fp
+                lines = [l.strip() for l in f if l.strip() and not l.strip().startswith("#")]
+                if not lines:
+                    return data
+                delim = ";" if ";" in lines[0] else ","
+                reader = csv.reader(lines, delimiter=delim)
+                header = [h.strip() for h in next(reader, [])]
+                
+                # Identificar índices de P y Q
+                p_idx = header.index("P_kW") if "P_kW" in header else (header.index("P") if "P" in header else 1)
+                q_idx = header.index("Q_kvar") if "Q_kvar" in header else (header.index("Q") if "Q" in header else 2)
+                
                 for row in reader:
-                    if len(row) >= 3:
+                    if len(row) > max(p_idx, q_idx):
                         try:
                             # P y Q en kW y kvar en el CSV -> convertir a W y var
-                            p_w = float(row[1].replace(",", ".")) * 1000.0
-                            q_var = float(row[2].replace(",", ".")) * 1000.0
+                            p_w = float(row[p_idx].replace(",", ".")) * 1000.0
+                            q_var = float(row[q_idx].replace(",", ".")) * 1000.0
                             data.append((p_w, q_var))
                         except ValueError:
                             continue
@@ -75,16 +88,16 @@ class MultiLoadProcess:
 
         try:
             while self.running:
-                step_count += 1
-                if max_steps and step_count > max_steps:
-                    break
-
                 try:
                     # Esperar tick del reloj maestro
                     clock_msg = self.sub_clock.recv_json()
                 except zmq.Again:
                     print("[AVISO] Timeout esperando tick del PC Central. Reintentando...")
                     continue
+
+                step_count += 1
+                if max_steps and step_count > max_steps:
+                    break
 
                 step_idx = clock_msg.get("step", step_count)
                 time_s = clock_msg.get("time_sec", step_idx * 0.5)

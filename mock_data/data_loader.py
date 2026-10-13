@@ -3,19 +3,25 @@ import os
 
 class MockDataLoader:
     """
-    Cargador ligero de datos meteorológicos sintéticos usando la librería estándar csv de Python.
-    No requiere dependencias externas ni DLLs bloqueadas.
+    Cargador de datos meteorológicos unificado para la arquitectura de co-simulación.
+    Soporta formato canónico internacional (coma ',', punto decimal '.') y compatibilidad
+    hacia atrás con formatos heredados (';').
+    
+    Rutas prioritarias:
+      1. Forms/ensayos_red_hil/ (datos experimentales / HIL de 2 minutos)
+      2. Forms/pruebas_sinteticas/ (series sintéticas continuas de 24 horas a 2 Hz)
+      3. Fallback en rutas locales / históricas.
+      
     Discretización: 500 ms (2 Hz).
     """
     def __init__(self, data_dir=None):
         if data_dir is None:
             data_dir = os.path.dirname(os.path.abspath(__file__))
         self.data_dir = data_dir
-        self.formatos_dir = os.path.abspath(os.path.join(self.data_dir, "..", "Forms", "formatos"))
-        
-        self.solar_file = os.path.join(self.data_dir, "datos_meteorologicos_sinteticos.csv")
-        self.eolic_file = os.path.join(self.data_dir, "datos_meteorologicos_eolicos_sinteticos.csv")
-        self.hydro_file = os.path.join(self.data_dir, "datos_meteorologicos_hidricos_sinteticos.csv")
+        self.forms_dir = os.path.abspath(os.path.join(self.data_dir, "..", "Forms"))
+        self.ensayos_dir = os.path.join(self.forms_dir, "ensayos_red_hil")
+        self.sinteticas_dir = os.path.join(self.forms_dir, "pruebas_sinteticas")
+        self.legacy_formatos_dir = os.path.join(self.forms_dir, "formatos")
         
         self.solar_data = []
         self.eolic_data = []
@@ -23,49 +29,96 @@ class MockDataLoader:
         
         self.load_all()
 
-    def load_all(self):
-        # 1. Cargar Solar desde Forms/formatos si existe
-        formatos_solar = os.path.join(self.formatos_dir, "datos_radiacion_temperatura.csv")
-        if os.path.exists(formatos_solar):
-            with open(formatos_solar, mode="r", encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter=";")
-                next(reader, None)
-                for row in reader:
-                    if len(row) >= 4:
-                        try:
-                            poa = float(row[1].replace(",", "."))
-                            tmp_k = float(row[3].replace(",", "."))
-                            self.solar_data.append({"POA": poa, "T_amb": tmp_k})
-                        except ValueError:
-                            continue
-        elif os.path.exists(self.solar_file):
-            with open(self.solar_file, mode="r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                self.solar_data = [{"POA": float(r["POA"]), "T_amb": float(r["T_amb"])} for r in reader]
+    def _detect_delimiter_and_read(self, file_path):
+        """Lee un CSV detectando delimitador (, o ;) y normalizando comas decimales."""
+        if not os.path.exists(file_path):
+            return []
+        
+        rows = []
+        with open(file_path, mode="r", encoding="utf-8") as f:
+            lines = [l.strip() for l in f if l.strip() and not l.strip().startswith("#")]
+            if not lines:
+                return []
+            
+            delim = ";" if ";" in lines[0] else ","
+            reader = csv.reader(lines, delimiter=delim)
+            header = [h.strip() for h in next(reader, [])]
+            
+            for row in reader:
+                if not row:
+                    continue
+                # Mapear columnas limpiando espacios y reemplazando comas decimales
+                cleaned_row = [c.strip().replace(",", ".") for c in row]
+                row_dict = {}
+                for idx, col_name in enumerate(header):
+                    if idx < len(cleaned_row):
+                        row_dict[col_name] = cleaned_row[idx]
+                rows.append(row_dict)
+        return rows
 
-        # 2. Cargar Eólico desde Forms/formatos si existe
-        formatos_eolic = os.path.join(self.formatos_dir, "datos_vel_viento.csv")
-        if os.path.exists(formatos_eolic):
-            with open(formatos_eolic, mode="r", encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter=";")
-                next(reader, None)
-                for row in reader:
-                    if len(row) >= 2:
+    def load_all(self):
+        # 1. Cargar Solar: Prioridad 1 Ensayo HIL -> Prioridad 2 Sintético 24h
+        solar_files = [
+            os.path.join(self.ensayos_dir, "datos_radiacion_temperatura.csv"),
+            os.path.join(self.sinteticas_dir, "datos_solar_sintetico_24h.csv"),
+            os.path.join(self.legacy_formatos_dir, "datos_radiacion_temperatura.csv"),
+            os.path.join(self.data_dir, "datos_meteorologicos_sinteticos.csv")
+        ]
+        
+        for s_file in solar_files:
+            if os.path.exists(s_file):
+                records = self._detect_delimiter_and_read(s_file)
+                if records:
+                    for r in records:
                         try:
-                            ws = float(row[1].replace(",", "."))
-                            self.eolic_data.append(ws)
-                        except ValueError:
+                            # Claves estándar: POA_W_m2, POA. Temperatura: T_amb_K, Tmp_K, T_amb
+                            poa = float(r.get("POA_W_m2") or r.get("POA", 0.0))
+                            t_amb = float(r.get("T_amb_K") or r.get("Tmp_K") or r.get("T_amb", 298.15))
+                            self.solar_data.append({"POA": poa, "T_amb": t_amb})
+                        except (ValueError, TypeError):
                             continue
-        elif os.path.exists(self.eolic_file):
-            with open(self.eolic_file, mode="r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                self.eolic_data = [float(r["Ws"]) for r in reader]
+                    if self.solar_data:
+                        break
+
+        # 2. Cargar Eólico: Prioridad 1 Ensayo HIL -> Prioridad 2 Sintético 24h
+        eolic_files = [
+            os.path.join(self.ensayos_dir, "datos_vel_viento.csv"),
+            os.path.join(self.sinteticas_dir, "datos_eolica_sintetico_24h.csv"),
+            os.path.join(self.legacy_formatos_dir, "datos_vel_viento.csv"),
+            os.path.join(self.data_dir, "datos_meteorologicos_eolicos_sinteticos.csv")
+        ]
+        
+        for w_file in eolic_files:
+            if os.path.exists(w_file):
+                records = self._detect_delimiter_and_read(w_file)
+                if records:
+                    for r in records:
+                        try:
+                            ws = float(r.get("vel_viento_m_s") or r.get("vel_viento") or r.get("Ws", 0.0))
+                            self.eolic_data.append(ws)
+                        except (ValueError, TypeError):
+                            continue
+                    if self.eolic_data:
+                        break
 
         # 3. Cargar Hídrico
-        if os.path.exists(self.hydro_file):
-            with open(self.hydro_file, mode="r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                self.hydro_data = [float(r["Vc"]) for r in reader]
+        hydro_files = [
+            os.path.join(self.sinteticas_dir, "datos_hidrico_sintetico_24h.csv"),
+            os.path.join(self.data_dir, "datos_meteorologicos_hidricos_sinteticos.csv")
+        ]
+        
+        for h_file in hydro_files:
+            if os.path.exists(h_file):
+                records = self._detect_delimiter_and_read(h_file)
+                if records:
+                    for r in records:
+                        try:
+                            vc = float(r.get("vel_agua_m_s") or r.get("Vc", 0.0))
+                            self.hydro_data.append(vc)
+                        except (ValueError, TypeError):
+                            continue
+                    if self.hydro_data:
+                        break
 
     def get_solar_at(self, step_idx):
         if step_idx < len(self.solar_data):
@@ -90,7 +143,7 @@ class MockDataLoader:
 
 if __name__ == "__main__":
     loader = MockDataLoader()
-    print(f"Cargador puramente nativo en Python. Muestras cargadas -> Solar: {len(loader.solar_data)}, Eólico: {len(loader.eolic_data)}, Hídrico: {len(loader.hydro_data)}")
+    print(f"Cargador unificado de datos. Muestras -> Solar: {len(loader.solar_data)}, Eólico: {len(loader.eolic_data)}, Hídrico: {len(loader.hydro_data)}")
     poa, temp = loader.get_solar_at(10)
     ws = loader.get_eolic_at(10)
     vc = loader.get_hydro_at(10)

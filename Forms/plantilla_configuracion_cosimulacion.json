@@ -37,7 +37,7 @@
             "nombre": "SOLAR_PV",
             "host": "RASPBERRY_PI_5",
             "archivo_config": "Forms/plantilla_nodo_solar.json",
-            "archivo_serie": "Forms/plantilla_datos_solares.csv"
+            "archivo_serie": "Forms/ensayos_red_hil/datos_radiacion_temperatura.csv"
         },
         "nodo_3": {
             "nombre": "BESS",
@@ -46,10 +46,10 @@
         },
         "nodos_demanda": {
             "archivo_config": "Forms/plantilla_nodos_demanda.json",
-            "archivo_serie": "Forms/plantilla_demanda_5nodos.csv"
+            "archivo_serie": "Forms/ensayos_red_hil/demanda_multinodal_5nodos.csv"
         }
     },
     "archivos_topologia": {
-        "topologia_csv": "Forms/plantilla_topologia_red_8nodos.csv"
+        "topologia_csv": "Forms/ensayos_red_hil/topologia_red_8nodos.csv"
     }
 }

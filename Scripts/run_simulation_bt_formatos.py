@@ -1,6 +1,7 @@
 import os
 import sys
 import math
+import cmath
 import csv
 import time
 import argparse
@@ -70,8 +71,12 @@ class BTSimulationRunner:
         self.agent_2.set_adjacency({1: 1.0, 3: 1.0})
         self.agent_3.set_adjacency({2: 1.0})
 
-        # 4. Cargar perfiles de demanda sintéticos de Formatos
-        formatos_dir = os.path.join(base_dir, "Forms", "formatos")
+        # 4. Cargar perfiles de demanda sintéticos de Ensayos HIL / Formatos
+        base_forms = os.path.join(base_dir, "Forms")
+        ensayos_dir = os.path.join(base_forms, "ensayos_red_hil")
+        legacy_dir = os.path.join(base_forms, "formatos")
+        formatos_dir = ensayos_dir if os.path.exists(ensayos_dir) else legacy_dir
+
         self.demanda_A = self._load_demanda_csv(os.path.join(formatos_dir, "datos_demanda_A.csv"))
         self.demanda_B = self._load_demanda_csv(os.path.join(formatos_dir, "datos_demanda_B.csv"))
         self.demanda_C = self._load_demanda_csv(os.path.join(formatos_dir, "datos_demanda_C.csv"))
@@ -80,19 +85,27 @@ class BTSimulationRunner:
         self.Q_refs = {1: 1500.0, 2: 600.0, 3: 1000.0}
         self.P_refs = {1: 3000.0, 2: 2000.0, 3: 1000.0}
         self.f_sys = 60.0
+        self.prev_theta_rad = {i: 0.0 for i in range(1, 7)}
 
     def _load_demanda_csv(self, file_path):
         data = []
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter=";")
-                next(reader, None)  # Cabecera: date;P;Q;S;Fp
+                lines = [l.strip() for l in f if l.strip() and not l.strip().startswith("#")]
+                if not lines:
+                    return data
+                delim = ";" if ";" in lines[0] else ","
+                reader = csv.reader(lines, delimiter=delim)
+                header = [h.strip() for h in next(reader, [])]
+                p_idx = header.index("P_kW") if "P_kW" in header else (header.index("P") if "P" in header else 1)
+                q_idx = header.index("Q_kvar") if "Q_kvar" in header else (header.index("Q") if "Q" in header else 2)
+
                 for row in reader:
-                    if len(row) >= 3:
+                    if len(row) > max(p_idx, q_idx):
                         try:
                             # P y Q en kW y kvar en el CSV -> convertir a W y var
-                            p_w = float(row[1].replace(",", ".")) * 1000.0
-                            q_var = float(row[2].replace(",", ".")) * 1000.0
+                            p_w = float(row[p_idx].replace(",", ".")) * 1000.0
+                            q_var = float(row[q_idx].replace(",", ".")) * 1000.0
                             data.append((p_w, q_var))
                         except ValueError:
                             continue
@@ -114,6 +127,8 @@ class BTSimulationRunner:
             "step", "time_sec", "f_sys_hz", "P_net_kW",
             "V1_pu", "V2_pu", "V3_pu", "V4_pu", "V5_pu", "V6_pu",
             "V1_V", "V2_V", "V3_V", "V4_V", "V5_V", "V6_V",
+            "f1_hz", "f2_hz", "f3_hz", "f4_hz", "f5_hz", "f6_hz",
+            "theta1_deg", "theta2_deg", "theta3_deg", "theta4_deg", "theta5_deg", "theta6_deg",
             "Q_ratio_1", "Q_ratio_2", "Q_ratio_3",
             "error_Q_12", "error_Q_23", "error_V_12", "error_V_23"
         ]
@@ -186,8 +201,25 @@ class BTSimulationRunner:
 
             # 5. Resolver flujo de potencia Forward-Backward Sweep
             voltages_complex, conv, iters = self.solver.solve(P_inj, Q_inj)
+            thetas_deg = {}
+            f_nodes = {}
             for n in range(1, 7):
-                voltages_dict[n] = abs(voltages_complex.get(n, 1.0))
+                v_c = voltages_complex.get(n, 1.0 + 0.0j)
+                voltages_dict[n] = abs(v_c)
+                th_rad = cmath.phase(v_c)
+                thetas_deg[n] = math.degrees(th_rad)
+
+                if n in (1, 2, 3):
+                    # Frecuencia estimada por el lazo SRF-PLL / gobernador del inversor/generador
+                    gen_out = {1: out_diesel, 2: out_solar, 3: out_bess}[n]
+                    f_nodes[n] = float(gen_out.get("Fsys", self.f_sys))
+                else:
+                    # Frecuencia local en barra de carga derivada de la variación angular d_theta/dt
+                    d_th = th_rad - self.prev_theta_rad[n]
+                    d_th = (d_th + math.pi) % (2.0 * math.pi) - math.pi
+                    f_nodes[n] = self.f_sys + d_th / (2.0 * math.pi * self.dt)
+
+                self.prev_theta_rad[n] = th_rad
 
             # 6. Dinámica de frecuencia del sistema
             self.f_sys, p_net_w = self.solver.compute_frequency_dynamics(P_inj, f_prev=self.f_sys, dt=self.dt, f_nom=60.0)
@@ -207,6 +239,8 @@ class BTSimulationRunner:
                 step, round(t_sec, 2), round(self.f_sys, 4), round(p_net_kw, 2),
                 *[round(x, 5) for x in v_pu],
                 *[round(x, 2) for x in v_volts],
+                *[round(f_nodes[i], 4) for i in range(1, 7)],
+                *[round(thetas_deg[i], 3) for i in range(1, 7)],
                 round(q_ratio_1, 4), round(q_ratio_2, 4), round(q_ratio_3, 4),
                 round(err_q_12, 4), round(err_q_23, 4),
                 round(err_v_12, 5), round(err_v_23, 5)
@@ -219,7 +253,10 @@ class BTSimulationRunner:
             if step % 20 == 0 or step == 1:
                 p_dem_total = (P4 + P5 + P6) / 1000.0
                 p_gen_total = (P1 + P2 + P3) / 1000.0
-                print(f"[{step:03d}/{max_steps}] t={t_sec:5.1f}s | f={self.f_sys:.3f}Hz | Gen={p_gen_total:.2f}kW, Dem={p_dem_total:.2f}kW | "
+                f_min_n = min(f_nodes.values())
+                f_max_n = max(f_nodes.values())
+                print(f"[{step:03d}/{max_steps}] t={t_sec:5.1f}s | f_sys={self.f_sys:.3f}Hz (f_min={f_min_n:.3f}, f_max={f_max_n:.3f}) | "
+                      f"Gen={p_gen_total:.2f}kW, Dem={p_dem_total:.2f}kW | "
                       f"Q_ratios=({q_ratio_1:.3f}, {q_ratio_2:.3f}, {q_ratio_3:.3f}) | Err_Q12={err_q_12:.4f} | Vmin={min(v_pu):.4f}pu")
 
         elapsed = time.perf_counter() - start_wall
