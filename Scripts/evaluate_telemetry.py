@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv("output_data/telemetry_monitor_cluster_rpi.csv")
+df = pd.read_csv("output_data/telemetry_monitor_cluster_rpi_v2.csv")
 f = df["f_sys_hz"]
 p = df["P_net_kW"]
 

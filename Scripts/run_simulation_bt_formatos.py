@@ -71,11 +71,17 @@ class BTSimulationRunner:
         self.agent_2.set_adjacency({1: 1.0, 3: 1.0})
         self.agent_3.set_adjacency({2: 1.0})
 
-        # 4. Cargar perfiles de demanda sintéticos de Ensayos HIL / Formatos
+        # 4. Cargar perfiles de demanda sintéticos
         base_forms = os.path.join(base_dir, "Forms")
         ensayos_dir = os.path.join(base_forms, "ensayos_red_hil")
         legacy_dir = os.path.join(base_forms, "formatos")
-        formatos_dir = ensayos_dir if os.path.exists(ensayos_dir) else legacy_dir
+        generados_dir = os.path.join(base_forms, "escenarios_generados")
+
+        escenario_activo = self._resolver_escenario_activo(generados_dir)
+        if escenario_activo:
+            formatos_dir = escenario_activo
+        else:
+            formatos_dir = ensayos_dir if os.path.exists(ensayos_dir) else legacy_dir
 
         self.demanda_A = self._load_demanda_csv(os.path.join(formatos_dir, "datos_demanda_A.csv"))
         self.demanda_B = self._load_demanda_csv(os.path.join(formatos_dir, "datos_demanda_B.csv"))
@@ -86,6 +92,21 @@ class BTSimulationRunner:
         self.P_refs = {1: 3000.0, 2: 2000.0, 3: 1000.0}
         self.f_sys = 60.0
         self.prev_theta_rad = {i: 0.0 for i in range(1, 7)}
+
+    def _resolver_escenario_activo(self, generados_dir):
+        """Devuelve la ruta del escenario activo si existe, o None."""
+        marcador = os.path.join(generados_dir, "ACTIVO.txt")
+        if not os.path.exists(marcador):
+            return None
+        try:
+            with open(marcador, "r", encoding="utf-8") as f:
+                nombre = f.read().strip()
+        except OSError:
+            return None
+        if not nombre:
+            return None
+        ruta = os.path.join(generados_dir, nombre)
+        return ruta if os.path.isdir(ruta) else None
 
     def _load_demanda_csv(self, file_path):
         data = []

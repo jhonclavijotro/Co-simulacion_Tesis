@@ -6,6 +6,12 @@ import argparse
 import json
 import zmq
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from Agents.node_dynamic_process import NodeDynamicProcess

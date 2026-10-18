@@ -8,6 +8,7 @@ class MockDataLoader:
     hacia atrás con formatos heredados (';').
     
     Rutas prioritarias:
+      0. Forms/escenarios_generados/<ESC_ACTIVO>/ (si existe ACTIVO.txt)
       1. Forms/ensayos_red_hil/ (datos experimentales / HIL de 2 minutos)
       2. Forms/pruebas_sinteticas/ (series sintéticas continuas de 24 horas a 2 Hz)
       3. Fallback en rutas locales / históricas.
@@ -22,12 +23,29 @@ class MockDataLoader:
         self.ensayos_dir = os.path.join(self.forms_dir, "ensayos_red_hil")
         self.sinteticas_dir = os.path.join(self.forms_dir, "pruebas_sinteticas")
         self.legacy_formatos_dir = os.path.join(self.forms_dir, "formatos")
+        self.generados_dir = os.path.join(self.forms_dir, "escenarios_generados")
+        self.escenario_activo_dir = self._resolver_escenario_activo()
         
         self.solar_data = []
         self.eolic_data = []
         self.hydro_data = []
         
         self.load_all()
+
+    def _resolver_escenario_activo(self):
+        """Devuelve la ruta del escenario activo si existe, o None."""
+        marcador = os.path.join(self.generados_dir, "ACTIVO.txt")
+        if not os.path.exists(marcador):
+            return None
+        try:
+            with open(marcador, "r", encoding="utf-8") as f:
+                nombre = f.read().strip()
+        except OSError:
+            return None
+        if not nombre:
+            return None
+        ruta = os.path.join(self.generados_dir, nombre)
+        return ruta if os.path.isdir(ruta) else None
 
     def _detect_delimiter_and_read(self, file_path):
         """Lee un CSV detectando delimitador (, o ;) y normalizando comas decimales."""
@@ -57,8 +75,14 @@ class MockDataLoader:
         return rows
 
     def load_all(self):
-        # 1. Cargar Solar: Prioridad 1 Ensayo HIL -> Prioridad 2 Sintético 24h
-        solar_files = [
+        # Prioridad 0: escenario activo (si existe)
+        esc_activo = self.escenario_activo_dir
+
+        # 1. Cargar Solar: Prioridad 0 Escenario Activo -> 1 Ensayo HIL -> 2 Sintético 24h
+        solar_files = []
+        if esc_activo:
+            solar_files.append(os.path.join(esc_activo, "datos_radiacion_temperatura.csv"))
+        solar_files += [
             os.path.join(self.ensayos_dir, "datos_radiacion_temperatura.csv"),
             os.path.join(self.sinteticas_dir, "datos_solar_sintetico_24h.csv"),
             os.path.join(self.legacy_formatos_dir, "datos_radiacion_temperatura.csv"),
@@ -80,8 +104,11 @@ class MockDataLoader:
                     if self.solar_data:
                         break
 
-        # 2. Cargar Eólico: Prioridad 1 Ensayo HIL -> Prioridad 2 Sintético 24h
-        eolic_files = [
+        # 2. Cargar Eólico: Prioridad 0 Escenario Activo -> 1 Ensayo HIL -> 2 Sintético 24h
+        eolic_files = []
+        if esc_activo:
+            eolic_files.append(os.path.join(esc_activo, "datos_vel_viento.csv"))
+        eolic_files += [
             os.path.join(self.ensayos_dir, "datos_vel_viento.csv"),
             os.path.join(self.sinteticas_dir, "datos_eolica_sintetico_24h.csv"),
             os.path.join(self.legacy_formatos_dir, "datos_vel_viento.csv"),
@@ -102,7 +129,10 @@ class MockDataLoader:
                         break
 
         # 3. Cargar Hídrico
-        hydro_files = [
+        hydro_files = []
+        if esc_activo:
+            hydro_files.append(os.path.join(esc_activo, "datos_hidrico_sintetico.csv"))
+        hydro_files += [
             os.path.join(self.sinteticas_dir, "datos_hidrico_sintetico_24h.csv"),
             os.path.join(self.data_dir, "datos_meteorologicos_hidricos_sinteticos.csv")
         ]

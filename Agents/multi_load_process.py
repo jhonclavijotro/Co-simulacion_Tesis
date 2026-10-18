@@ -26,12 +26,19 @@ class MultiLoadProcess:
         self.port_rep = port_rep
         self.port_pub = port_pub
 
-        # Modelos de Carga y Series de Tiempo de Forms/ensayos_red_hil
+        # Modelos de Carga y Series de Tiempo
         base_forms = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Forms"))
         self.ensayos_dir = os.path.join(base_forms, "ensayos_red_hil")
         legacy_dir = os.path.join(base_forms, "formatos")
-        
-        target_dir = self.ensayos_dir if os.path.exists(self.ensayos_dir) else legacy_dir
+        generados_dir = os.path.join(base_forms, "escenarios_generados")
+
+        # Prioridad: escenario activo > ensayos_red_hil > formatos
+        escenario_activo = self._resolver_escenario_activo(generados_dir)
+        if escenario_activo:
+            target_dir = escenario_activo
+        else:
+            target_dir = self.ensayos_dir if os.path.exists(self.ensayos_dir) else legacy_dir
+
         self.demanda_4_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_A.csv"))
         self.demanda_5_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_B.csv"))
         self.demanda_6_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_C.csv"))
@@ -49,6 +56,21 @@ class MultiLoadProcess:
         self.req_master.connect(f"tcp://{self.master_host}:{self.port_rep}")
 
         self.running = False
+
+    def _resolver_escenario_activo(self, generados_dir):
+        """Devuelve la ruta del escenario activo si existe, o None."""
+        marcador = os.path.join(generados_dir, "ACTIVO.txt")
+        if not os.path.exists(marcador):
+            return None
+        try:
+            with open(marcador, "r", encoding="utf-8") as f:
+                nombre = f.read().strip()
+        except OSError:
+            return None
+        if not nombre:
+            return None
+        ruta = os.path.join(generados_dir, nombre)
+        return ruta if os.path.isdir(ruta) else None
 
     def _load_demanda_csv(self, file_path):
         data = []
