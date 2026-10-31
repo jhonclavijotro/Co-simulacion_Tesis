@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 from typing import Optional, Dict, List
 
@@ -9,18 +10,79 @@ class DockerComposeGenerator:
       - nodo_X_dinamica (Dockerfile.dynamic)
       - nodo_X_agente   (Dockerfile.agent)
     Soporta inyección de parámetros de canal de comunicación imperfecto (latencia, pérdida de paquetes y timeout).
+
+    El mapa nodo -> tipo de fuente se deriva de la Capa 1
+    (Forms/plantilla_configuracion_cosimulacion.json del escenario activo o global),
+    de modo que N3 = BESS y N4..N8 = DEMANDA en el banco de 8 nodos.
     """
+
+    RAIZ_TESIS = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
     def __init__(self, topology_csv: str, sources_map: Optional[Dict[int, str]] = None):
         self.topology_csv = topology_csv
         self.nodes: List[int] = []
         self.default_sources_map = {
             1: "DIESEL",
             2: "SOLAR",
-            3: "EOLICA",
-            4: "HIDRICA"
+            3: "BESS",
+            4: "DEMANDA"
         }
-        self.sources_map = sources_map if sources_map is not None else self.default_sources_map
+        if sources_map is not None:
+            self.sources_map = sources_map
+        else:
+            self.sources_map = (self.sources_map_desde_capa1()
+                                or dict(self.default_sources_map))
         self.load_nodes()
+
+    @classmethod
+    def _candidatos_capa1(cls) -> List[str]:
+        """Capa 1 del escenario activo primero, luego la plantilla global de Forms."""
+        forms = os.path.join(cls.RAIZ_TESIS, "Forms")
+        generados = os.path.join(forms, "escenarios_generados")
+        rutas = []
+        marcador = os.path.join(generados, "ACTIVO.txt")
+        if os.path.exists(marcador):
+            try:
+                with open(marcador, "r", encoding="utf-8") as f:
+                    nombre = f.read().strip()
+            except OSError:
+                nombre = ""
+            if nombre:
+                rutas.append(os.path.join(
+                    generados, nombre, "plantilla_configuracion_cosimulacion.json"))
+        rutas.append(os.path.join(forms, "plantilla_configuracion_cosimulacion.json"))
+        return rutas
+
+    @classmethod
+    def sources_map_desde_capa1(cls, capa1_path: Optional[str] = None) -> Optional[Dict[int, str]]:
+        """Deriva {nodo: tipo_fuente} desde la Capa 1. Devuelve None si no es utilizable."""
+        rutas = [capa1_path] if capa1_path else cls._candidatos_capa1()
+        for ruta in rutas:
+            if not ruta or not os.path.exists(ruta):
+                continue
+            try:
+                with open(ruta, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except (OSError, ValueError):
+                continue
+
+            asignacion = data.get("asignacion_nodos", {})
+            mapa: Dict[int, str] = {}
+            for n in (1, 2, 3):
+                tipo = asignacion.get(f"nodo_{n}", {}).get("tipo_fuente")
+                if tipo:
+                    mapa[n] = str(tipo).upper()
+
+            demanda = asignacion.get("nodos_demanda", {})
+            for nodo in demanda.get("nodos", []) or []:
+                try:
+                    mapa[int(nodo)] = "DEMANDA"
+                except (TypeError, ValueError):
+                    continue
+
+            if mapa:
+                return mapa
+        return None
 
     def load_nodes(self):
         nodes_set = set()

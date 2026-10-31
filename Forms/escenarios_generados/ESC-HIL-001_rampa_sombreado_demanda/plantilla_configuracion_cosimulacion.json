@@ -1,5 +1,6 @@
 {
     "proyecto": "Tesis_MAS_CoSimulacion_8Nodos",
+    "version_esquema": "2.0",
     "descripcion": "Configuracion de Ejecucion de Co-simulacion Ciber-Fisica Distribuida",
     "parametros_generales": {
         "duracion_total_segundos": 300.0,
@@ -9,8 +10,9 @@
         "modo_solucionador_potencia": "FBS",
         "tipo_malla": "RADIAL",
         "tension_base_V": 400.0,
-        "potencia_base_kVA": 100.0,
-        "frecuencia_nominal_Hz": 60.0
+        "potencia_base_kVA": 10.0,
+        "frecuencia_nominal_Hz": 60.0,
+        "nota_potencia_base": "S_base unica del banco de 8 nodos. Coincide con run_simulation_bt_formatos.py (10000 VA). Si se cambia, H_sys y D_sys en pu deben recalcularse sobre la nueva base."
     },
     "comunicaciones_zeromq": {
         "pc_central_ip": "127.0.0.1",
@@ -29,27 +31,95 @@
     "asignacion_nodos": {
         "nodo_1": {
             "nombre": "SLACK_RED_PRINCIPAL",
+            "tipo_fuente": "DIESEL",
+            "rol": "SLACK",
             "host": "PC_CENTRAL",
             "tension_ref_pu": 1.0,
             "angulo_ref_rad": 0.0
         },
         "nodo_2": {
             "nombre": "SOLAR_PV",
+            "tipo_fuente": "SOLAR",
+            "rol": "GENERACION",
             "host": "RASPBERRY_PI_5",
             "archivo_config": "Forms/plantilla_nodo_solar.json",
             "archivo_serie": "datos_radiacion_temperatura.csv"
         },
         "nodo_3": {
             "nombre": "BESS",
+            "tipo_fuente": "BESS",
+            "rol": "ALMACENAMIENTO",
             "host": "PC_CENTRAL",
             "archivo_config": "Forms/plantilla_nodo_bess.json"
         },
         "nodos_demanda": {
+            "tipo_fuente": "DEMANDA",
+            "modelo_carga": "POTENCIA_CONSTANTE_PQ",
             "archivo_config": "Forms/plantilla_nodos_demanda.json",
-            "archivo_serie": "Forms/ensayos_red_hil/demanda_multinodal_5nodos.csv"
+            "archivo_serie": "Forms/ensayos_red_hil/demanda_multinodal_5nodos.csv",
+            "nodos": [
+                4,
+                5,
+                6,
+                7,
+                8
+            ],
+            "archivos_demanda": {
+                "4": "datos_demanda_A.csv",
+                "5": "datos_demanda_B.csv",
+                "6": "datos_demanda_C.csv",
+                "7": "datos_demanda_D.csv",
+                "8": "datos_demanda_E.csv"
+            }
         }
+    },
+    "capacidades_der": {
+        "1": {
+            "tipo_fuente": "DIESEL",
+            "p_nominal_W": 12000.0,
+            "q_nominal_var": 9000.0,
+            "p_max_W": 10000.0,
+            "q_max_var": 6000.0
+        },
+        "2": {
+            "tipo_fuente": "SOLAR",
+            "p_nominal_W": 5000.0,
+            "q_nominal_var": 3000.0,
+            "p_max_W": 5000.0,
+            "q_max_var": 3000.0
+        },
+        "3": {
+            "tipo_fuente": "BESS",
+            "p_nominal_W": 1500.0,
+            "q_nominal_var": 1000.0,
+            "p_max_W": 3000.0,
+            "q_max_var": 2000.0
+        },
+        "nota": "p_nominal/q_nominal son la placa del banco (Especificacion_Banco_Pruebas_BT_6Nodos_Mallado para N1-N3). p_max/q_max son los limites efectivos de los agentes FxTS en run_simulation_bt_formatos.py: N1 y N3 quedan por encima de placa en el entorno local de verificacion. Ver checklist C1-C2 del Registro_Ampliacion_8Nodos_5Cargas."
+    },
+    "grafo_consenso": {
+        "agentes": [
+            1,
+            2,
+            3
+        ],
+        "aristas": [
+            [
+                1,
+                2
+            ],
+            [
+                2,
+                3
+            ]
+        ],
+        "lambda_2": 1.0,
+        "nota": "Trayectoria de 3 nodos generadores (1<->2<->3) en run_simulation_bt_formatos.py. Es independiente de la topologia electrica de 8 nodos; lambda_2 = 1.0 para una trayectoria de 3 nodos con pesos unitarios."
     },
     "archivos_topologia": {
         "topologia_csv": "topologia_red_8nodos.csv"
+    },
+    "series_auxiliares": {
+        "eolica": "datos_vel_viento.csv"
     }
 }

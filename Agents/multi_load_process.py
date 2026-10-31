@@ -13,11 +13,16 @@ from Demanda.SistemaDemanda import SistemaDemanda
 
 class MultiLoadProcess:
     """
-    Proceso de 3 Cargas (Nodos 4, 5 y 6) cohabitando en una sola Raspberry Pi (RPi 4 - 10.0.0.154).
-    - Nodo 4: Carga Residencial (Forms/formatos/datos_demanda_A.csv)
-    - Nodo 5: Carga Comercial   (Forms/formatos/datos_demanda_B.csv)
-    - Nodo 6: Carga Industrial  (Forms/formatos/datos_demanda_C.csv)
-    
+    Proceso de 5 Cargas (Nodos 4, 5, 6, 7 y 8) cohabitando en una sola Raspberry Pi (RPi 4 - 10.0.0.154).
+    - Nodo 4: Carga Residencial        (datos_demanda_A.csv)
+    - Nodo 5: Carga Comercial          (datos_demanda_B.csv)
+    - Nodo 6: Carga Industrial         (datos_demanda_C.csv)
+    - Nodo 7: Servicios / Bombeo       (datos_demanda_D.csv)
+    - Nodo 8: Residencial Periférico   (datos_demanda_E.csv)
+
+    Compatibilidad: si D/E no existen (escenarios de 3 cargas), se usan los
+    valores de respaldo y la red sigue operando con 6 nodos.
+
     Se sincroniza con el Reloj Maestro del PC Central (SUB 5556) y reporta
     sus consumos agregados al Solucionador de Red (REQ 5555) en cada paso de 500 ms.
     """
@@ -42,6 +47,8 @@ class MultiLoadProcess:
         self.demanda_4_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_A.csv"))
         self.demanda_5_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_B.csv"))
         self.demanda_6_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_C.csv"))
+        self.demanda_7_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_D.csv"))
+        self.demanda_8_data = self._load_demanda_csv(os.path.join(target_dir, "datos_demanda_E.csv"))
 
         # Configuración Sockets ZeroMQ
         self.context = zmq.Context()
@@ -100,8 +107,9 @@ class MultiLoadProcess:
 
     def run(self, max_steps=None):
         print("=" * 60)
-        print(" PROCESO DE 3 CARGAS COHABITANTES (Nodos 4, 5 y 6)")
-        print(f" - Perfiles Formatos: N4={len(self.demanda_4_data)}, N5={len(self.demanda_5_data)}, N6={len(self.demanda_6_data)} muestras")
+        print(" PROCESO DE 5 CARGAS COHABITANTES (Nodos 4, 5, 6, 7 y 8)")
+        print(f" - Perfiles Formatos: N4={len(self.demanda_4_data)}, N5={len(self.demanda_5_data)}, "
+              f"N6={len(self.demanda_6_data)}, N7={len(self.demanda_7_data)}, N8={len(self.demanda_8_data)} muestras")
         print(f" Conectando al PC Central en {self.master_host}...")
         print("=" * 60)
 
@@ -144,6 +152,18 @@ class MultiLoadProcess:
                     var_6 = 1.0 + 0.10 * math.sin(0.15 * time_s + 2.0)
                     P6, Q6 = 100000.0 * var_6, 30000.0 * var_6
 
+                if self.demanda_7_data:
+                    P7, Q7 = self.demanda_7_data[idx % len(self.demanda_7_data)]
+                else:
+                    var_7 = 1.0 + 0.06 * math.sin(0.25 * time_s + 3.0)
+                    P7, Q7 = 2500.0 * var_7, 1000.0 * var_7
+
+                if self.demanda_8_data:
+                    P8, Q8 = self.demanda_8_data[idx % len(self.demanda_8_data)]
+                else:
+                    var_8 = 1.0 + 0.05 * math.sin(0.1 * time_s + 0.5)
+                    P8, Q8 = 2000.0 * var_8, 800.0 * var_8
+
                 # Inyecciones para el flujo de potencia: las cargas consumen (potencia negativa)
                 payload = {
                     "source": "LOADS_RPi4",
@@ -151,7 +171,9 @@ class MultiLoadProcess:
                     "injections": {
                         "4": {"P": round(-P4, 2), "Q": round(-Q4, 2)},
                         "5": {"P": round(-P5, 2), "Q": round(-Q5, 2)},
-                        "6": {"P": round(-P6, 2), "Q": round(-Q6, 2)}
+                        "6": {"P": round(-P6, 2), "Q": round(-Q6, 2)},
+                        "7": {"P": round(-P7, 2), "Q": round(-Q7, 2)},
+                        "8": {"P": round(-P8, 2), "Q": round(-Q8, 2)}
                     }
                 }
 
@@ -169,9 +191,10 @@ class MultiLoadProcess:
                     self.req_master.connect(f"tcp://{self.master_host}:{self.port_rep}")
 
                 if step_idx % 2 == 0:
-                    p_tot = (P4 + P5 + P6) / 1000.0
-                    q_tot = (Q4 + Q5 + Q6) / 1000.0
-                    print(f"[Cargas RPi4] Paso {step_idx:04d}: Demanda Total = {p_tot:.1f} kW, {q_tot:.1f} kvar (N4={P4/1000:.1f}k, N5={P5/1000:.1f}k, N6={P6/1000:.1f}k)")
+                    p_tot = (P4 + P5 + P6 + P7 + P8) / 1000.0
+                    q_tot = (Q4 + Q5 + Q6 + Q7 + Q8) / 1000.0
+                    print(f"[Cargas RPi4] Paso {step_idx:04d}: Demanda Total = {p_tot:.1f} kW, {q_tot:.1f} kvar "
+                          f"(N4={P4/1000:.1f}k, N5={P5/1000:.1f}k, N6={P6/1000:.1f}k, N7={P7/1000:.1f}k, N8={P8/1000:.1f}k)")
 
         except KeyboardInterrupt:
             print("\nDeteniendo proceso de cargas...")
@@ -183,7 +206,7 @@ class MultiLoadProcess:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Proceso Multi-Carga (Nodos 4, 5, 6)")
+    parser = argparse.ArgumentParser(description="Proceso Multi-Carga (Nodos 4, 5, 6, 7 y 8)")
     parser.add_argument("--master-host", default="10.0.0.156", help="IP del PC Central")
     parser.add_argument("--port-rep", type=int, default=5555, help="Puerto REP de inyecciones")
     parser.add_argument("--port-pub", type=int, default=5556, help="Puerto PUB del reloj")
