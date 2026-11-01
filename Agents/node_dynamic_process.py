@@ -35,9 +35,11 @@ class NodeDynamicProcess:
         elif self.source_type == "HIDRICA":
             self.model = SistemaHidrico()
         elif self.source_type == "BESS":
-            self.model = SistemaBESS(N_inv=1)
+            # droop_enabled=False: el control de despacho y droop secundario se gobierna
+            # en el agente MAS (distributed_node_runner) evitando saturacion bang-bang
+            self.model = SistemaBESS(N_inv=1, droop_enabled=False)
         elif self.source_type == "DIESEL":
-            self.model = SistemaDiesel(P_nominal=10000.0)
+            self.model = SistemaDiesel(P_nominal=10000.0, droop_enabled=False)
         elif self.source_type == "DEMANDA":
             self.model = SistemaDemanda()
         else:

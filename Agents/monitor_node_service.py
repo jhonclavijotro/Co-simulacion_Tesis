@@ -13,18 +13,24 @@ class MonitorNodeService:
     - Escucha el Reloj Maestro del PC Central (PUB 5556).
     - Escucha los canales de consenso P2P de los DERs (PUB 6001, 6002, 6003).
     - Registra la telemetria completa en CSV de alta resolucion para graficas de la tesis.
+    - Soporte dinamico para redes de 6 u 8 nodos en Baja Tension (400 V).
     """
     def __init__(
         self,
         master_host: str = "10.0.0.156",
         port_pub: int = 5556,
         der_p2p_targets: list = None,
-        output_csv: str = "output_data/telemetry_monitor.csv"
+        output_csv: str = "output_data/telemetry_monitor.csv",
+        num_nodes: int = 8,
+        v_base: float = 400.0
     ):
         self.master_host = master_host
         self.port_pub = port_pub
         self.der_p2p_targets = der_p2p_targets or ["10.0.0.151:6001", "10.0.0.152:6002", "10.0.0.153:6003"]
         self.output_csv = output_csv
+        self.num_nodes = int(num_nodes)
+        self.v_base = float(v_base)
+        self.csv_initialized = False
         os.makedirs(os.path.dirname(self.output_csv) or ".", exist_ok=True)
 
         self.context = zmq.Context()
@@ -46,13 +52,13 @@ class MonitorNodeService:
         self.poller.register(self.sub_ders, zmq.POLLIN)
 
         self.running = False
-        self._init_csv()
 
-    def _init_csv(self):
-        headers = [
-            "step", "time_sec", "f_sys_hz", "P_net_kW",
-            "V1_pu", "V2_pu", "V3_pu", "V4_pu", "V5_pu", "V6_pu",
-            "V1_V", "V2_V", "V3_V", "V4_V", "V5_V", "V6_V",
+    def _init_csv(self, n_nodes=None):
+        n_count = n_nodes or self.num_nodes
+        headers = ["step", "time_sec", "f_sys_hz", "P_net_kW"]
+        headers += [f"V{i}_pu" for i in range(1, n_count + 1)]
+        headers += [f"V{i}_V" for i in range(1, n_count + 1)]
+        headers += [
             "Q_ratio_1", "Q_ratio_2", "Q_ratio_3",
             "error_Q_12", "error_Q_23", "error_V_12", "error_V_23"
         ]
@@ -65,6 +71,7 @@ class MonitorNodeService:
         print(" SERVICIO DE TELEMETRIA Y OBSERVADOR DE RED (NODO MONITOR)")
         print(f" - Servidor Maestro:      tcp://{self.master_host}:{self.port_pub}")
         print(f" - Canales DERs P2P:      {self.der_p2p_targets}")
+        print(f" - Nodos Monitoreados:    {self.num_nodes} (V_base = {self.v_base:.1f} V)")
         print(f" - Archivo de Salida CSV: {self.output_csv}")
         print("=" * 65)
         print("Iniciando captura pasiva de telemetria...\n")
@@ -91,6 +98,17 @@ class MonitorNodeService:
                 p_net = clock_msg.get("P_net_w", 0.0) / 1000.0
                 voltages = clock_msg.get("voltages", {})
 
+                # Inicializar encabezado CSV dinámicamente según la cantidad de nodos recibida
+                if not self.csv_initialized:
+                    if voltages:
+                        detected_max = max([int(k) for k in voltages.keys()])
+                        actual_n = max(self.num_nodes, detected_max)
+                    else:
+                        actual_n = self.num_nodes
+                    self.num_nodes = actual_n
+                    self._init_csv(actual_n)
+                    self.csv_initialized = True
+
                 # Recoger ultimos paquetes de los DERs en la red
                 time.sleep(0.015)
                 while True:
@@ -114,11 +132,11 @@ class MonitorNodeService:
                 err_q_12 = abs(q1 - q2)
                 err_q_23 = abs(q2 - q3)
 
-                v_pu = [voltages.get(str(i), {}).get("V_pu", 1.0) for i in range(1, 7)]
-                v_volts = [voltages.get(str(i), {}).get("V_volts", 13800.0) for i in range(1, 7)]
+                v_pu = [voltages.get(str(i), {}).get("V_pu", 1.0) for i in range(1, self.num_nodes + 1)]
+                v_volts = [voltages.get(str(i), {}).get("V_volts", self.v_base) for i in range(1, self.num_nodes + 1)]
 
-                err_v_12 = abs(v_pu[0] - v_pu[1])
-                err_v_23 = abs(v_pu[1] - v_pu[2])
+                err_v_12 = abs(v_pu[0] - v_pu[1]) if len(v_pu) >= 2 else 0.0
+                err_v_23 = abs(v_pu[1] - v_pu[2]) if len(v_pu) >= 3 else 0.0
 
                 # Escribir fila en CSV
                 row = [
@@ -134,7 +152,9 @@ class MonitorNodeService:
                     writer.writerow(row)
 
                 if step_idx % 2 == 0:
-                    print(f"[MONITOR] Paso {step_idx:04d} | f={f_sys:.3f}Hz | P_net={p_net:5.1f}kW | Err_Q(1-2)={err_q_12:.4f} | Err_Q(2-3)={err_q_23:.4f} | V_min={min(v_pu):.4f}pu | V_max={max(v_pu):.4f}pu")
+                    v_min = min(v_pu) if v_pu else 1.0
+                    v_max = max(v_pu) if v_pu else 1.0
+                    print(f"[MONITOR] Paso {step_idx:04d} | f={f_sys:.3f}Hz | P_net={p_net:5.1f}kW | Err_Q(1-2)={err_q_12:.4f} | Err_Q(2-3)={err_q_23:.4f} | V_min={v_min:.4f}pu | V_max={v_max:.4f}pu")
 
         except KeyboardInterrupt:
             print("\nDeteniendo servicio monitor...")
@@ -151,6 +171,8 @@ if __name__ == "__main__":
     parser.add_argument("--port-pub", type=int, default=5556, help="Puerto PUB del reloj")
     parser.add_argument("--der-targets", nargs="*", default=["10.0.0.151:6001", "10.0.0.152:6002", "10.0.0.153:6003"], help="Canales P2P DERs")
     parser.add_argument("--output-csv", default="output_data/telemetry_monitor.csv", help="Ruta del archivo CSV")
+    parser.add_argument("--num-nodes", type=int, default=8, help="Numero de nodos a monitorear (default: 8)")
+    parser.add_argument("--v-base", type=float, default=400.0, help="Tension base en Voltios (default: 400.0 V)")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
     args = parser.parse_args()
 
@@ -158,6 +180,8 @@ if __name__ == "__main__":
         master_host=args.master_host,
         port_pub=args.port_pub,
         der_p2p_targets=args.der_targets,
-        output_csv=args.output_csv
+        output_csv=args.output_csv,
+        num_nodes=args.num_nodes,
+        v_base=args.v_base
     )
     mon.run(max_steps=args.steps)

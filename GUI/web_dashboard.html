@@ -8,8 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN para gráficos en vivo a 500 ms -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js local offline (prioridad alta) con fallback a CDN -->
+    <script src="/assets/chart.umd.min.js"></script>
+    <script>
+        if (typeof Chart === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');
+        }
+    </script>
 
     <style>
         :root {
@@ -921,7 +926,7 @@
                 <div class="type-card load">
                     <div class="type-card-header">
                         <div class="type-title"><span>🏢</span> Nodos de Demanda (Cargas)</div>
-                        <span class="type-count-badge" id="badge-count-load">3 Nodos</span>
+                        <span class="type-count-badge" id="badge-count-load">5 Nodos</span>
                     </div>
                     <div class="node-list" id="list-nodes-load">
                         <div class="node-item">
@@ -952,6 +957,26 @@
                             <div>
                                 <span class="node-voltage-val" id="voltage-n6">400.62 V</span>
                                 <span class="node-voltage-pu" id="pu-n6">1.0016 pu</span>
+                            </div>
+                        </div>
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip load">N7</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Residencial (D)</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n7">400.00 V</span>
+                                <span class="node-voltage-pu" id="pu-n7">1.0000 pu</span>
+                            </div>
+                        </div>
+                        <div class="node-item">
+                            <div class="node-item-left">
+                                <span class="node-chip load">N8</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary);">Residencial (E)</span>
+                            </div>
+                            <div>
+                                <span class="node-voltage-val" id="voltage-n8">400.00 V</span>
+                                <span class="node-voltage-pu" id="pu-n8">1.0000 pu</span>
                             </div>
                         </div>
                     </div>
@@ -1089,7 +1114,9 @@
                         { label: 'N3 (BESS)', data: Array(25).fill(400.39), borderColor: '#8b5cf6', borderWidth: 2, pointRadius: 0, tension: 0.2 },
                         { label: 'N4 (Carga A)', data: Array(25).fill(400.23), borderColor: '#ec4899', borderWidth: 1.8, pointRadius: 0, tension: 0.2 },
                         { label: 'N5 (Carga B)', data: Array(25).fill(400.57), borderColor: '#06b6d4', borderWidth: 1.8, pointRadius: 0, tension: 0.2 },
-                        { label: 'N6 (Carga C)', data: Array(25).fill(400.62), borderColor: '#3b82f6', borderWidth: 1.8, pointRadius: 0, tension: 0.2 }
+                        { label: 'N6 (Carga C)', data: Array(25).fill(400.62), borderColor: '#3b82f6', borderWidth: 1.8, pointRadius: 0, tension: 0.2 },
+                        { label: 'N7 (Carga D)', data: Array(25).fill(400.0), borderColor: '#a855f7', borderWidth: 1.8, pointRadius: 0, tension: 0.2 },
+                        { label: 'N8 (Carga E)', data: Array(25).fill(400.0), borderColor: '#eab308', borderWidth: 1.8, pointRadius: 0, tension: 0.2 }
                     ]
                 },
                 options: {
@@ -1562,7 +1589,7 @@
                 const f_sys = data.f_sys_hz || 60.0;
 
                 // Actualizar valores numéricos en tarjetas de nodos y en grafo SVG
-                for (let i = 1; i <= 6; i++) {
+                for (let i = 1; i <= 8; i++) {
                     const nodeKey = String(i);
                     const vInfo = voltages[nodeKey] || {};
                     const vVolts = vInfo.V_volts !== undefined ? Number(vInfo.V_volts).toFixed(2) : '400.00';
@@ -1586,7 +1613,7 @@
                     voltageChart.data.labels.shift();
                     voltageChart.data.labels.push(''); // Sin escala temporal
 
-                    for (let idx = 0; idx < 6; idx++) {
+                    for (let idx = 0; idx < 8; idx++) {
                         const nKey = String(idx + 1);
                         const v = voltages[nKey] ? voltages[nKey].V_volts : 400.0;
                         if (voltageChart.data.datasets[idx]) {
@@ -1698,12 +1725,25 @@
         }
 
         window.onload = async function() {
-            initCharts();
-            await fetchCablesCatalog();
-            renderBranchesTable();
-            renderDynamicGraph();
+            try {
+                if (typeof Chart !== 'undefined') {
+                    initCharts();
+                } else {
+                    console.warn("Chart.js no está disponible. Operando en modo visual sin gráficos dinámicos.");
+                }
+            } catch (errChart) {
+                console.error("Excepción al inicializar gráficos:", errChart);
+            }
 
-            // Iniciar sondeo continuo a 500 ms
+            try {
+                await fetchCablesCatalog();
+                renderBranchesTable();
+                renderDynamicGraph();
+            } catch (errTopo) {
+                console.error("Excepción al cargar catálogo o topología:", errTopo);
+            }
+
+            // Iniciar sondeo continuo a 500 ms incondicionalmente
             fetchLiveTelemetry();
             setInterval(fetchLiveTelemetry, 500);
         };

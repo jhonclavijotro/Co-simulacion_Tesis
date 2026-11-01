@@ -79,7 +79,9 @@ latest_telemetry_state = {
             "3": {"type": "BESS", "name": "Almacenamiento BESS 3 kWh", "role": "DER Seguidor"},
             "4": {"type": "LOAD", "name": "Carga Residencial (Nodo 4)", "role": "Demanda Dinámica"},
             "5": {"type": "LOAD", "name": "Carga Comercial (Nodo 5)", "role": "Demanda Dinámica"},
-            "6": {"type": "LOAD", "name": "Carga Industrial (Nodo 6)", "role": "Demanda Dinámica"}
+            "6": {"type": "LOAD", "name": "Carga Industrial (Nodo 6)", "role": "Demanda Dinámica"},
+            "7": {"type": "LOAD", "name": "Carga Residencial D (Nodo 7)", "role": "Demanda Dinámica"},
+            "8": {"type": "LOAD", "name": "Carga Residencial E (Nodo 8)", "role": "Demanda Dinámica"}
         }
     },
     "exogenous_profiles": {
@@ -95,7 +97,9 @@ latest_telemetry_state = {
             "3": {"V_volts": 400.39, "V_pu": 1.0010, "P": 750.0, "Q": 0.0},
             "4": {"V_volts": 400.23, "V_pu": 1.0006, "P": -2850.0, "Q": -940.0},
             "5": {"V_volts": 400.57, "V_pu": 1.0014, "P": -1960.0, "Q": -400.0},
-            "6": {"V_volts": 400.62, "V_pu": 1.0016, "P": -1470.0, "Q": -300.0}
+            "6": {"V_volts": 400.62, "V_pu": 1.0016, "P": -1470.0, "Q": -300.0},
+            "7": {"V_volts": 400.00, "V_pu": 1.0000, "P": -1000.0, "Q": -200.0},
+            "8": {"V_volts": 400.00, "V_pu": 1.0000, "P": -600.0, "Q": -120.0}
         },
         "network_stats": {
             "profile": "LAN_ETHERNET",
@@ -329,13 +333,15 @@ class RPiDataService:
         self.poller.register(self.sub_ders, zmq.POLLIN)
 
         self.running = False
-        self._init_csv()
+        self.num_nodes = 8
+        self.csv_initialized = False
 
-    def _init_csv(self):
-        headers = [
-            "step", "time_sec", "f_sys_hz", "P_net_kW",
-            "V1_pu", "V2_pu", "V3_pu", "V4_pu", "V5_pu", "V6_pu",
-            "V1_V", "V2_V", "V3_V", "V4_V", "V5_V", "V6_V",
+    def _init_csv(self, n_nodes=None):
+        n_count = n_nodes or self.num_nodes
+        headers = ["step", "time_sec", "f_sys_hz", "P_net_kW"]
+        headers += [f"V{i}_pu" for i in range(1, n_count + 1)]
+        headers += [f"V{i}_V" for i in range(1, n_count + 1)]
+        headers += [
             "Q_ratio_1", "Q_ratio_2", "Q_ratio_3",
             "error_Q_12", "error_Q_23", "error_V_12", "error_V_23"
         ]
@@ -412,11 +418,21 @@ class RPiDataService:
                 err_q_12 = abs(q1 - q2)
                 err_q_23 = abs(q2 - q3)
 
-                v_pu = [voltages.get(str(i), {}).get("V_pu", 1.0) for i in range(1, 7)]
-                v_volts = [voltages.get(str(i), {}).get("V_volts", 13800.0) for i in range(1, 7)]
+                if not self.csv_initialized:
+                    if voltages:
+                        detected_max = max([int(k) for k in voltages.keys()])
+                        actual_n = max(self.num_nodes, detected_max)
+                    else:
+                        actual_n = self.num_nodes
+                    self.num_nodes = actual_n
+                    self._init_csv(actual_n)
+                    self.csv_initialized = True
 
-                err_v_12 = abs(v_pu[0] - v_pu[1])
-                err_v_23 = abs(v_pu[1] - v_pu[2])
+                v_pu = [voltages.get(str(i), {}).get("V_pu", 1.0) for i in range(1, self.num_nodes + 1)]
+                v_volts = [voltages.get(str(i), {}).get("V_volts", 400.0) for i in range(1, self.num_nodes + 1)]
+
+                err_v_12 = abs(v_pu[0] - v_pu[1]) if len(v_pu) >= 2 else 0.0
+                err_v_23 = abs(v_pu[1] - v_pu[2]) if len(v_pu) >= 3 else 0.0
 
                 # 1. Escribir fila en CSV
                 row = [
@@ -443,7 +459,7 @@ class RPiDataService:
                             str(i): {
                                 "V_pu": round(v_pu[i-1], 5),
                                 "V_volts": round(v_volts[i-1], 2)
-                            } for i in range(1, 7)
+                            } for i in range(1, self.num_nodes + 1)
                         },
                         "network_stats": {
                             "profile": "LAN_ETHERNET",

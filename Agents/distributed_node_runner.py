@@ -58,10 +58,10 @@ class DistributedNodeRunner:
         self.p_init = float(p_init)
         self.operating_mode = operating_mode.upper()
 
-        # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa
+        # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa (Amortiguado y Asintótico)
         self.int_freq_error = 0.0
-        self.k_p_freq = 400.0  # W/(rad/s)
-        self.k_i_freq = 250.0  # W/(rad/s*s)
+        self.k_p_freq = 250.0  # W/(rad/s)
+        self.k_i_freq = 80.0   # W/(rad/s*s) - Restaura f a 60.0 Hz en 10-15s sin sobreimpulso
 
         # 1. Proceso de Dinamica Fisica (1 kHz)
         self.dynamic_proc = NodeDynamicProcess(
@@ -219,15 +219,23 @@ class DistributedNodeRunner:
                 )
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
 
-                # Lazo Restaurativo Secundario de Frecuencia hacia Potencia Activa (Control PI)
-                if self.source_type in ["DIESEL", "BESS"]:
+                # Lazo Restaurativo Secundario de Frecuencia hacia Potencia Activa (Control Amortiguado)
+                # Se desacopla dP (consenso de activa) para evitar conflicto con generacion no despachable (Solar)
+                if self.source_type == "DIESEL":
                     err_w = (2.0 * math.pi * 60.0) - omega_local
-                    self.int_freq_error = max(-20.0, min(20.0, self.int_freq_error + err_w * 0.5))
+                    # Anti-windup acotado a [-50.0, +50.0] rad (hasta +/- 4.0 kW de compensacion integral)
+                    self.int_freq_error = max(-50.0, min(50.0, self.int_freq_error + err_w * 0.5))
                     delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
                     base_p = self.p_init if self.p_init > 0 else 3000.0
-                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_restore + dP))
+                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_restore))
+                elif self.source_type == "BESS":
+                    # BESS opera como soporte proporcional de inercia sintetica / droop primario sin integrador lento
+                    err_w = (2.0 * math.pi * 60.0) - omega_local
+                    delta_P_droop = 40.0 * err_w
+                    base_p = self.p_init if self.p_init > 0 else 750.0
+                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_droop))
                 else:
-                    self.P_ref = max(0.0, min(self.p_max, self.P_ref + dP))
+                    self.P_ref = max(0.0, min(self.p_max, self.P_ref))
 
                 # Acumular correcciones de tensión y frecuencia (acción integral del control secundario).
                 self.V_offset = max(-0.10, min(0.10, self.V_offset + dV))

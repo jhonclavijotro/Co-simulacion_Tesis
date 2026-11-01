@@ -97,7 +97,7 @@ services:
     container_name: nodo_3_dinamica
     environment:
       - NODE_ID=3
-      - SOURCE_TYPE=EOLICA
+      - SOURCE_TYPE=BESS
       - HOLD_MODE=ZOH
       - ZFOH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
@@ -139,7 +139,7 @@ services:
     container_name: nodo_4_dinamica
     environment:
       - NODE_ID=4
-      - SOURCE_TYPE=HIDRICA
+      - SOURCE_TYPE=DEMANDA
       - HOLD_MODE=ZOH
       - ZFOH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
