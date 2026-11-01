@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from Central_PC.power_flow_fbs import ForwardBackwardSweepSolver
 from Agents.node_dynamic_process import NodeDynamicProcess
 from Agents.finite_time_consensus import FixedTimeConsensusAgent
-from mock_data.data_loader import MockDataLoader
+from mock_data.data_loader import MockDataLoader, MissingResourceDataError
 
 
 class BTSimulationRunner:
@@ -136,25 +136,46 @@ class BTSimulationRunner:
         self.agent_2.set_adjacency({1: 1.0, 3: 1.0})
         self.agent_3.set_adjacency({2: 1.0})
 
-        # 4. Cargar perfiles de demanda sintéticos (mapa nodo -> archivo de Capa 1)
-        mapa_demanda = asignacion.get("nodos_demanda", {}).get("archivos_demanda") or {
-            "4": "datos_demanda_A.csv",
-            "5": "datos_demanda_B.csv",
-            "6": "datos_demanda_C.csv",
-            "7": "datos_demanda_D.csv",
-            "8": "datos_demanda_E.csv",
-        }
+        # 4. Cargar perfiles de demanda sintéticos.
+        #    rev.5: un único `datos_demanda.csv` con columnas N{id}_P_kW /
+        #    N{id}_Q_kvar por nodo. Legacy: un archivo por nodo
+        #    (`archivos_demanda`), conservado para escenarios pre-2026-11-01.
         self.demandas = {}
-        for nodo, nombre in sorted(((int(k), v) for k, v in mapa_demanda.items()), key=lambda x: x[0]):
-            ruta = self._resolver_ruta(formatos_dir, nombre)
-            if nodo not in self.nodos:
-                # Serie declarada para un nodo que esta topologia no tiene (p. ej. N7/N8
-                # en el banco heredado de 6 nodos): se omite, no se exige el archivo.
-                if not os.path.exists(ruta):
+        seccion_demanda = asignacion.get("nodos_demanda", {}) or {}
+        declarados_datos = (self.capa1 or {}).get("archivos_datos", {}) or {}
+        archivo_consolidado = declarados_datos.get("demanda")
+        if not archivo_consolidado:
+            serie_declarada = str(seccion_demanda.get("archivo_serie") or "")
+            if os.path.basename(serie_declarada) == "datos_demanda.csv":
+                archivo_consolidado = serie_declarada
+
+        if archivo_consolidado:
+            ruta = self._resolver_ruta(formatos_dir, archivo_consolidado)
+            nodos_declarados = seccion_demanda.get("nodos") or None
+            for nodo, serie in self._load_demanda_consolidada(ruta, nodos_declarados).items():
+                if nodo not in self.nodos:
                     print(f"[WARN] N{nodo} no esta en {os.path.basename(self.topology_path)}: "
-                          f"se omite su serie {nombre}.")
-                continue
-            self.demandas[nodo] = self._load_demanda_csv(ruta)
+                          f"se omite su columna en {os.path.basename(ruta)}.")
+                    continue
+                self.demandas[nodo] = serie
+        else:
+            mapa_demanda = seccion_demanda.get("archivos_demanda") or {
+                "4": "datos_demanda_A.csv",
+                "5": "datos_demanda_B.csv",
+                "6": "datos_demanda_C.csv",
+                "7": "datos_demanda_D.csv",
+                "8": "datos_demanda_E.csv",
+            }
+            for nodo, nombre in sorted(((int(k), v) for k, v in mapa_demanda.items()), key=lambda x: x[0]):
+                ruta = self._resolver_ruta(formatos_dir, nombre)
+                if nodo not in self.nodos:
+                    # Serie declarada para un nodo que esta topologia no tiene (p. ej. N7/N8
+                    # en el banco heredado de 6 nodos): se omite, no se exige el archivo.
+                    if not os.path.exists(ruta):
+                        print(f"[WARN] N{nodo} no esta en {os.path.basename(self.topology_path)}: "
+                              f"se omite su serie {nombre}.")
+                    continue
+                self.demandas[nodo] = self._load_demanda_csv(ruta, nodo=nodo)
 
         # Atributos heredados (compatibilidad con scripts externos)
         self.demanda_A = self.demandas.get(4, [])
@@ -257,30 +278,59 @@ class BTSimulationRunner:
         ruta = os.path.join(generados_dir, nombre)
         return ruta if os.path.isdir(ruta) else None
 
-    def _load_demanda_csv(self, file_path):
-        """Carga una serie de demanda declarada en Capa 1. Falla si no existe o está vacía."""
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(
-                f"Serie de demanda declarada en Capa 1 no encontrada: {file_path}. "
-                "Corregir 'asignacion_nodos.nodos_demanda.archivos_demanda' o instalar el "
-                "escenario completo antes de simular.")
-        data = []
-        with open(file_path, "r", encoding="utf-8") as f:
-            lines = [l.strip() for l in f if l.strip() and not l.strip().startswith("#")]
+    def _leer_csv(self, file_path):
+        """Devuelve (cabecera, filas) de un CSV de series, sin comentarios."""
+        with open(file_path, "r", encoding="utf-8", newline="") as f:
+            lines = [l for l in f if l.strip() and not l.strip().startswith("#")]
         if not lines:
-            raise ValueError(f"Serie de demanda vacía: {file_path}")
+            raise ValueError(f"Serie de datos vacía: {file_path}")
         delim = ";" if ";" in lines[0] else ","
         reader = csv.reader(lines, delimiter=delim)
         header = [h.strip() for h in next(reader, [])]
-        p_idx = header.index("P_kW") if "P_kW" in header else (header.index("P") if "P" in header else 1)
-        q_idx = header.index("Q_kvar") if "Q_kvar" in header else (header.index("Q") if "Q" in header else 2)
+        filas = [[c.strip().replace(",", ".") for c in row] for row in reader if row]
+        return header, filas
 
-        for row in reader:
+    def _indice_columna(self, header, nodo, magnitud, file_path=""):
+        """Índice de la columna de P/Q por nombre. Nunca cae a una posición fija."""
+        candidatos = []
+        if nodo is not None:
+            if magnitud == "P":
+                candidatos += [f"N{nodo}_P_kW", f"N{nodo}_P", f"P_D{nodo}_kW"]
+            else:
+                candidatos += [f"N{nodo}_Q_kvar", f"N{nodo}_Q", f"Q_D{nodo}_kvar"]
+        candidatos += ["P_kW", "P"] if magnitud == "P" else ["Q_kvar", "Q"]
+        for nombre in candidatos:
+            if nombre in header:
+                return header.index(nombre)
+        magnitud_txt = "potencia activa" if magnitud == "P" else "reactiva"
+        raise ValueError(
+            f"No se encontró la columna de {magnitud_txt} (nodo {nodo}) en "
+            f"{os.path.basename(file_path) or 'la serie'}. Cabecera: {header}")
+
+    def _load_demanda_csv(self, file_path, nodo=None):
+        """Carga P/Q (kW, kvar -> W, var) de un CSV. Resuelve columnas por nombre.
+
+        `nodo` permite leer `N{id}_P_kW` / `N{id}_Q_kvar` del archivo consolidado.
+        Falla si no existe, está vacío o no hay columnas P/Q reconocibles: no se
+        usa ninguna posición fija (el antiguo `p_idx=1` leía `tiempo_s`).
+        """
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(
+                f"Serie de demanda declarada en Capa 1 no encontrada: {file_path}. "
+                "Corregir 'asignacion_nodos.nodos_demanda' o instalar el escenario "
+                "completo antes de simular.")
+
+        header, filas = self._leer_csv(file_path)
+        p_idx = self._indice_columna(header, nodo, "P", file_path)
+        q_idx = self._indice_columna(header, nodo, "Q", file_path)
+
+        data = []
+        for row in filas:
             if len(row) > max(p_idx, q_idx):
                 try:
                     # P y Q en kW y kvar en el CSV -> convertir a W y var
-                    p_w = float(row[p_idx].replace(",", ".")) * 1000.0
-                    q_var = float(row[q_idx].replace(",", ".")) * 1000.0
+                    p_w = float(row[p_idx]) * 1000.0
+                    q_var = float(row[q_idx]) * 1000.0
                     data.append((p_w, q_var))
                 except ValueError:
                     continue
@@ -289,6 +339,33 @@ class BTSimulationRunner:
                 f"Serie de demanda sin filas P/Q válidas: {file_path} "
                 f"(columnas detectadas: {header})")
         return data
+
+    def _load_demanda_consolidada(self, file_path, nodos=None):
+        """Lee `datos_demanda.csv` y devuelve {nodo: [(P_w, Q_var), ...]}."""
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(
+                f"Serie consolidada declarada en Capa 1 no encontrada: {file_path}. "
+                "Instalar el escenario completo antes de simular.")
+        header, _filas = self._leer_csv(file_path)
+        if "tiempo_s" not in header:
+            raise MissingResourceDataError(
+                f"{os.path.basename(file_path)} no tiene columna 'tiempo_s' "
+                f"(cabecera: {header}).")
+
+        if not nodos:
+            import re
+            nodos = sorted({
+                int(m.group(1)) for m in (re.match(r"^N(\d+)_P_kW$", c) for c in header) if m
+            })
+        resultado = {}
+        for nodo in sorted(int(n) for n in nodos):
+            if f"N{nodo}_P_kW" not in header or f"N{nodo}_Q_kvar" not in header:
+                raise MissingResourceDataError(
+                    f"{os.path.basename(file_path)} no tiene "
+                    f"N{nodo}_P_kW / N{nodo}_Q_kvar para el nodo de carga declarado "
+                    "en la Capa 1 (fallo fuerte, sin series de respaldo).")
+            resultado[nodo] = self._load_demanda_csv(file_path, nodo=nodo)
+        return resultado
 
     def run(self, max_steps: int = 240):
         print("=" * 70)
