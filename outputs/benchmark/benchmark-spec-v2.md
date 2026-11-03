@@ -142,7 +142,7 @@ Cada escenario se reporta **por separado**. Agregar oculta qué mecanismo falla.
 | **G4** | $\max\lvert\eta_{P,i} - \eta_{P,j}\rvert$ | $< 0.020$ | `TEORIA.tex` |
 | **G5** | $e_V$ | $\le \pm0.005$ p.u. ($\pm0.5\%$) | `10.3390/en16010517` ec. 12 |
 | **G6** | $e_\omega$ | $\le \pm0.100$ Hz | `10.3390/en16010517` ec. 11 |
-| **G7** | CFL | `verify_discrete_cfl_stability(0.5, 2)` = `True` | Propio controlador |
+| **G7** | CFL Nodal (Soporte) | $\Delta t \cdot d_{\max}(c_1+c_2) < 1.0$ (margen 60%); gobernante continuo: $\Delta t \cdot \lambda_{\max}(\mathcal{H}) g_{\text{ef}} = 1.677 < 2.0$ (margen 16.2%, D-22, `TEORIA.tex:218`) | Cota suficiente de soporte nodal / Estabilidad capa límite |
 | **G8** | $\tau_{crit}$ | $\ge 50.0$ ms | Cota analítica de estabilidad capa límite (D-18 Opción C, FxTS=96.3 ms) |
 
 ### 7.2 Métricas de reporte (no gates)

@@ -73,10 +73,8 @@ acceptance_gates:
   G4_max_diff_eta_P: 0.020      # reparto activa 2%
   G5_max_e_V_pu: 0.005          # +-0.5% (Energies 2023 eq. 12)
   G6_max_e_omega_hz: 0.100      # +-0.1 Hz (Energies 2023 eq. 11)
-  G7_cfl_stable: true           # Condición analítica CFL dt * d_max * (c1 + c2) < 1.0
+  G7_cfl_stable: true           # Condición analítica CFL dt * d_max * (c1 + c2) < 1.0 (soporte nodal)
   G8_tau_crit_ms: 50.0          # ms (cota analítica admisible D-18 Opción C, FxTS=96.3 ms margen 1.93x)
-
-step_settling_bands: [0.10, 0.05, 0.02]
 
 normative_bands:
   secondary_control:
@@ -88,6 +86,7 @@ normative_bands:
     volt_tolerance_pu: 0.05     # +-5% (0.95 p.u. a 1.05 p.u.)
 
 reporting:
+  # Única fuente canónica para bandas de caracterización dinámica del transitorio (S-20 / S-23 A6)
   step_settling_bands: [0.10, 0.05, 0.02]  # Bandas relativas al escalón (10%, 5%, 2% de Delta f)
   default_t_sim: 120.0          # s
   default_t_event: 20.0         # s (inicio perturbación)

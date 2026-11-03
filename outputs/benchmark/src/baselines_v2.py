@@ -295,7 +295,18 @@ def get_baseline_controller(
     **kwargs
 ) -> BaseSecondaryController:
     """
-    Factory para instanciar las líneas base con su configuración publicada u optimizada.
+    Factory contractual para instanciar las líneas base y el controlador propuesto.
+
+    CONTRATO DE ENTRADA (S-21 / V-03):
+    El parámetro `name` recibe exclusivamente la CLAVE CORTA normalizada del controlador:
+      - 'droop' : Control primario Droop puro P-f, Q-V (Guerrero et al., 2011)
+      - 'pi'    : Control secundario centralizado PI convencional
+      - 'dapi'  : Control secundario distribuido promediado DAPI (Simpson-Porco et al., 2015)
+      - 'fts'   : Control secundario distribuido en tiempo finito simple (Wang et al., 2021)
+      - 'fxts'  : Control secundario distribuido en tiempo fijo de la tesis
+
+    No se admiten etiquetas de presentación extensas (ej. 'PI Centralizado (Canónico)').
+    Cualquier clave no reconocida arroja un ValueError enumerando las opciones válidas.
     """
     name_clean = name.strip().lower()
     tuning = tuning_mode.strip().lower()

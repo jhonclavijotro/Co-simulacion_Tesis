@@ -144,6 +144,14 @@ def evaluate_gates(
     t_s_norm = metrics.get("t_s_norm")
     th_g1 = thresholds.get("G1_t_s_norm_s", 52.54)
     g1_pass = (t_s_norm is not None) and (t_s_norm <= th_g1) and (not divergence)
+    g1_reason = None
+    if not g1_pass:
+        if divergence:
+            g1_reason = "Divergencia física detectada"
+        elif t_s_norm is None:
+            g1_reason = f"No asienta en la banda normativa (|e_f| <= {thresholds.get('G6_max_e_omega_hz', 0.100):.3f} Hz)"
+        else:
+            g1_reason = f"t_s_norm = {t_s_norm:.2f} s supera cota Lyapunov {th_g1:.2f} s"
     gates_result["G1"] = {
         "name": "Tiempo de asentamiento normativo",
         "passed": bool(g1_pass),
@@ -151,15 +159,27 @@ def evaluate_gates(
         "threshold": th_g1,
         "operator": "<=",
         "unit": "s",
-        "description": "t_s a banda normativa (|e_f| <= 0.10 Hz) <= cota Lyapunov T_f"
+        "description": "t_s a banda normativa (|e_f| <= 0.10 Hz) <= cota Lyapunov T_f",
+        "reason": g1_reason
     }
 
     # G2: Delta f peak-to-peak < 0.200 Hz
-    # Condición rigurosa (resuelve A5): Solo aprueba si el sistema restauró y no divergió
+    # Condición rigurosa (resuelve A5 y S-21/V-02): Solo aprueba si el sistema restauró y no divergió
     df_pp = metrics.get("delta_f_pp", 0.0)
     th_g2 = thresholds.get("G2_delta_f_pp", 0.200)
-    restored = metrics.get("max_e_omega_hz", 0.0) <= thresholds.get("G6_max_e_omega_hz", 0.100)
+    th_g6 = thresholds.get("G6_max_e_omega_hz", 0.100)
+    e_w = metrics.get("max_e_omega_hz", 0.0)
+    restored = bool(e_w <= th_g6)
     g2_pass = (df_pp < th_g2) and (not divergence) and restored
+    g2_reason = None
+    if not g2_pass:
+        if divergence:
+            g2_reason = "Divergencia física detectada"
+        elif not restored:
+            g2_reason = f"Frecuencia no restaurada: error residual {e_w:.4f} Hz > umbral {th_g6:.3f} Hz (restored=False)"
+        elif df_pp >= th_g2:
+            g2_reason = f"Amplitud de oscilación {df_pp:.4f} Hz >= umbral {th_g2:.3f} Hz"
+
     gates_result["G2"] = {
         "name": "Oscilacion de frecuencia pico a pico",
         "passed": bool(g2_pass),
@@ -167,7 +187,13 @@ def evaluate_gates(
         "threshold": th_g2,
         "operator": "<",
         "unit": "Hz",
-        "description": "Amplitud ciclo limite en estado estacionario restaurado"
+        "description": "Amplitud ciclo limite en estado estacionario restaurado",
+        "reason": g2_reason,
+        "subconditions": {
+            "df_pp_below_threshold": bool(df_pp < th_g2),
+            "no_divergence": bool(not divergence),
+            "frequency_restored": bool(restored)
+        }
     }
 
     # G3: Error de reparto de reactiva max|eta_Qi - eta_Qj| < 0.020
@@ -181,7 +207,8 @@ def evaluate_gates(
         "threshold": th_g3,
         "operator": "<",
         "unit": "p.u.",
-        "description": "Desviacion max entre ratios Q_i / Q_max"
+        "description": "Desviacion max entre ratios Q_i / Q_max",
+        "reason": None if g3_pass else ("Divergencia física detectada" if divergence else f"Dispersión reactiva {diff_q:.4f} >= {th_g3:.3f}")
     }
 
     # G4: Error de reparto de activa max|eta_Pi - eta_Pj| < 0.020
@@ -195,7 +222,8 @@ def evaluate_gates(
         "threshold": th_g4,
         "operator": "<",
         "unit": "p.u.",
-        "description": "Desviacion max entre ratios P_i / P_max"
+        "description": "Desviacion max entre ratios P_i / P_max",
+        "reason": None if g4_pass else ("Divergencia física detectada" if divergence else f"Dispersión activa {diff_p:.4f} >= {th_g4:.3f}")
     }
 
     # G5: Error de restauracion de tension |e_V| <= 0.005 pu (+-0.5%)
@@ -209,7 +237,8 @@ def evaluate_gates(
         "threshold": th_g5,
         "operator": "<=",
         "unit": "p.u.",
-        "description": "Banda objetivo secundario +-0.5% (Energies eq. 12)"
+        "description": "Banda objetivo secundario +-0.5% (Energies eq. 12)",
+        "reason": None if g5_pass else ("Divergencia física detectada" if divergence else f"Error estacionario tensión {e_v:.4f} p.u. > umbral {th_g5:.3f} p.u.")
     }
 
     # G6: Error de restauracion de frecuencia |e_omega| <= 0.100 Hz
@@ -223,20 +252,22 @@ def evaluate_gates(
         "threshold": th_g6,
         "operator": "<=",
         "unit": "Hz",
-        "description": "Banda objetivo secundario +-0.1 Hz (Energies eq. 11)"
+        "description": "Banda objetivo secundario +-0.1 Hz (Energies eq. 11)",
+        "reason": None if g6_pass else ("Divergencia física detectada" if divergence else f"Error estacionario frecuencia {e_w:.4f} Hz > umbral {th_g6:.3f} Hz")
     }
 
-    # G7: Estabilidad CFL discreta calculada analiticamente (resuelve A4)
+    # G7: Estabilidad CFL discreta calculada analiticamente (resuelve A4 y D-22)
     cfl_num = metrics.get("cfl_number", 0.0)
     cfl_ok = bool(metrics.get("cfl_stable", False)) and (cfl_num < 1.0) and (not divergence)
     gates_result["G7"] = {
-        "name": "Estabilidad CFL discreta",
+        "name": "Estabilidad CFL discreta (cota nodal soporte)",
         "passed": bool(cfl_ok),
         "value": round(cfl_num, 4),
         "threshold": 1.0,
         "operator": "<",
         "unit": "num",
-        "description": "Numero CFL: dt * d_max * (c1 + c2) < 1.0"
+        "description": "Cota nodal soporte: dt * d_max * (c1 + c2) < 1.0 (gobernante espectral 16.2% en TEORIA.tex:218)",
+        "reason": None if cfl_ok else ("Divergencia física detectada" if divergence else f"CFL nodal {cfl_num:.4f} >= 1.0")
     }
 
     # G8: Cota analítica de retardo crítico tau_crit >= 50.0 ms (D-18 Opción C)
@@ -244,11 +275,13 @@ def evaluate_gates(
     th_g8 = thresholds.get("G8_tau_crit_ms", 50.0)
 
     if tau_crit is None:
-        g8_pass = None  # N/A para controladores sin capa de consenso (Droop, PI)
+        g8_pass = None  # N/A para controladores sin capa de consenso (Droop, PI, o N1-N3)
         g8_val = "N/A"
+        g8_reason = "N/A: Control sin capa de consenso secundario distribuido"
     else:
         g8_pass = bool(tau_crit >= th_g8 and not divergence)
         g8_val = round(tau_crit, 1)
+        g8_reason = None if g8_pass else (f"tau_crit={tau_crit:.1f} ms < umbral {th_g8:.1f} ms" if not divergence else "Divergencia física detectada")
 
     gates_result["G8"] = {
         "name": "Tolerancia a retardo de red (tau_crit)",
@@ -257,7 +290,8 @@ def evaluate_gates(
         "threshold": th_g8,
         "operator": ">=",
         "unit": "ms" if tau_crit is not None else "",
-        "description": "Cota analítica de retardo admisible: 2.0 / (lambda_max * g_ef) - dt"
+        "description": "Cota analítica de retardo admisible: 2.0 / (lambda_max * g_ef) - dt",
+        "reason": g8_reason
     }
 
     return gates_result

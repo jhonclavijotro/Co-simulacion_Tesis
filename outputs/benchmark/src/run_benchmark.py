@@ -210,14 +210,14 @@ def run_phase_d(cfg: Dict[str, Any]) -> str:
     results["N4"] = {
         "id": "N4",
         "description": "Línea base canónica DAPI (Simpson-Porco et al., 2015)",
-        "expected": "Reproducir convergencia asintótica y estabilidad CFL",
+        "expected": "Reproducir convergencia asintótica de frecuencia y estabilidad CFL",
         "observed_t_s": m_n4.get("t_s_norm"),
         "observed_e_omega": m_n4.get("max_e_omega_hz"),
         "cfl_stable": m_n4.get("cfl_stable"),
         "detected": n4_reproduced,
         "gates": m_n4.get("gates")
     }
-    print(f"    Resultado N4: {'REPRODUCCION EXITOSA (PASO)' if n4_reproduced else 'FALLO DE REPRODUCCION'}")
+    print(f"    Resultado N4: {'REPRODUCCION EXITOSA (PASO con reserva G5)' if n4_reproduced else 'FALLO DE REPRODUCCION'}")
 
     all_d_passed = all(r["detected"] for r in results.values())
     print(f"\n[+] Estado General Fase D: {'TODOS LOS CONTROLES SUPERADOS' if all_d_passed else 'FALLO EN CONTROLES'}")
@@ -253,7 +253,11 @@ def generate_negative_controls_markdown(results: Dict[str, Any], cfg: Dict[str, 
     ]
 
     for c_id, d in results.items():
-        st = "✅ DETECTADA (REPROBÓ)" if (c_id in ["N1", "N2", "N3"] and d["detected"]) else ("✅ REPRODUCIDA (PASÓ)" if c_id == "N4" and d["detected"] else "❌ FALLÓ")
+        if c_id in ["N1", "N2", "N3"]:
+            st = "✅ DETECTADA (REPROBÓ)" if d["detected"] else "❌ FALLÓ"
+        else:
+            st = "✅ REPRODUCIDA (PASÓ con reserva G5)" if d["detected"] else "❌ FALLÓ"
+
         if c_id == "N1":
             obs = f"Sin restauración. t_s = {d['observed_t_s']}, e_omega = {d['observed_e_omega']:.4f} Hz"
         elif c_id == "N2":
@@ -261,7 +265,7 @@ def generate_negative_controls_markdown(results: Dict[str, Any], cfg: Dict[str, 
         elif c_id == "N3":
             obs = f"Divergencia = {d['divergence']}, delta_f_pp = {d['delta_f_pp']:.2f} Hz"
         elif c_id == "N4":
-            obs = f"Asintótico estable. t_s = {d['observed_t_s']} s, CFL = {d['cfl_stable']}"
+            obs = f"Asintótico estable. t_s = {d['observed_t_s']} s, CFL = {d['cfl_stable']} (e_V = {d['gates']['G5']['value']:.4f} pu > 0.005)"
         lines.append(f"| **{c_id}** | {d['description']} | {d['expected']} | {obs} | {st} |")
 
     lines.extend([
@@ -275,11 +279,14 @@ def generate_negative_controls_markdown(results: Dict[str, Any], cfg: Dict[str, 
     for c_id, d in results.items():
         lines.append(f"### Control {c_id}: {d['description']}")
         lines.append("")
-        lines.append("| Gate | Parámetro | Valor | Umbral | Estado |")
-        lines.append("|---|---|---|---|:---:|")
+        lines.append("| Gate | Parámetro | Valor | Umbral | Estado | Razón / Detalle |")
+        lines.append("|---|---|---|---|:---:|---|")
         for g_id, g in d["gates"].items():
             g_st = "PASS" if g["passed"] is True else ("N/A" if g["passed"] is None else "FAIL")
-            lines.append(f"| **{g_id}** | {g['name']} | {g['value']} {g['unit']} | {g['operator']} {g['threshold']} | `{g_st}` |")
+            val_str = f"{g['value']} {g['unit']}".strip()
+            th_str = f"{g['operator']} {g['threshold']}".strip()
+            reason_str = g.get("reason") or ("Cumple criterio" if g["passed"] is True else "N/A")
+            lines.append(f"| **{g_id}** | {g['name']} | {val_str} | {th_str} | `{g_st}` | {reason_str} |")
         lines.append("")
 
     lines.extend([
@@ -290,9 +297,9 @@ def generate_negative_controls_markdown(results: Dict[str, Any], cfg: Dict[str, 
         "1. **El defecto D1 del benchmark v1 queda blindado:** el arnés detecta fehacientemente la anulación de términos de consenso (N1).",
         "2. **El criterio de estabilidad CFL (G7) es vinculante:** el régimen numérico de ganancias ajenas es rechazado inmediatamente (N2).",
         "3. **La estabilidad de fase es certificada:** la realimentación errónea produce divergencia física perceptible (N3).",
-        "4. **El harness reproduce la literatura:** la curva asintótica de DAPI converge con normalidad (N4).",
+        "4. **El harness reproduce la literatura:** la dinámica de DAPI converge asintóticamente en frecuencia y preserva estabilidad CFL (N4), aunque su respuesta más lenta no alcanza el umbral fino de tensión de G5 en 80 s ($e_V = 0.0196$ p.u. > 0.005 p.u.).",
         "",
-        "**Dictamen de Fase D:** `APROBADA SIN RESERVAS`."
+        "**Dictamen de Fase D:** `APROBADA CON RESERVA DECLARADA EN G5 (N4)` (S-23/A3)."
     ])
     return "\n".join(lines)
 
@@ -421,13 +428,18 @@ def run_phase_e(cfg: Dict[str, Any], seed: int = 42) -> str:
     with open(os.path.join(results_dir, "gates.md"), "w", encoding="utf-8") as f:
         f.write(gates_md_content)
 
-    # Escribir CURRENT.json declarando la corrida canónica activa vigente (D-19)
+    # Escribir CURRENT.json declarando la corrida canónica activa vigente (D-19, S-23)
+    manifest_sha = calculate_sha256(os.path.join(results_dir, "manifest.json"))
     current_meta = {
         "run_id": run_id,
+        "path": f"outputs/benchmark/results/{run_id}",
+        "results_dir": f"outputs/benchmark/results/{run_id}",
         "timestamp_utc": manifest.get("timestamp_utc"),
+        "seed": manifest.get("seed", 42),
+        "scenario": manifest.get("scenario", "E1"),
+        "manifest_sha256": manifest_sha,
         "supersedes": previous_run_id,
         "canonical": True,
-        "results_dir": f"outputs/benchmark/results/{run_id}",
         "all_gates_passed_fxts": any(s["all_gates"] for s in summary_records if "fxts" in s["key"])
     }
     with open(current_json_path, "w", encoding="utf-8") as f:
@@ -453,6 +465,7 @@ def generate_gates_markdown(summary: List[Dict[str, Any]]) -> str:
         "| Variante | G1 (t_s) | G2 (Δf) | G3 (Q) | G4 (P) | G5 (V) | G6 (ω) | G7 (CFL) | G8 (τ) | Todos |",
         "|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
     ]
+    failed_entries = []
     for s in summary:
         g = s["raw_metrics"].get("gates", {})
         cols = []
@@ -463,10 +476,34 @@ def generate_gates_markdown(summary: List[Dict[str, Any]]) -> str:
                 cols.append("PASS")
             elif p is False:
                 cols.append("FAIL")
+                failed_entries.append({
+                    "variant": s["label"],
+                    "gate": k,
+                    "desc": g_eval.get("description", k),
+                    "value": g_eval.get("value"),
+                    "threshold": g_eval.get("threshold"),
+                    "reason": g_eval.get("reason", "Condición no cumplida")
+                })
             else:
                 cols.append("N/A")
         all_st = "**PASS**" if s["all_gates"] else "FAIL"
         lines.append(f"| {s['label']} | {' | '.join(cols)} | {all_st} |")
+
+    if failed_entries:
+        lines.extend([
+            "",
+            "---",
+            "",
+            "## Detalle de Causa de Falla en Gates No Aprobados (Explicabilidad V-02 / S-21)",
+            "",
+            "| Variante | Gate | Descripción | Valor Observado | Umbral Normativo | Causa / Razón Diagnosticada |",
+            "|---|:---:|---|:---:|:---:|---|"
+        ])
+        for fe in failed_entries:
+            val_s = f"{fe['value']:.4f}" if isinstance(fe['value'], (int, float)) else str(fe['value'])
+            thr_s = f"{fe['threshold']:.4f}" if isinstance(fe['threshold'], (int, float)) else str(fe['threshold'])
+            lines.append(f"| {fe['variant']} | **{fe['gate']}** | {fe['desc']} | `{val_s}` | `{thr_s}` | {fe['reason']} |")
+
     return "\n".join(lines)
 
 
@@ -492,7 +529,7 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         "",
         "## 1. Tabla Comparativa de Desempeño Multicriterio",
         "",
-        "| Controlador / Línea Base | Sintonización | $t_{s, \\text{norm}}$ [s] | $t_s(10\\%)$ [s] | $t_s(5\\%)$ [s] | $t_s(2\\%)$ [s] | $\\Delta f_{p\\text{-}p}$ [Hz] | $\\Delta \\eta_Q$ | $\\Delta \\eta_P$ | $e_V$ [p.u.] | $e_\\omega$ [Hz] | CFL | $\\tau_{\\text{crit}}$ | Gates |",
+        "| Controlador / Línea Base | Sintonización | $t_{s, \\text{norm}}$ [s] | $t_s(10\\%)$ [s] | $t_s(5\\%)$ [s] | $t_s(2\\%)$ [s] | $\\Delta f_{p\\text{-}p}$ [Hz] | $\\Delta \\eta_Q$ | $\\Delta \\eta_P$ | $e_V$ [p.u.] | $e_\\omega$ [Hz] | CFL (Nodal Soporte) | $\\tau_{\\text{crit}}$ | Gates |",
         "|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
     ])
 
@@ -524,13 +561,14 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         "1. **Cota de Lyapunov Certificada vs Desempeño Medido (D-12):**",
         "   - La cota teórica estricta de tiempo de asentamiento de Lyapunov para el grafo en línea ($N=3, \\lambda_2=1.0$) es $T_f \\le 52.54$ s.",
         f"   - El controlador **FxTS de la tesis converge en $t_{{s, \\text{{norm}}}} = {fxts_ts:.1f}$ s** ($|e_f| \\le 0.100$ Hz, Energies 2023 eq. 11), asentándose holgadamente antes de la cota analítica (margen de {margin:.1f}×).",
-        "2. **Activación Rigurosa de Reparto de Potencias (D-14):**",
-        "   - Con capacidades dispersas ($P_{\\max} = [50, 40, 30]$ kW, $Q_{\\max} = [50, 40, 30]$ kvar), Droop puro deja un desbalance estacionario severo ($\\Delta\\eta_Q \\approx 0.124$, $\\Delta\\eta_P \\approx 0.124$), reprobando G3 y G4.",
+        "2. **Activación Rigurosa de Reparto de Potencias (D-14, K6):**",
+        "   - Con capacidades dispersas ($P_{\\max} = [50, 40, 30]$ kW, $Q_{\\max} = [50, 40, 30]$ kvar), Droop puro deja un desbalance estacionario severo ($\\Delta\\eta_Q = 0.0800$, $\\Delta\\eta_P = 0.1867$), reprobando G3 y G4.",
         "   - Los controladores secundarios distribuidos (FxTS, DAPI, FTS) restauran el balance igualando los ratios a $\\Delta\\eta < 0.020$, superando ambos gates.",
-        "3. **Tolerancia a Retardo de Red y Estabilidad Numérica (D-18):**",
+        "3. **Tolerancia a Retardo de Red y Estabilidad Numérica (D-18, D-22):**",
         f"   - Conforme a D-18 (Opción C), $\\tau_{{crit}}$ se calcula analíticamente desde la estabilidad numérica de capa límite: $\\tau_{{crit}} = \\frac{{2.0}}{{\\lambda_{{\\max}}(\\mathcal{{H}}) \\cdot g_{{\\text{{ef}}}}}} - \\Delta t$ con $\\lambda_{{\\max}}(\\mathcal{{H}}) = 3.247$.",
         f"   - **FxTS alcanza $\\tau_{{crit}} = {fxts_tau:.1f}$ ms**, superando el umbral normativo de 50.0 ms con un factor de seguridad de 1.93×.",
         "   - FTS alcanza 118.9 ms y DAPI 2579.8 ms. Droop y PI centralizado registran N/A al carecer de capa de consenso distribuido.",
+        "   - **Criterio CFL Nodal vs Condición Espectral Gobernante (D-22):** G7 evalúa la cota suficiente de soporte nodal $\\Delta t \\cdot d_{\\max}(c_1+c_2) = 0.4000 < 1.0$ (margen de seguridad del 60.0%). Sin embargo, la condición de estabilidad numérica gobernante demostrada en el manuscrito (`TEORIA.tex:218`) es el radio espectral de capa límite continua: $\\Delta t \\cdot \\lambda_{\\max}(\\mathcal{H}) g_{\\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×). Ambos criterios confirman la estabilidad incondicional de la simulación.",
         "4. **Contraste con FTS (Tiempo Finito Simple) y DAPI (Asintótico):**",
         "   - FTS exhibe dependencia del estado inicial; FxTS garantiza cota previa independiente de las condiciones de perturbación.",
         "   - DAPI (con su factoría corregida post-S20) restablece frecuencia y reparte potencias asintóticamente, pero sin cota temporal analítica.",

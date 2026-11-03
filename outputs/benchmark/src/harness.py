@@ -370,7 +370,7 @@ class MicrogridBenchmarkHarness:
         con lambda_max_H = 3.247.
         """
         if divergence or neg_mode in ["N1", "N2", "N3"]:
-            return 0.0, "Divergencia / Sin consenso"
+            return None, "N/A: Control sin lazo de consenso distribuido estable / divergente (S-23/A4)"
 
         name = ctrl_name.lower()
         if "droop" in name:
@@ -435,7 +435,7 @@ class MicrogridBenchmarkHarness:
         # Este es el valor canónico vinculado a G1 (D-12)
         norm_bands = self.cfg.get("normative_bands", {}).get("secondary_control", {})
         f_tol = float(norm_bands.get("freq_tolerance_hz", 0.100))
-        settling_bands = self.cfg.get("step_settling_bands") or self.cfg.get("reporting", {}).get("step_settling_bands", [0.10, 0.05, 0.02])
+        settling_bands = self.cfg.get("reporting", {}).get("step_settling_bands", [0.10, 0.05, 0.02])
 
         if not (divergence or neg_mode == "N1"):
             t_s_norm = calculate_settling_time(t_arr, e_f_arr, tolerance_abs=f_tol, t_start=t_event)

@@ -1,7 +1,7 @@
 # Valores Canónicos de Referencia — Benchmark v2 (Fase E)
 
-**Run ID:** `20261103T172149_bench-v2_seed42` · **Sustituye a:** `20261103T152610_bench-v2_seed42`
-**Fecha:** 2026-11-03T17:21:49.500370+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
+**Run ID:** `20261103T193148_bench-v2_seed42` · **Sustituye a:** `20261103T172149_bench-v2_seed42`
+**Fecha:** 2026-11-03T19:31:48.631956+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
 **Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0)
 
 ### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
@@ -9,16 +9,16 @@
 | Componente | Archivo Fuente | Hash SHA-256 |
 |---|---|---|
 | `controller_finite_time_consensus` | `controller_finite_time_consensus` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
-| `config_bench_8nodos` | `config_bench_8nodos` | `e9a9d583673f22b58adaceef01f5155f577910abdeea608532faf5129e12acff` |
-| `harness_v2` | `harness_v2` | `e6f36402eb6377b98db69389a979a75aa53d4983373fe551396fc78fd458f4ec` |
-| `baselines_v2` | `baselines_v2` | `affc7c3b87d97c9821559f93bace82fce743fd3516b8ef67143952d41bd06939` |
-| `metrics_v2` | `metrics_v2` | `6232971268cc7912922f45a381def9cc498b7542fb04d9492f264c36d008cdb9` |
+| `config_bench_8nodos` | `config_bench_8nodos` | `c43361fcee83e5dc63b7d5264922a83361e7e472282dcf4d5d6c336c4cfd5c9c` |
+| `harness_v2` | `harness_v2` | `8c81a2a5a437d7a5e7ded39b9502d39206a1246b30bb9bced951087dd7f68910` |
+| `baselines_v2` | `baselines_v2` | `83a5f1e08750538418d69e6b6bbfaf7386ec375d7dfc01d82550ce17b9a9d713` |
+| `metrics_v2` | `metrics_v2` | `8a91fd41baa915f093807b24a26510b68ac7333e4724f6b87a7cb2937d264cdf` |
 
 ---
 
 ## 1. Tabla Comparativa de Desempeño Multicriterio
 
-| Controlador / Línea Base | Sintonización | $t_{s, \text{norm}}$ [s] | $t_s(10\%)$ [s] | $t_s(5\%)$ [s] | $t_s(2\%)$ [s] | $\Delta f_{p\text{-}p}$ [Hz] | $\Delta \eta_Q$ | $\Delta \eta_P$ | $e_V$ [p.u.] | $e_\omega$ [Hz] | CFL | $\tau_{\text{crit}}$ | Gates |
+| Controlador / Línea Base | Sintonización | $t_{s, \text{norm}}$ [s] | $t_s(10\%)$ [s] | $t_s(5\%)$ [s] | $t_s(2\%)$ [s] | $\Delta f_{p\text{-}p}$ [Hz] | $\Delta \eta_Q$ | $\Delta \eta_P$ | $e_V$ [p.u.] | $e_\omega$ [Hz] | CFL (Nodal Soporte) | $\tau_{\text{crit}}$ | Gates |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Droop Puro (Guerrero 2011)** | `published` | ∞ | ∞ | ∞ | ∞ | 0.0000 | 0.0800 | 0.1867 | 0.2000 | 0.4667 | `0.00 (OK)` | `N/A` | REPROBADO |
 | **Droop Puro (Optimizado)** | `optimized` | ∞ | ∞ | ∞ | ∞ | 0.0000 | 0.0800 | 0.1867 | 0.2000 | 0.4667 | `0.00 (OK)` | `N/A` | REPROBADO |
@@ -37,13 +37,14 @@
 1. **Cota de Lyapunov Certificada vs Desempeño Medido (D-12):**
    - La cota teórica estricta de tiempo de asentamiento de Lyapunov para el grafo en línea ($N=3, \lambda_2=1.0$) es $T_f \le 52.54$ s.
    - El controlador **FxTS de la tesis converge en $t_{s, \text{norm}} = 13.0$ s** ($|e_f| \le 0.100$ Hz, Energies 2023 eq. 11), asentándose holgadamente antes de la cota analítica (margen de 4.0×).
-2. **Activación Rigurosa de Reparto de Potencias (D-14):**
-   - Con capacidades dispersas ($P_{\max} = [50, 40, 30]$ kW, $Q_{\max} = [50, 40, 30]$ kvar), Droop puro deja un desbalance estacionario severo ($\Delta\eta_Q \approx 0.124$, $\Delta\eta_P \approx 0.124$), reprobando G3 y G4.
+2. **Activación Rigurosa de Reparto de Potencias (D-14, K6):**
+   - Con capacidades dispersas ($P_{\max} = [50, 40, 30]$ kW, $Q_{\max} = [50, 40, 30]$ kvar), Droop puro deja un desbalance estacionario severo ($\Delta\eta_Q = 0.0800$, $\Delta\eta_P = 0.1867$), reprobando G3 y G4.
    - Los controladores secundarios distribuidos (FxTS, DAPI, FTS) restauran el balance igualando los ratios a $\Delta\eta < 0.020$, superando ambos gates.
-3. **Tolerancia a Retardo de Red y Estabilidad Numérica (D-18):**
+3. **Tolerancia a Retardo de Red y Estabilidad Numérica (D-18, D-22):**
    - Conforme a D-18 (Opción C), $\tau_{crit}$ se calcula analíticamente desde la estabilidad numérica de capa límite: $\tau_{crit} = \frac{2.0}{\lambda_{\max}(\mathcal{H}) \cdot g_{\text{ef}}} - \Delta t$ con $\lambda_{\max}(\mathcal{H}) = 3.247$.
    - **FxTS alcanza $\tau_{crit} = 96.3$ ms**, superando el umbral normativo de 50.0 ms con un factor de seguridad de 1.93×.
    - FTS alcanza 118.9 ms y DAPI 2579.8 ms. Droop y PI centralizado registran N/A al carecer de capa de consenso distribuido.
+   - **Criterio CFL Nodal vs Condición Espectral Gobernante (D-22):** G7 evalúa la cota suficiente de soporte nodal $\Delta t \cdot d_{\max}(c_1+c_2) = 0.4000 < 1.0$ (margen de seguridad del 60.0%). Sin embargo, la condición de estabilidad numérica gobernante demostrada en el manuscrito (`TEORIA.tex:218`) es el radio espectral de capa límite continua: $\Delta t \cdot \lambda_{\max}(\mathcal{H}) g_{\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×). Ambos criterios confirman la estabilidad incondicional de la simulación.
 4. **Contraste con FTS (Tiempo Finito Simple) y DAPI (Asintótico):**
    - FTS exhibe dependencia del estado inicial; FxTS garantiza cota previa independiente de las condiciones de perturbación.
    - DAPI (con su factoría corregida post-S20) restablece frecuencia y reparte potencias asintóticamente, pero sin cota temporal analítica.
