@@ -1,0 +1,91 @@
+# Configuración canónica para el Benchmark v2 - Banco de 8 Nodos
+# Tesis de Grado: Control Secundario Distribuido en Tiempo Fijo (FxTS)
+# Referencia: benchmark-spec-v2.md / ESC-HIL-003_consolidado_rev5
+# Actualización post-auditoría S-18 (D-12, D-13, D-14):
+#   - D-12: Bandas normativas obligatorias (freq: +-0.10 Hz, volt: +-0.005 pu).
+#   - D-13: Modelo algebraico cinemático para benchmark de control nivel T1.
+#   - D-14: Manejo de condiciones iniciales dispersas para activación real de G3 y G4.
+
+network:
+  name: "Red de 8 Nodos Radial BT"
+  n_bus: 8
+  v_nom_ll: 400.0       # Tensión nominal línea-línea [V]
+  v_nom_ln: 230.94      # Tensión nominal línea-neutro [V]
+  s_base_va: 10000.0    # Potencia base [VA]
+  f_nom_hz: 60.0        # Frecuencia nominal [Hz]
+  dt: 0.5               # Paso de integración secundario macro [s] (2.0 Hz)
+  escenario_ref: "ESC-HIL-003_consolidado_rev5"
+
+consensus_graph:
+  n_agents: 3
+  topology: "line"
+  edges:
+    - [1, 2, 1.0]
+    - [2, 3, 1.0]
+  fiedler_lambda_2: 1.0
+  diameter_d: 2
+  d_max: 2.0
+  lyapunov_bound_T_f: 52.54  # s
+
+agents:
+  1:
+    type: "Diesel"
+    role: "Leader / Slack"
+    bus: 1
+    P_max: 50000.0
+    Q_max: 50000.0
+    k_p: 0.0001
+    k_q: 0.0001
+  2:
+    type: "Solar_PV"
+    role: "Follower"
+    bus: 2
+    P_max: 40000.0
+    Q_max: 40000.0
+    k_p: 0.0001
+    k_q: 0.0001
+  3:
+    type: "BESS"
+    role: "Follower"
+    bus: 3
+    P_max: 30000.0
+    Q_max: 30000.0
+    k_p: 0.0001
+    k_q: 0.0001
+
+controller_fxts:
+  alpha: 0.8
+  beta: 1.2
+  c1: 0.25
+  c2: 0.15
+  epsilon: 0.001
+  max_delta_V: 0.10
+  max_delta_omega: 1.0
+  max_stale_steps: 4
+  f_ref: 60.0
+  thesis_asymmetry: true
+
+acceptance_gates:
+  G1_t_s_norm_s: 52.54          # s (tiempo de asentamiento a banda normativa +-0.10 Hz <= cota Lyapunov)
+  G2_delta_f_pp: 0.200          # Hz (límite ciclo límite en régimen permanente)
+  G3_max_diff_eta_Q: 0.020      # reparto reactiva 2%
+  G4_max_diff_eta_P: 0.020      # reparto activa 2%
+  G5_max_e_V_pu: 0.005          # +-0.5% (Energies 2023 eq. 12)
+  G6_max_e_omega_hz: 0.100      # +-0.1 Hz (Energies 2023 eq. 11)
+  G7_cfl_stable: true           # Condición analítica CFL dt * d_max * (c1 + c2) < 1.0
+  G8_tau_crit_ms: 100.0         # ms (retardo de red admisible verificado por barrido)
+
+normative_bands:
+  secondary_control:
+    freq_tolerance_hz: 0.100    # +-0.10 Hz (Energies 2023 eq. 11)
+    volt_tolerance_pu: 0.005    # +-0.005 pu (+-0.5%, Energies 2023 eq. 12)
+  grid_protection:
+    norm: "NTC 1340"
+    freq_tolerance_hz: 1.2      # +-2% (58.8 Hz a 61.2 Hz)
+    volt_tolerance_pu: 0.05     # +-5% (0.95 p.u. a 1.05 p.u.)
+
+reporting:
+  step_settling_bands: [0.10, 0.05, 0.02]  # Bandas relativas al escalón (10%, 5%, 2% de Delta f)
+  default_t_sim: 120.0          # s
+  default_t_event: 20.0         # s (inicio perturbación)
+  monte_carlo_seeds: 100        # para escenario E4 de paquetes perdidos

@@ -86,8 +86,8 @@ class FixedTimeConsensusAgent:
         P_max: float = 50000.0,
         alpha: float = 0.8,
         beta: float = 1.2,
-        c1: float = 1.0,
-        c2: float = 1.0,
+        c1: float = 0.25,
+        c2: float = 0.15,
         mode: str = "ONLINE",
         epsilon: float = 1e-3,
         max_delta_V: float = 0.10,        # Saturación máxima de tensión [p.u.] (+/- 10%)
@@ -175,6 +175,17 @@ class FixedTimeConsensusAgent:
         Retorna:
             (delta_V, delta_Q) o (delta_V, delta_Q, delta_omega, delta_P)
         """
+        # Verificación estricta de estabilidad CFL discreta en tiempo de ejecución:
+        # Condición: dt * d_max * (c1 + c2) < 1.0
+        d_max_local = max(1.0, sum(self.adj_vector.values())) if self.adj_vector else 1.0
+        cfl_val = dt * d_max_local * (self.c1 + self.c2)
+        if cfl_val >= 1.0:
+            raise ValueError(
+                f"Violación de estabilidad CFL discreta en Agente {self.agent_id}: "
+                f"dt ({dt:.4f}) * d_max ({d_max_local:.2f}) * (c1 + c2) ({self.c1 + self.c2:.4f}) = "
+                f"{cfl_val:.4f} >= 1.0. El sistema es inestable bajo integración explícita."
+            )
+
         received_ids = set()
         if neighbor_states is not None:
             for n_id, state in neighbor_states.items():
@@ -295,6 +306,74 @@ class FixedTimeConsensusAgent:
         if should_return_all:
             return self.delta_V, self.delta_Q, self.delta_omega, self.delta_P
         return self.delta_V, self.delta_Q
+
+    @classmethod
+    def for_network(
+        cls,
+        lambda_2: float,
+        d_max: float,
+        dt: float = 0.5,
+        t_target: float = 52.54,
+        agent_id: int = 1,
+        alpha: float = 0.8,
+        beta: float = 1.2,
+        thesis_asymmetry: bool = True,
+        **kwargs
+    ) -> "FixedTimeConsensusAgent":
+        """
+        Deriva ganancias analíticas (c1, c2) certificadas para garantizar la cota de
+        Lyapunov T_f <= t_target respetando estrictamente la estabilidad CFL discreta:
+            dt * d_max * (c1 + c2) < 1.0
+
+        Cálculo analítico:
+            A = 2^((1-alpha)/2) / [ (1-alpha) * lambda_2^((1+alpha)/2) ]
+            B = 2^((1-beta)/2)  / [ (beta-1)  * lambda_2^((1+beta)/2) ]
+            T_min = (sqrt(A) + sqrt(B))^2 * dt * d_max
+
+        Si t_target < T_min, lanza ValueError informando el piso analítico T_min.
+
+        Ganancias derivadas:
+            c1 = sqrt(A) * (sqrt(A) + sqrt(B)) / t_target
+            c2 = sqrt(B) * (sqrt(A) + sqrt(B)) / t_target
+        (o si thesis_asymmetry=True, escala con ratio c1/c2 = 5/3 para acelerar la fase de error grueso).
+        """
+        if lambda_2 <= 1e-6:
+            raise ValueError(f"lambda_2 debe ser > 0 (grafo conexo), recibido: {lambda_2}")
+        if d_max <= 0:
+            raise ValueError(f"d_max debe ser > 0, recibido: {d_max}")
+        if dt <= 0:
+            raise ValueError(f"dt debe ser > 0, recibido: {dt}")
+
+        A = (2.0 ** ((1.0 - alpha) / 2.0)) / ((1.0 - alpha) * (lambda_2 ** ((1.0 + alpha) / 2.0)))
+        B = (2.0 ** ((1.0 - beta) / 2.0)) / ((beta - 1.0) * (lambda_2 ** ((1.0 + beta) / 2.0)))
+
+        T_min = ((math.sqrt(A) + math.sqrt(B)) ** 2) * dt * d_max
+
+        if t_target < T_min:
+            raise ValueError(
+                f"t_target ({t_target:.2f} s) < T_min ({T_min:.2f} s) required for discrete CFL stability. "
+                f"No existen ganancias (c1, c2) que garanticen T_f <= {t_target:.2f} s y estabilidad con "
+                f"dt={dt} s y d_max={d_max} en una red con lambda_2={lambda_2:.4f}."
+            )
+
+        if not thesis_asymmetry:
+            sqrt_sum = math.sqrt(A) + math.sqrt(B)
+            c1 = (math.sqrt(A) * sqrt_sum) / t_target
+            c2 = (math.sqrt(B) * sqrt_sum) / t_target
+        else:
+            # Asimetría documentada en la tesis (c1/c2 = 5/3 = 1.6667)
+            ratio = 5.0 / 3.0
+            c2 = ((1.0 / ratio) * A + B) / t_target
+            c1 = ratio * c2
+
+        return cls(
+            agent_id=agent_id,
+            alpha=alpha,
+            beta=beta,
+            c1=c1,
+            c2=c2,
+            **kwargs
+        )
 
     def calculate_lyapunov_settling_time(self, lambda_2: float) -> float:
         """Calcula la cota superior analítica estricta de tiempo de asentamiento de Lyapunov (T_f).
