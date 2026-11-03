@@ -300,23 +300,25 @@ def get_baseline_controller(
     name_clean = name.strip().lower()
     tuning = tuning_mode.strip().lower()
 
+    tokens = set(name_clean.replace("-", "_").split("_"))
+
     if "droop" in name_clean:
         if tuning == "optimized":
             # Mejor sintonización de droop para reducir error remanente
             return PureDroopController(agent_id, m_p=2.0e-4, n_q=2.0e-4, **kwargs)
         return PureDroopController(agent_id, m_p=1.0e-4, n_q=1.0e-4, **kwargs)
 
-    elif "centralized" in name_clean or "pi" in name_clean:
-        if tuning == "optimized":
-            # PI ajustado para mínimo IAE con margen de sobreimpulso
-            return CentralizedPIController(agent_id, k_p_w=0.45, k_i_w=1.2, k_p_v=0.25, k_i_v=0.75, **kwargs)
-        return CentralizedPIController(agent_id, k_p_w=0.5, k_i_w=1.5, k_p_v=0.2, k_i_v=0.8, **kwargs)
-
-    elif "dapi" in name_clean:
+    elif "dapi" in name_clean or "dapi" in tokens:
         if tuning == "optimized":
             # DAPI optimizado al límite CFL (dt=0.5, d_max=2 => k < 1.0)
             return DAPIController(agent_id, k_w=0.22, k_p=0.22, k_v=0.22, k_q=0.22, **kwargs)
         return DAPIController(agent_id, k_w=0.20, k_p=0.20, k_v=0.20, k_q=0.20, **kwargs)
+
+    elif "centralized" in name_clean or "pi" in tokens or name_clean == "pi":
+        if tuning == "optimized":
+            # PI ajustado para mínimo IAE con margen de sobreimpulso
+            return CentralizedPIController(agent_id, k_p_w=0.45, k_i_w=1.2, k_p_v=0.25, k_i_v=0.75, **kwargs)
+        return CentralizedPIController(agent_id, k_p_w=0.5, k_i_w=1.5, k_p_v=0.2, k_i_v=0.8, **kwargs)
 
     elif "fts" in name_clean and "fxts" not in name_clean:
         if tuning == "optimized":

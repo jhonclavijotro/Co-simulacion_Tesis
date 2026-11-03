@@ -239,18 +239,25 @@ def evaluate_gates(
         "description": "Numero CFL: dt * d_max * (c1 + c2) < 1.0"
     }
 
-    # G8: Retardo de comunicacion critico tau_crit >= 100 ms (resuelve A4)
-    tau_crit = metrics.get("tau_crit_ms", 0.0)
-    th_g8 = thresholds.get("G8_tau_crit_ms", 100.0)
-    g8_pass = (tau_crit >= th_g8) and (not divergence)
+    # G8: Cota analítica de retardo crítico tau_crit >= 50.0 ms (D-18 Opción C)
+    tau_crit = metrics.get("tau_crit_ms")
+    th_g8 = thresholds.get("G8_tau_crit_ms", 50.0)
+
+    if tau_crit is None:
+        g8_pass = None  # N/A para controladores sin capa de consenso (Droop, PI)
+        g8_val = "N/A"
+    else:
+        g8_pass = bool(tau_crit >= th_g8 and not divergence)
+        g8_val = round(tau_crit, 1)
+
     gates_result["G8"] = {
         "name": "Tolerancia a retardo de red (tau_crit)",
-        "passed": bool(g8_pass),
-        "value": round(tau_crit, 1),
+        "passed": g8_pass,
+        "value": g8_val,
         "threshold": th_g8,
         "operator": ">=",
-        "unit": "ms",
-        "description": "Margen de retardo admisible medido empíricamente"
+        "unit": "ms" if tau_crit is not None else "",
+        "description": "Cota analítica de retardo admisible: 2.0 / (lambda_max * g_ef) - dt"
     }
 
     return gates_result

@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2026-11-03T17:21:49.500370+00:00",
+  "python_version": "3.12.10",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+  "file_hashes_sha256": {
+    "controller_finite_time_consensus": "7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed",
+    "config_bench_8nodos": "e9a9d583673f22b58adaceef01f5155f577910abdeea608532faf5129e12acff",
+    "harness_v2": "e6f36402eb6377b98db69389a979a75aa53d4983373fe551396fc78fd458f4ec",
+    "baselines_v2": "affc7c3b87d97c9821559f93bace82fce743fd3516b8ef67143952d41bd06939",
+    "metrics_v2": "6232971268cc7912922f45a381def9cc498b7542fb04d9492f264c36d008cdb9"
+  },
+  "run_id": "20261103T172149_bench-v2_seed42",
+  "supersedes": "20261103T152610_bench-v2_seed42",
+  "canonical": true,
+  "seed": 42,
+  "scenario": "E1"
+}

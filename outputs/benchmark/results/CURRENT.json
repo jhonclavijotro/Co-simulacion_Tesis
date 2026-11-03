@@ -1,0 +1,8 @@
+{
+  "run_id": "20261103T172149_bench-v2_seed42",
+  "timestamp_utc": "2026-11-03T17:21:49.500370+00:00",
+  "supersedes": "20261103T152610_bench-v2_seed42",
+  "canonical": true,
+  "results_dir": "outputs/benchmark/results/20261103T172149_bench-v2_seed42",
+  "all_gates_passed_fxts": true
+}

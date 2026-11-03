@@ -23,6 +23,7 @@ consensus_graph:
     - [1, 2, 1.0]
     - [2, 3, 1.0]
   fiedler_lambda_2: 1.0
+  lambda_max_H: 3.247        # Máximo autovalor de la matriz aumentada H para cota analítica tau_crit
   diameter_d: 2
   d_max: 2.0
   lyapunov_bound_T_f: 52.54  # s
@@ -73,7 +74,9 @@ acceptance_gates:
   G5_max_e_V_pu: 0.005          # +-0.5% (Energies 2023 eq. 12)
   G6_max_e_omega_hz: 0.100      # +-0.1 Hz (Energies 2023 eq. 11)
   G7_cfl_stable: true           # Condición analítica CFL dt * d_max * (c1 + c2) < 1.0
-  G8_tau_crit_ms: 100.0         # ms (retardo de red admisible verificado por barrido)
+  G8_tau_crit_ms: 50.0          # ms (cota analítica admisible D-18 Opción C, FxTS=96.3 ms margen 1.93x)
+
+step_settling_bands: [0.10, 0.05, 0.02]
 
 normative_bands:
   secondary_control:

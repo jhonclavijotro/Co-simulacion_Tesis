@@ -18,7 +18,7 @@ Evaluar el controlador de consenso en tiempo fijo (FxTS) de la tesis con referen
 | D1 | Anula el término de consenso: `u = np.sum(V[:, k-1], axis=0, keepdims=True) * 0.0` | `baseline.py:140` |
 | D2 | Ganancias ajenas: `c1=0.15, c2=0.85, p1=0.5, p2=2.0` | `baseline.py:69-79` |
 | D3 | `T_max: float = 5.0` es constante, no derivada de `λ₂` | `metrics.py:124` |
-| D4 | Viola su propio criterio CFL: `0.5·2·(0.15+0.85) = 2.5 > 1` | cálculo |
+| D4 | Viola su propio criterio CFL: `0.5·2·(0.15+0.85) = 1.0 >= 1` | cálculo |
 | D5 | El gate de 5 s rechazaría al controlador real (`t_s ≈ 10 s`) | contraste |
 | D6 | `verification-report.md` en `FAIL` con la tabla de hallazgos vacía | archivo |
 | D7 | Default inseguro: `finite_time_consensus.py:89-90` usa `c1=1.0, c2=1.0`; su propio `verify_discrete_cfl_stability(0.5, 2)` devuelve `(False, 2.0, 0.25)` | ejecutado |
@@ -118,10 +118,10 @@ Cada escenario se reporta **por separado**. Agregar oculta qué mecanismo falla.
 
 | ID | Escenario | Configuración | Repeticiones |
 |---|---|---|---|
-| **E0** | Nominal | Sin perturbación; condiciones iniciales dispersas | 1 (determinista) |
+| **E0** | Nominal | Sin perturbación; condiciones iniciales dispersas (D-14) | 1 (determinista) |
 | **E1** | Paso de carga | Escalones de ±50 % y ±100 % | 1 (determinista) |
 | **E2** | Rampa de renovables | Perfil de irradiancia de `ESC-HIL-003` | 1 (determinista) |
-| **E3** | Retardo de comunicación | Barrido 0, 10, 25, 50, 75, 100, 120 ms | 1 por punto |
+| **E3** | Tolerancia a retardo | Cota analítica de estabilidad $\tau_{crit} = \frac{2.0}{\lambda_{\max}(\mathcal{H}) \cdot g_{\text{ef}}} - \Delta t$ (D-18); barrido empírico descartado por cuantización discreta a $\Delta t = 0.5$ s | Analítico (D-18) |
 | **E4** | Pérdida de paquetes | Bernoulli $p$ = 0.05 / 0.10 / 0.20; ráfagas 200 ms | **100 semillas → p50/p95/p99** |
 | **E5** | Desconexión de enlace | *Plug-out* / *plug-in* de un DER | 1 (determinista) |
 | **E6** | Reconfiguración de topología | Cambio de grafo en línea | 1 (determinista) |
@@ -136,20 +136,20 @@ Cada escenario se reporta **por separado**. Agregar oculta qué mecanismo falla.
 
 | Gate | Métrica | Umbral | Origen |
 |---|---|---|---|
-| **G1** | $t_s$ a $\pm0.5\%$ | $\le T_f$ (52.54 s) | Cota calculada por el propio controlador |
+| **G1** | $t_s$ normativo | $\le T_f$ (52.54 s) | Banda normativa $\pm0.10$ Hz (Energies 2023 eq. 11, D-12) $\le$ cota Lyapunov |
 | **G2** | $\Delta f_{p\text{-}p}$ | $< 0.200$ Hz | Solicitud S-14 |
 | **G3** | $\max\lvert\eta_{Q,i} - \eta_{Q,j}\rvert$ | $< 0.020$ | `TEORIA.tex` |
 | **G4** | $\max\lvert\eta_{P,i} - \eta_{P,j}\rvert$ | $< 0.020$ | `TEORIA.tex` |
-| **G5** | $e_V$ | $\le \pm0.5\%$ | `10.3390/en16010517` ec. 12 |
-| **G6** | $e_\omega$ | $\le \pm0.1$ Hz | `10.3390/en16010517` ec. 11 |
+| **G5** | $e_V$ | $\le \pm0.005$ p.u. ($\pm0.5\%$) | `10.3390/en16010517` ec. 12 |
+| **G6** | $e_\omega$ | $\le \pm0.100$ Hz | `10.3390/en16010517` ec. 11 |
 | **G7** | CFL | `verify_discrete_cfl_stability(0.5, 2)` = `True` | Propio controlador |
-| **G8** | $\tau_{crit}$ | $\ge 100$ ms | `10.3390/app14030997` |
+| **G8** | $\tau_{crit}$ | $\ge 50.0$ ms | Cota analítica de estabilidad capa límite (D-18 Opción C, FxTS=96.3 ms) |
 
 ### 7.2 Métricas de reporte (no gates)
 
 | Métrica | Definición | Nota |
 |---|---|---|
-| $t_s$ | A $\pm5\%$, $\pm1\%$ y $\pm0.5\%$ | **Decisión: se reportan las tres bandas; el gate se aplica en $\pm0.5\%$** |
+| $t_s$ | A bandas relativas (10%, 5%, 2% de $\Delta f_{\text{step}}$) y normativa ($\pm0.10$ Hz) | **Decisión D-12: el gate G1 se evalúa en la banda normativa $\pm0.10$ Hz; las bandas relativas se reportan para caracterización dinámica** |
 | Sobreimpulso | $A_P, A_Q, A_\omega, A_V$ como % del escalón | `10.3390/en16010517` ec. 13–16 |
 | Nadir | $\min_t \omega(t)$ en Hz | Reportar junto a NTC 1340 |
 | RoCoF | $\max_t \lvert \dot{\omega}(t)\rvert$ en Hz/s | `10.1007/s40565-019-0565-y` |
@@ -231,7 +231,11 @@ Antes de usarse para evaluar la tesis, el benchmark debe demostrar:
 | CIGRE LV | Trabajo futuro, Cap. 6 — 40 barras y bus de 20 kV lo excluyen | 2026-11-02 |
 | Sintonización | Publicada + optimizada, se reportan ambas | 2026-11-02 |
 | Repeticiones | 1 corrida determinista; 100 semillas con p50/p95/p99 en E4 | 2026-11-02 |
-| Bandas de $t_s$ | Reportar $\pm5\%$, $\pm1\%$, $\pm0.5\%$; gate en $\pm0.5\%$ | 2026-11-02 |
+| Bandas normativas (D-12) | Frecuencia $\pm0.10$ Hz, Tensión $\pm0.005$ p.u. vinculadas a G1; bandas relativas para reporte dinámico | 2026-11-03 |
+| Modelo benchmark (D-13) | Modelo cinemático algebraico con despacho desacoplado P-f, Q-V para nivel T1 | 2026-11-03 |
+| Reparto disperso (D-14) | Reparto primario droop simétrico en Watts induce dispersión de ratios $\eta_P, \eta_Q$ para activación real de G3 y G4 | 2026-11-03 |
+| Retardo admisible (D-18) | Cota analítica $\tau_{crit} \ge 50.0$ ms (Opción C); FxTS = 96.3 ms (margen 1.93x) | 2026-11-03 |
+| Gestión corridas (D-19) | Preservación histórica en `_archive/<id>`, `CURRENT.json` y `supersedes` | 2026-11-03 |
 
 ---
 

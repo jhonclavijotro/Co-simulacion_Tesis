@@ -113,8 +113,8 @@ class MicrogridBenchmarkHarness:
                 )
                 controllers[agent_id].set_adjacency(self.adj_matrix[agent_id])
 
-        # Determinar número CFL analítico del controlador (S4)
-        cfl_number = self._compute_cfl_number(controller_name, tuning_mode, negative_control_mode)
+        # Determinar número CFL analítico del controlador desde la instancia real (S3)
+        cfl_number = self._compute_cfl_number(controllers[1], controller_name, negative_control_mode)
 
         # 2. Condiciones Físicas Iniciales
         P_load_nominal = params.get("P_load_init", 28000.0)
@@ -315,7 +315,7 @@ class MicrogridBenchmarkHarness:
 
         df_telemetry = pd.DataFrame(telemetry_records)
 
-        # 5. Cálculo de Métricas y Gates (S1, S2, S4, S5)
+        # 5. Cálculo de Métricas y Gates (S1, S2, S3, S4, D-18)
         metrics = self._compute_run_metrics(
             df_telemetry,
             t_event=t_event,
@@ -323,14 +323,15 @@ class MicrogridBenchmarkHarness:
             cfl_number=cfl_number,
             cfl_violation=cfl_violation_occurred,
             divergence=divergence_detected,
+            ctrl=controllers[1],
             ctrl_name=controller_name,
             neg_mode=negative_control_mode
         )
 
         return df_telemetry, metrics
 
-    def _compute_cfl_number(self, ctrl_name: str, tuning: str, neg_mode: Optional[str]) -> float:
-        """Calcula el número CFL analítico exacto dt * d_max * (c1 + c2)."""
+    def _compute_cfl_number(self, ctrl: BaseSecondaryController, ctrl_name: str, neg_mode: Optional[str]) -> float:
+        """Calcula el número CFL analítico exacto dt * d_max * g_ctrl derivado del objeto controlador."""
         dt = self.dt
         d_max = self.d_max
 
@@ -340,19 +341,70 @@ class MicrogridBenchmarkHarness:
 
         name = ctrl_name.lower()
         if "fxts" in name:
-            # c1=0.25, c2=0.15
-            return dt * d_max * (0.25 + 0.15)  # 0.5 * 2 * 0.40 = 0.4000
+            agent = getattr(ctrl, "agent", ctrl)
+            c1 = float(getattr(agent, "c1", 0.25))
+            c2 = float(getattr(agent, "c2", 0.15))
+            return dt * d_max * (c1 + c2)  # 0.5 * 2 * 0.40 = 0.4000
         elif "fts" in name:
-            c1 = 0.35 if tuning == "optimized" else 0.25
-            return dt * d_max * c1             # 0.35 o 0.25
+            c1 = float(getattr(ctrl, "c1", 0.25))
+            return dt * d_max * c1         # 0.5 * 2 * 0.25 = 0.2500 (o 0.35 si opt)
         elif "dapi" in name:
-            k = 0.22 if tuning == "optimized" else 0.20
-            return dt * d_max * k              # 0.22 o 0.20
+            k = float(max(getattr(ctrl, "k_w", 0.2), getattr(ctrl, "k_v", 0.2), getattr(ctrl, "k_p", 0.2), getattr(ctrl, "k_q", 0.2)))
+            return dt * d_max * k          # 0.5 * 2 * 0.20 = 0.2000 (o 0.22 si opt)
         elif "droop" in name:
             return 0.0
         elif "pi" in name:
             return 0.25
         return 0.40
+
+    def _compute_tau_crit(
+        self,
+        ctrl: BaseSecondaryController,
+        ctrl_name: str,
+        neg_mode: Optional[str],
+        divergence: bool
+    ) -> Tuple[Optional[float], str]:
+        """
+        Calcula la cota analítica de retardo admisible tau_crit conforme a D-18 (Opción C).
+        tau_crit = (2.0 / (lambda_max_H * g_ef)) - dt
+        con lambda_max_H = 3.247.
+        """
+        if divergence or neg_mode in ["N1", "N2", "N3"]:
+            return 0.0, "Divergencia / Sin consenso"
+
+        name = ctrl_name.lower()
+        if "droop" in name:
+            return None, "N/A (Control primario local autónomo sin capa de consenso)"
+
+        lambda_max_H = float(self.cfg.get("consensus_graph", {}).get("lambda_max_H", 3.247))
+        dt = self.dt
+
+        if "fxts" in name:
+            agent = getattr(ctrl, "agent", ctrl)
+            c1 = float(getattr(agent, "c1", 0.25))
+            c2 = float(getattr(agent, "c2", 0.15))
+            alpha = float(getattr(agent, "alpha", 0.8))
+            beta = float(getattr(agent, "beta", 1.2))
+            eps = float(getattr(agent, "epsilon", 0.001))
+            g_ef = c1 * (eps ** (alpha - 1.0)) + c2 * (eps ** (beta - 1.0))
+            tau_crit_s = (2.0 / (lambda_max_H * g_ef)) - dt
+            return round(tau_crit_s * 1000.0, 1), f"g_ef={g_ef:.4f} s^-1, lambda_max={lambda_max_H}"
+        elif "fts" in name:
+            c1 = float(getattr(ctrl, "c1", 0.25))
+            alpha = float(getattr(ctrl, "alpha", 0.8))
+            eps = float(getattr(ctrl, "epsilon", 0.001))
+            g_ef = c1 * (eps ** (alpha - 1.0))
+            tau_crit_s = (2.0 / (lambda_max_H * g_ef)) - dt
+            return round(tau_crit_s * 1000.0, 1), f"g_ef={g_ef:.4f} s^-1, lambda_max={lambda_max_H}"
+        elif "dapi" in name:
+            k = float(max(getattr(ctrl, "k_w", 0.2), getattr(ctrl, "k_v", 0.2), getattr(ctrl, "k_p", 0.2), getattr(ctrl, "k_q", 0.2)))
+            g_ef = k
+            tau_crit_s = (2.0 / (lambda_max_H * g_ef)) - dt
+            return round(tau_crit_s * 1000.0, 1), f"g_ef={g_ef:.4f} s^-1, lambda_max={lambda_max_H}"
+        elif "pi" in name:
+            return None, "N/A (Control secundario centralizado PI sin capa de consenso distribuido)"
+
+        return None, "N/A"
 
     def _compute_run_metrics(
         self,
@@ -362,6 +414,7 @@ class MicrogridBenchmarkHarness:
         cfl_number: float,
         cfl_violation: bool,
         divergence: bool,
+        ctrl: BaseSecondaryController,
         ctrl_name: str,
         neg_mode: Optional[str]
     ) -> Dict[str, Any]:
@@ -378,14 +431,18 @@ class MicrogridBenchmarkHarness:
         mask_step = (t_arr >= t_event) & (t_arr <= t_event + 2.0)
         step_f = float(np.max(e_f_arr[mask_step])) if np.any(mask_step) else 0.4667
 
-        # 1. Tiempo de asentamiento normativo (|e_f| <= 0.100 Hz, Energies eq. 11)
+        # 1. Tiempo de asentamiento normativo (|e_f| <= freq_tolerance_hz, Energies eq. 11)
         # Este es el valor canónico vinculado a G1 (D-12)
+        norm_bands = self.cfg.get("normative_bands", {}).get("secondary_control", {})
+        f_tol = float(norm_bands.get("freq_tolerance_hz", 0.100))
+        settling_bands = self.cfg.get("step_settling_bands") or self.cfg.get("reporting", {}).get("step_settling_bands", [0.10, 0.05, 0.02])
+
         if not (divergence or neg_mode == "N1"):
-            t_s_norm = calculate_settling_time(t_arr, e_f_arr, tolerance_abs=0.100, t_start=t_event)
-            # Bandas relativas al escalón (10%, 5%, 2% de Delta f_step) (S2)
-            t_s_10 = calculate_settling_time(t_arr, e_f_arr, band_pct=0.10, step_size=step_f, t_start=t_event)
-            t_s_05 = calculate_settling_time(t_arr, e_f_arr, band_pct=0.05, step_size=step_f, t_start=t_event)
-            t_s_02 = calculate_settling_time(t_arr, e_f_arr, band_pct=0.02, step_size=step_f, t_start=t_event)
+            t_s_norm = calculate_settling_time(t_arr, e_f_arr, tolerance_abs=f_tol, t_start=t_event)
+            # Bandas relativas al escalón leídas de bench_8nodos.yaml (S4)
+            t_s_10 = calculate_settling_time(t_arr, e_f_arr, band_pct=float(settling_bands[0]), step_size=step_f, t_start=t_event)
+            t_s_05 = calculate_settling_time(t_arr, e_f_arr, band_pct=float(settling_bands[1]), step_size=step_f, t_start=t_event)
+            t_s_02 = calculate_settling_time(t_arr, e_f_arr, band_pct=float(settling_bands[2]), step_size=step_f, t_start=t_event)
         else:
             t_s_norm = None
             t_s_10 = None
@@ -415,13 +472,8 @@ class MicrogridBenchmarkHarness:
         # 5. Condición CFL analítica (S4)
         cfl_stable = (cfl_number < 1.0) and (not cfl_violation) and (not divergence)
 
-        # 6. Tolerancia a retardo de red tau_crit (S4)
-        if divergence or neg_mode in ["N1", "N2", "N3"]:
-            tau_crit_ms = 0.0
-        elif "droop" in ctrl_name.lower():
-            tau_crit_ms = 0.0  # Sin capa de comunicación
-        else:
-            tau_crit_ms = 120.0  # Verificado estable a 120 ms en barrido
+        # 6. Tolerancia a retardo de red tau_crit analítica (D-18 Opción C, S2, S3)
+        tau_crit_ms, tau_crit_desc = self._compute_tau_crit(ctrl, ctrl_name, neg_mode, divergence)
 
         metrics_dict = {
             "controller": ctrl_name,
@@ -443,6 +495,7 @@ class MicrogridBenchmarkHarness:
             "cfl_number": cfl_number,
             "cfl_stable": cfl_stable,
             "tau_crit_ms": tau_crit_ms,
+            "tau_crit_details": tau_crit_desc,
             "total_messages": int(df["messages_sent"].iloc[-1]),
             "total_bytes": int(df["bytes_transferred"].iloc[-1]),
             "divergence": divergence
@@ -451,6 +504,6 @@ class MicrogridBenchmarkHarness:
         # Evaluar gates
         gates_eval = evaluate_gates(metrics_dict, self.cfg.get("acceptance_gates", {}))
         metrics_dict["gates"] = gates_eval
-        metrics_dict["all_gates_passed"] = all(g["passed"] for g in gates_eval.values())
+        metrics_dict["all_gates_passed"] = all(g["passed"] is True for g in gates_eval.values() if g["passed"] is not None)
 
         return metrics_dict
