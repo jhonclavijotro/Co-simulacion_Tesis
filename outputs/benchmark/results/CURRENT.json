@@ -5,8 +5,9 @@
   "timestamp_utc": "2026-11-04T16:33:57.040647+00:00",
   "seed": 42,
   "scenario": "E1",
-  "manifest_sha256": "57ab9f2a895c08262ddd90ddd8556f7dd43754fee5cf35fcbbb44edd2a39e197",
+  "manifest_sha256": "b045c61a55add52dadc6ac05a4a8e736b0404fa03a2422ddc3fe8e92a9ea4204",
   "supersedes": "20261104T163322_bench-v2_seed42",
   "canonical": true,
-  "all_gates_passed_fxts": true
+  "all_gates_passed_fxts": true,
+  "boundary_hold_applied": false
 }

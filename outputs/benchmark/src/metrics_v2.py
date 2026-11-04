@@ -266,7 +266,7 @@ def evaluate_gates(
         "threshold": 1.0,
         "operator": "<",
         "unit": "num",
-        "description": "Cota nodal soporte: dt * d_max * (c1 + c2) < 1.0 (gobernante espectral 16.2% en TEORIA.tex:218)",
+        "description": "Estabilidad espectral discreta de Euler explícito: 0.5 * dt * lambda_max(H) * g_ef < 1.0 (TEORIA.tex:218, margen gobernante 16.2%)",
         "reason": None if cfl_ok else ("Divergencia física detectada" if divergence else f"CFL espectral {cfl_num:.4f} >= 1.0")
     }
 

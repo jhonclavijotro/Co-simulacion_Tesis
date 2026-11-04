@@ -14,7 +14,7 @@
   },
   "run_id": "20261104T163322_bench-v2_seed42",
   "supersedes": "20261104T161520_bench-v2_seed42",
-  "canonical": true,
+  "canonical": false,
   "seed": 42,
   "scenario": "E1"
 }

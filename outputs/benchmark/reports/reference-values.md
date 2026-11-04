@@ -2,7 +2,7 @@
 
 **Run ID:** `20261104T163357_bench-v2_seed42` · **Sustituye a:** `20261104T163322_bench-v2_seed42`
 **Fecha:** 2026-11-04T16:33:57.040647+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
-**Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0) · **Hold Reconstrucción:** `ZOH` (λ=0.7)
+**Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0)
 
 ### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
 

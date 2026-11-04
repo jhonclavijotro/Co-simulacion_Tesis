@@ -3,8 +3,6 @@
   "python_version": "3.12.10",
   "platform": "Windows-11-10.0.26300-SP0",
   "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
-  "hold_mode": "ZOH",
-  "froh_lambda": 0.7,
   "file_hashes_sha256": {
     "controller_finite_time_consensus": "7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed",
     "config_bench_8nodos": "54fafa87411bbca16a51cdeb6f0b45827511a93b3ce3b09d0e91e5ddd8b12805",
@@ -16,5 +14,7 @@
   "supersedes": "20261104T163322_bench-v2_seed42",
   "canonical": true,
   "seed": 42,
-  "scenario": "E1"
+  "scenario": "E1",
+  "plant_model": "algebraic-kinematic (D-13)",
+  "boundary_hold_applied": false
 }
