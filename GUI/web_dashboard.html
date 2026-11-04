@@ -587,6 +587,106 @@
         .console-output .warn { color: var(--accent-warning); }
         .console-output .info { color: var(--accent-primary); }
         .console-output .error { color: var(--accent-danger); }
+
+        /* Estilos para Gestión de Evaluaciones y Simulación */
+        .scenario-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-primary);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            margin-bottom: 0.45rem;
+        }
+
+        .upload-file-card {
+            background-color: var(--bg-body);
+            border: 1px dashed var(--border-highlight);
+            border-radius: 6px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .upload-file-card label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .upload-file-card input[type="file"] {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        /* Barra de Progreso de Simulación */
+        .sim-progress-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-top: 0.4rem;
+            padding: 0.55rem;
+            background-color: var(--bg-body);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .sim-progress-track {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sim-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-success));
+            border-radius: 4px;
+            transition: width 0.25s ease;
+        }
+
+        .sim-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+        }
+
+        .geo-badge {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-success);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+        }
+
+        .map-mode-select {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: var(--font-main);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -622,70 +722,246 @@
     <div class="app-layout">
         <!-- Sidebar Controls -->
         <sidebar>
-            <!-- 1. Configuración de Red y Conectividad -->
+            <!-- 1. Gestión y Carga de Evaluación (Escenario) -->
             <details class="panel-section" open>
-                <summary>🌐 1. Configuración de Red & Topología</summary>
+                <summary>📂 1. Gestión & Carga de Evaluación</summary>
                 <div class="panel-content">
+                    <div class="scenario-badge" id="active-scenario-badge">
+                        <span>🏷️ Activo:</span>
+                        <b id="active-scenario-name">Cargando...</b>
+                    </div>
+
                     <div class="form-group">
-                        <label>Topología Base:</label>
-                        <select id="topo-select" onchange="onPresetTopologyChange()">
-                            <option value="BT_MALLADA_11" selected>BT Mallada 6 Nodos (11 Ramas, 400V, 15kVA)</option>
-                            <option value="MT_IEEE6_MALLADA">MT IEEE 6 Barras Mallada (11 Ramas, 13.8kV, 10MVA - Opción A)</option>
-                            <option value="BT_RADIAL_6">BT Radial 6 Nodos (5 Ramas, 400V, 10kVA)</option>
-                            <option value="CUSTOM">Personalizada (Definir o Cargar)</option>
+                        <label>Seleccionar Evaluación / Escenario:</label>
+                        <select id="scenario-selector" onchange="onScenarioSelectChange()">
+                            <option value="">Cargando escenarios...</option>
                         </select>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <div style="display: flex; gap: 0.4rem; margin-bottom: 0.5rem;">
+                        <button class="btn btn-primary btn-sm" style="flex: 1;" onclick="activateSelectedScenario()">✔ Cargar Escenario</button>
+                        <button class="btn btn-secondary btn-sm" onclick="fetchScenariosList()" title="Actualizar lista">🔄</button>
+                    </div>
+
+                    <!-- Panel colapsable de carga para paquete de 4 archivos -->
+                    <details style="border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.3rem;">
+                        <summary style="font-size: 0.74rem; font-weight: 700; color: var(--accent-cyan); cursor: pointer;">
+                            ➕ Cargar Nueva Evaluación (4 Archivos)
+                        </summary>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem;">
+                            <div class="form-group">
+                                <label>Nombre del Escenario:</label>
+                                <input type="text" id="upload-scen-name" placeholder="ej. ESC-CUSTOM-001" style="font-family: var(--font-mono); font-size: 0.75rem;">
+                            </div>
+
+                            <div class="upload-file-card">
+                                <label>📄 1. Capa 1: Orquestación (.json):</label>
+                                <input type="file" id="file-capa1" accept=".json">
+                            </div>
+
+                            <div class="upload-file-card">
+                                <label>⚡ 2. Capa 2: Topología de Red (.csv):</label>
+                                <input type="file" id="file-topo" accept=".csv">
+                            </div>
+
+                            <div class="upload-file-card">
+                                <label>🌤️ 3. Capa 3: Meteorología (.csv):</label>
+                                <input type="file" id="file-meteo" accept=".csv">
+                            </div>
+
+                            <div class="upload-file-card">
+                                <label>📈 4. Capa 3: Demanda (.csv):</label>
+                                <input type="file" id="file-demanda" accept=".csv">
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 0.4rem; margin: 0.2rem 0;">
+                                <input type="checkbox" id="upload-auto-activate" checked>
+                                <label for="upload-auto-activate" style="font-size: 0.72rem; color: var(--text-secondary); cursor: pointer;">Activar inmediatamente</label>
+                            </div>
+
+                            <button class="btn btn-secondary btn-sm" onclick="uploadEvaluationPackage()">🚀 Validar y Guardar Evaluación</button>
+                        </div>
+                    </details>
+                </div>
+            </details>
+
+            <!-- 2. Ejecución y Control de Modelos de Simulación -->
+            <details class="panel-section" open>
+                <summary>▶️ 2. Ejecutor de Modelos de Prueba</summary>
+                <div class="panel-content">
+                    <div class="form-group">
+                        <label>Modelo de Simulación:</label>
+                        <select id="sim-model-select">
+                            <option value="run_simulation_bt_formatos" selected>Simulación Rápida Python (BT Formatos Multitasa)</option>
+                            <option value="run_pilot_test">Prueba Piloto Rápida (30 Pasos / 15 s)</option>
+                            <option value="run_formal_experiment">Ensayo Formal HIL Clúster (600 Pasos / 300 s)</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.3rem;">
+                        <button class="btn btn-success btn-sm" id="btn-start-sim" onclick="startSimulationRun()">▶ Iniciar</button>
+                        <button class="btn btn-danger btn-sm" id="btn-stop-sim" onclick="stopSimulationRun()" disabled>⏹ Detener</button>
+                    </div>
+
+                    <!-- Barra de Progreso y Metadatos de Simulación -->
+                    <div class="sim-progress-wrapper">
+                        <div class="sim-progress-meta">
+                            <span id="sim-status-label" style="font-weight: 700; color: var(--text-primary);">● Inactivo</span>
+                            <span id="sim-pct-label">0.0%</span>
+                        </div>
+                        <div class="sim-progress-track">
+                            <div class="sim-progress-fill" id="sim-progress-bar"></div>
+                        </div>
+                        <div class="sim-progress-meta">
+                            <span id="sim-steps-label">Paso: 0 / 600</span>
+                            <span id="sim-elapsed-label">0.0 s</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 3. Menús Desplegables de Variables de Co-Simulación -->
+            <details class="panel-section" open>
+                <summary>⚙️ 3. Variables de Co-Simulación</summary>
+                <div class="panel-content">
+                    <div class="form-group">
+                        <label>Duración del Ensayo / Pasos:</label>
+                        <select id="cosim-duration-select">
+                            <option value="30">30 s (60 pasos - Piloto rápido)</option>
+                            <option value="60">60 s (120 pasos - Transitorio 1 min)</option>
+                            <option value="300" selected>300 s (600 pasos - Formal 5 min)</option>
+                            <option value="600">600 s (1200 pasos - Extendido 10 min)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Paso de Reloj Macro (H = Δt):</label>
+                        <select id="cosim-dt-select">
+                            <option value="0.5" selected>0.5 s (2.0 Hz - Canónico HIL)</option>
+                            <option value="0.25">0.25 s (4.0 Hz - Alta resolución)</option>
+                            <option value="1.0">1.0 s (1.0 Hz - Modo económico)</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                        <div class="form-group">
+                            <label>Solucionador:</label>
+                            <select id="cosim-solver-select">
+                                <option value="FBS" selected>FBS (Sweep)</option>
+                                <option value="SENSITIVITY">Z-Bus (Sensibilidad)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Malla de Red:</label>
+                            <select id="cosim-mesh-select">
+                                <option value="RADIAL" selected>RADIAL (Árbol)</option>
+                                <option value="MALLADA">MALLADA (Lazo)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Modo Barra Slack / Red:</label>
+                        <select id="cosim-slack-select">
+                            <option value="RIGIDO" selected>RIGIDO (Barra Infinita 60.0 Hz - Conectado)</option>
+                            <option value="INERTIAL">INERTIAL (Dinámica Swing H/D - Red Débil)</option>
+                            <option value="ISLA_DIESEL">ISLA_DIESEL (Modo Aislado - Gobernador Isócrono)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Retenedor Multitasa (Hold):</label>
+                        <select id="cosim-hold-select">
+                            <option value="ZFOH" selected>ZFOH: Fraccional Mixto (λ=0.70)</option>
+                            <option value="FOH">FOH: Primer Orden O(H²)</option>
+                            <option value="ZOH">ZOH: Cero Orden O(H)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Perfil Red / Emulador QoS:</label>
+                        <select id="cosim-qos-select">
+                            <option value="LAN_ETHERNET" selected>LAN_ETHERNET (Ideal &lt;2 ms, 0% pérdida)</option>
+                            <option value="WIFI_LAB">WIFI_LAB (Jitter 15 ms, 0.5% pérdida)</option>
+                            <option value="SATELITAL">SATELITAL (Retardo 120 ms, 2.0% pérdida)</option>
+                            <option value="DEGRADADA">DEGRADADA (Latencia 45 ms, 5.0% pérdida)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-secondary btn-sm" onclick="applyCosimVariables()">💾 Aplicar Variables a Co-Simulación</button>
+                </div>
+            </details>
+
+            <!-- 4. Topología & Asignación Geoespacial de Nodos -->
+            <details class="panel-section">
+                <summary>🗺️ 4. Topología & Coordenadas GPS</summary>
+                <div class="panel-content">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
                         <div class="form-group">
                             <label>Tensión Base (Vb):</label>
                             <select id="vbase-select" onchange="updateSystemMetadata()">
                                 <option value="400.0" selected>400 V (BT)</option>
                                 <option value="13800.0">13.8 kV (MT)</option>
-                                <option value="20000.0">20.0 kV (MT)</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Potencia Base (Sb):</label>
                             <select id="sbase-select" onchange="updateSystemMetadata()">
-                                <option value="15000.0" selected>15 kVA</option>
-                                <option value="10000.0">10 kVA</option>
-                                <option value="10000000.0">10 MVA</option>
+                                <option value="10000.0" selected>10 kVA</option>
+                                <option value="15000.0">15 kVA</option>
+                                <option value="40000.0">40 kVA (21N)</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Editor de Ramas (from, to, conductor, distancia) -->
-                    <div style="border-top: 1px solid var(--border); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.45rem;">
-                        <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-primary);">Añadir Rama de Conexión:</label>
+                    <!-- Asignación de Coordenadas Geográficas de Nodo -->
+                    <div style="border-top: 1px solid var(--border); padding-top: 0.45rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                        <label style="font-size: 0.74rem; font-weight: 700; color: var(--accent-success);">📍 Asignar Coordenadas GPS a Nodo:</label>
+                        <div class="form-group">
+                            <label>Nodo Objetivo:</label>
+                            <select id="geo-node-select" onchange="onGeoNodeSelectChange()"></select>
+                        </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
                             <div class="form-group">
-                                <label>From (Partida):</label>
+                                <label>Latitud (°):</label>
+                                <input type="number" id="geo-node-lat" step="0.00001" value="4.71100" style="font-family: var(--font-mono); font-size: 0.75rem;">
+                            </div>
+                            <div class="form-group">
+                                <label>Longitud (°):</label>
+                                <input type="number" id="geo-node-lon" step="0.00001" value="-74.07210" style="font-family: var(--font-mono); font-size: 0.75rem;">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="saveNodeCoordinates()">📌 Guardar Coordenadas GPS</button>
+                    </div>
+
+                    <!-- Editor de Ramas -->
+                    <div style="border-top: 1px solid var(--border); padding-top: 0.45rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                        <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-primary);">Añadir Rama Eléctrica:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                            <div class="form-group">
+                                <label>From:</label>
                                 <select id="branch-from"></select>
                             </div>
                             <div class="form-group">
-                                <label>To (Llegada):</label>
+                                <label>To:</label>
                                 <select id="branch-to"></select>
                             </div>
                         </div>
-
                         <div class="form-group">
-                            <label>Tipo de Conductor (Catálogo Oficial):</label>
+                            <label>Conductor (Catálogo Canónico):</label>
                             <select id="branch-conductor"></select>
                         </div>
-
                         <div class="form-group">
-                            <label>Distancia entre Nodos (km):</label>
+                            <label>Distancia (km):</label>
                             <input type="number" id="branch-dist" value="0.10" step="0.01" min="0.01">
                         </div>
-
-                        <button class="btn btn-secondary btn-sm" onclick="addBranchToNetwork()">➕ Agregar Conexión</button>
+                        <button class="btn btn-secondary btn-sm" onclick="addBranchToNetwork()">➕ Añadir Conexión</button>
                     </div>
 
                     <!-- Lista colapsable de ramas -->
                     <details style="margin-top: 0.25rem;">
                         <summary style="font-size: 0.74rem; color: var(--text-secondary); cursor: pointer;">
-                            📋 Ramas de la Red (<span id="branch-count-badge">11</span>)
+                            📋 Ramas de la Red (<span id="branch-count-badge">7</span>)
                         </summary>
                         <div class="branches-table-wrapper" style="margin-top: 0.4rem;">
                             <table class="branches-table">
@@ -702,133 +978,12 @@
                             </table>
                         </div>
                     </details>
-
-                    <button class="btn btn-secondary btn-sm" onclick="triggerFileUpload()">📁 Cargar Topología CSV</button>
-                    <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
                 </div>
             </details>
 
-            <!-- 2. Perfiles Exógenos por Nodo (Solar, Eólico, Hidrocinético) -->
-            <details class="panel-section" open>
-                <summary>🌤️ 2. Perfiles Exógenos de Recursos</summary>
-                <div class="panel-content">
-                    <!-- Solar PV Profile -->
-                    <div style="background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 7px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-warning);">☀️ Perfil Solar FV</span>
-                            <span style="font-size: 0.68rem; color: var(--accent-success); font-family: var(--font-mono);">Activo</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Asociar a Nodo Solar:</label>
-                            <select id="solar-target-node" onchange="syncExogenousProfiles()">
-                                <option value="2" selected>Nodo 2 (Solar FV)</option>
-                                <option value="3">Nodo 3</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Archivo / Metadatos:</label>
-                            <select id="solar-dataset-select" onchange="syncExogenousProfiles()">
-                                <option value="datos_radiacion_temperatura.csv" selected>datos_radiacion_temperatura.csv</option>
-                                <option value="custom">Subir archivo personalizado...</option>
-                            </select>
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
-                            G: <b id="val-solar-g" style="color: var(--text-primary);">1000 W/m²</b> | T: <b id="val-solar-t" style="color: var(--text-primary);">25 °C</b>
-                        </div>
-                    </div>
-
-                    <!-- Wind Profile -->
-                    <div style="background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 7px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-primary);">💨 Perfil Eólico</span>
-                            <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);" id="badge-wind-status">En Reserva</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Asociar a Nodo Eólico:</label>
-                            <select id="wind-target-node" onchange="syncExogenousProfiles()">
-                                <option value="none">Sin Nodo Asignado</option>
-                                <option value="3">Nodo 3 (Eólica PMSG)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Archivo de Viento:</label>
-                            <select id="wind-dataset-select" onchange="syncExogenousProfiles()">
-                                <option value="datos_vel_viento.csv" selected>datos_vel_viento.csv</option>
-                                <option value="custom">Subir archivo personalizado...</option>
-                            </select>
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
-                            Velocidad V_w: <b id="val-wind-v" style="color: var(--text-primary);">8.5 m/s</b>
-                        </div>
-                    </div>
-
-                    <!-- Hydrokinetic Profile -->
-                    <div style="background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 7px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan);">🌊 Perfil Hidrocinético</span>
-                            <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);" id="badge-hydro-status">En Reserva</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Asociar a Nodo Hidro:</label>
-                            <select id="hydro-target-node" onchange="syncExogenousProfiles()">
-                                <option value="none">Sin Nodo Asignado</option>
-                                <option value="4">Nodo 4 (Hidrocinético)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Perfil de Caudal / Flujo:</label>
-                            <select id="hydro-dataset-select" onchange="syncExogenousProfiles()">
-                                <option value="flujo_caudal_nominal.csv" selected>Caudal Nominal Fluvial (1.5 m³/s)</option>
-                                <option value="custom">Subir archivo personalizado...</option>
-                            </select>
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
-                            Caudal Fluvial Q: <b id="val-hydro-q" style="color: var(--text-primary);">1.50 m³/s</b>
-                        </div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- 3. Modo de Operación & Solucionador -->
-            <details class="panel-section">
-                <summary>⚙️ 3. Modo & Solucionadores</summary>
-                <div class="panel-content">
-                    <div class="form-group">
-                        <label>Modo Operativo:</label>
-                        <select id="mode-select" onchange="sendConfigUpdate()">
-                            <option value="OFFLINE" selected>OFFLINE (Modo Isla - Líder Diésel)</option>
-                            <option value="ONLINE">ONLINE (Conectado a Red - Slack PCC)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Solucionador PC Central:</label>
-                        <select id="solver-select" onchange="sendConfigUpdate()">
-                            <option value="FBS" selected>Modo A: Forward-Backward Sweep (FBS)</option>
-                            <option value="SENSITIVITY">Modo B: Matrices de Sensibilidad Z-Bus</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Malla para Modo B:</label>
-                        <select id="mesh-select" onchange="sendConfigUpdate()">
-                            <option value="RING_ZBUS" selected>Anillo Compensado por Z-Bus</option>
-                            <option value="RADIAL">Topología Radial Estándar</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Retenedor Multitasa (Hold):</label>
-                        <select id="hold-select" onchange="onHoldModeChange()">
-                            <option value="ZFOH" selected>ZFOH: Mixed Hold (λ=0.70)</option>
-                            <option value="FOH">FOH: First-Order Hold (O(H²))</option>
-                            <option value="ZOH">ZOH: Zero-Order Hold (O(H))</option>
-                        </select>
-                    </div>
-                </div>
-            </details>
-
-            <!-- 4. Controles de Ejecución y Telemetría -->
-            <div class="control-card" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.6rem;">
-                <button class="btn btn-success" onclick="toggleSimulation()" id="sim-btn">▶ Iniciar Co-Simulación (500 ms)</button>
-                <button class="btn btn-secondary btn-sm" onclick="exportData()" id="export-btn">📥 Exportar Telemetría (.csv)</button>
+            <!-- Exportar Telemetría -->
+            <div class="control-card" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-sm" onclick="exportData()" id="export-btn">📥 Descargar Telemetría CSV</button>
             </div>
         </sidebar>
 
@@ -1723,6 +1878,565 @@
                 log("⏹ Co-simulación pausada.", "warn");
             }
         }
+
+        
+        // =========================================================================
+        // 1. GESTIÓN Y CARGA DE EVALUACIONES (ESCENARIOS)
+        // =========================================================================
+        async function fetchScenariosList() {
+            try {
+                const res = await fetch('/api/scenarios');
+                const data = await res.json();
+                const sel = document.getElementById('scenario-selector');
+                if (!sel) return;
+                sel.innerHTML = '';
+
+                const activeName = data.active || '';
+                const badgeName = document.getElementById('active-scenario-name');
+                if (badgeName) badgeName.innerText = activeName || 'Sin escenario';
+
+                (data.scenarios || []).forEach(scen => {
+                    const opt = document.createElement('option');
+                    opt.value = scen.name;
+                    opt.innerText = `${scen.name} (${scen.node_count} nodos${scen.is_complete ? ' - 4 arch OK' : ''})`;
+                    if (scen.name === activeName) {
+                        opt.selected = true;
+                    }
+                    sel.appendChild(opt);
+                });
+            } catch (err) {
+                console.warn("Error cargando lista de escenarios:", err);
+            }
+        }
+
+        function onScenarioSelectChange() {
+            const selVal = document.getElementById('scenario-selector').value;
+            log(`Escenario seleccionado en menú: ${selVal}`, 'info');
+        }
+
+        async function activateSelectedScenario() {
+            const scenName = document.getElementById('scenario-selector').value;
+            if (!scenName) {
+                alert("Por favor seleccione un escenario de la lista.");
+                return;
+            }
+            try {
+                const res = await fetch('/api/scenarios/select', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scenario_name: scenName })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    log(`✔ Escenario activo actualizado a: ${scenName}`, 'info');
+                    await fetchScenariosList();
+                    await fetchLiveTelemetry();
+            fetchScenariosList();
+            populateGeoNodeSelect();
+            setInterval(pollSimulationStatus, 600);
+                    renderBranchesTable();
+                    renderDynamicGraph();
+                    populateGeoNodeSelect();
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (err) {
+                alert(`Error al activar escenario: ${err}`);
+            }
+        }
+
+        async function uploadEvaluationPackage() {
+            const name = document.getElementById('upload-scen-name').value.trim();
+            if (!name) {
+                alert("Ingrese un nombre para la evaluación (ej. ESC-CUSTOM-001).");
+                return;
+            }
+
+            const fCapa1 = document.getElementById('file-capa1').files[0];
+            const fTopo = document.getElementById('file-topo').files[0];
+            const fMeteo = document.getElementById('file-meteo').files[0];
+            const fDemanda = document.getElementById('file-demanda').files[0];
+
+            if (!fCapa1 || !fTopo) {
+                alert("Debe seleccionar al menos los archivos de Capa 1 (.json) y Topología (.csv).");
+                return;
+            }
+
+            const readText = (file) => new Promise((resolve, reject) => {
+                if (!file) return resolve("");
+                const r = new FileReader();
+                r.onload = () => resolve(r.result);
+                r.onerror = reject;
+                r.readAsText(file, "UTF-8");
+            });
+
+            try {
+                log(`Leyendo paquete de archivos para '${name}'...`, 'info');
+                const [capa1Content, topoContent, meteoContent, demandaContent] = await Promise.all([
+                    readText(fCapa1),
+                    readText(fTopo),
+                    readText(fMeteo),
+                    readText(fDemanda)
+                ]);
+
+                const autoAct = document.getElementById('upload-auto-activate').checked;
+
+                const res = await fetch('/api/scenarios/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        capa1_content: capa1Content,
+                        topology_content: topoContent,
+                        meteo_content: meteoContent,
+                        demanda_content: demandaContent,
+                        activate: autoAct
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert(`✔ ${data.message}`);
+                    log(`Evaluación '${name}' cargada y validada exitosamente.`, 'info');
+                    await fetchScenariosList();
+                    if (autoAct) {
+                        await fetchLiveTelemetry();
+                        renderBranchesTable();
+                        renderDynamicGraph();
+                    }
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (err) {
+                alert(`Fallo en la carga del paquete: ${err}`);
+            }
+        }
+
+        // =========================================================================
+        // 2. EJECUCIÓN Y CONTROL DE MODELOS DE SIMULACIÓN
+        // =========================================================================
+        async function startSimulationRun() {
+            const model = document.getElementById('sim-model-select').value;
+            const steps = parseInt(document.getElementById('cosim-duration-select').value) * 2; // 0.5s dt
+
+            try {
+                const res = await fetch('/api/simulation/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: model, steps: steps })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    log(`▶ Simulación iniciada: ${model} (${steps} pasos, PID ${data.pid})`, 'info');
+                    document.getElementById('btn-start-sim').disabled = true;
+                    document.getElementById('btn-stop-sim').disabled = false;
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert(`Error al iniciar modelo: ${err}`);
+            }
+        }
+
+        async function stopSimulationRun() {
+            try {
+                const res = await fetch('/api/simulation/stop', { method: 'POST' });
+                const data = await res.json();
+                log(`⏹ Solicitud de detención: ${data.message}`, 'warn');
+                document.getElementById('btn-start-sim').disabled = false;
+                document.getElementById('btn-stop-sim').disabled = true;
+            } catch (err) {
+                alert(`Error deteniendo simulación: ${err}`);
+            }
+        }
+
+        async function pollSimulationStatus() {
+            try {
+                const res = await fetch('/api/simulation/status');
+                const st = await res.json();
+
+                const statusLabel = document.getElementById('sim-status-label');
+                const pctLabel = document.getElementById('sim-pct-label');
+                const bar = document.getElementById('sim-progress-bar');
+                const stepsLabel = document.getElementById('sim-steps-label');
+                const elapsedLabel = document.getElementById('sim-elapsed-label');
+                const btnStart = document.getElementById('btn-start-sim');
+                const btnStop = document.getElementById('btn-stop-sim');
+
+                if (st.running) {
+                    if (statusLabel) {
+                        statusLabel.innerText = "● En ejecución";
+                        statusLabel.style.color = "var(--accent-success)";
+                    }
+                    if (btnStart) btnStart.disabled = true;
+                    if (btnStop) btnStop.disabled = false;
+                } else {
+                    if (statusLabel) {
+                        statusLabel.innerText = st.step > 0 ? "● Finalizado" : "● Inactivo";
+                        statusLabel.style.color = st.step > 0 ? "var(--accent-primary)" : "var(--text-muted)";
+                    }
+                    if (btnStart) btnStart.disabled = false;
+                    if (btnStop) btnStop.disabled = true;
+                }
+
+                const pct = st.progress_pct || 0.0;
+                if (pctLabel) pctLabel.innerText = `${pct.toFixed(1)}%`;
+                if (bar) bar.style.width = `${pct}%`;
+                if (stepsLabel) stepsLabel.innerText = `Paso: ${st.step || 0} / ${st.max_steps || 600}`;
+                if (elapsedLabel) elapsedLabel.innerText = `${st.elapsed_s ? st.elapsed_s.toFixed(1) : '0.0'} s`;
+            } catch (err) {
+                // Silencioso
+            }
+        }
+
+        // =========================================================================
+        // 3. VARIABLES DE CO-SIMULACIÓN (MENÚS DESPLEGABLES)
+        // =========================================================================
+        async function applyCosimVariables() {
+            const dur = parseFloat(document.getElementById('cosim-duration-select').value);
+            const dt = parseFloat(document.getElementById('cosim-dt-select').value);
+            const solver = document.getElementById('cosim-solver-select').value;
+            const mesh = document.getElementById('cosim-mesh-select').value;
+            const slack = document.getElementById('cosim-slack-select').value;
+            const hold = document.getElementById('cosim-hold-select').value;
+            const qos = document.getElementById('cosim-qos-select').value;
+
+            const maxSteps = Math.round(dur / dt);
+
+            const payload = {
+                duration_s: dur,
+                max_steps: maxSteps,
+                dt_macro_s: dt,
+                solver_mode: solver,
+                mesh_type: mesh,
+                slack_mode: slack,
+                hold_mode: hold,
+                network_profile: qos
+            };
+
+            try {
+                const res = await fetch('/api/cosim/variables', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    log(`✔ Variables de co-simulación aplicadas: ${solver}, ${mesh}, Slack=${slack}, dt=${dt}s (${maxSteps} pasos).`, 'info');
+                    const badgeHold = document.getElementById('hold-badge-mode');
+                    if (badgeHold) badgeHold.innerText = hold === 'ZFOH' ? 'ZFOH (λ=0.70)' : hold;
+                    const badgeNet = document.getElementById('net-badge-profile');
+                    if (badgeNet) badgeNet.innerText = qos;
+                }
+            } catch (err) {
+                alert(`Error aplicando variables: ${err}`);
+            }
+        }
+
+        // =========================================================================
+        // 4. DISTRIBUCIÓN ESPACIAL REAL (LATITUD Y LONGITUD)
+        // =========================================================================
+        function populateGeoNodeSelect() {
+            const sel = document.getElementById('geo-node-select');
+            if (!sel) return;
+            sel.innerHTML = '';
+            const nodes = activeTopology.nodes || {};
+            const ids = Object.keys(nodes).map(Number).sort((a,b) => a - b);
+            ids.forEach(id => {
+                const opt = document.createElement('option');
+                opt.value = id;
+                const n = nodes[String(id)] || {};
+                opt.innerText = `Nodo ${id} (${n.type || 'LOAD'} - ${n.name || ''})`;
+                sel.appendChild(opt);
+            });
+            onGeoNodeSelectChange();
+        }
+
+        function onGeoNodeSelectChange() {
+            const selId = document.getElementById('geo-node-select').value;
+            const node = (activeTopology.nodes || {})[String(selId)];
+            if (node) {
+                const elLat = document.getElementById('geo-node-lat');
+                const elLon = document.getElementById('geo-node-lon');
+                if (elLat && node.lat !== undefined) elLat.value = Number(node.lat).toFixed(5);
+                if (elLon && node.lon !== undefined) elLon.value = Number(node.lon).toFixed(5);
+            }
+        }
+
+        async function saveNodeCoordinates() {
+            const nodeId = document.getElementById('geo-node-select').value;
+            const lat = parseFloat(document.getElementById('geo-node-lat').value);
+            const lon = parseFloat(document.getElementById('geo-node-lon').value);
+
+            if (isNaN(lat) || isNaN(lon)) {
+                alert("Ingrese valores numéricos válidos para latitud y longitud.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/node/coordinates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ node_id: nodeId, lat: lat, lon: lon })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!activeTopology.nodes) activeTopology.nodes = {};
+                    if (!activeTopology.nodes[nodeId]) activeTopology.nodes[nodeId] = {};
+                    activeTopology.nodes[nodeId].lat = lat;
+                    activeTopology.nodes[nodeId].lon = lon;
+                    log(`📍 Coordenadas actualizadas Nodo ${nodeId}: (${lat}, ${lon})`, 'info');
+                    renderDynamicGraph();
+                } else {
+                    alert(`Error: ${data.error || 'No se pudo guardar'}`);
+                }
+            } catch (err) {
+                alert(`Error al guardar coordenadas: ${err}`);
+            }
+        }
+
+        // Cálculo geodésico Haversine (distancia en metros entre dos coordenadas GPS)
+        function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radio de la Tierra en metros
+            const toRad = (x) => x * Math.PI / 180;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // RENDERIZADO DEL GRAFO (GEOESPACIAL REAL vs LÓGICO RADIAL)
+        function renderDynamicGraph() {
+            const svg = document.getElementById('dynamicTopologySvg');
+            if (!svg) return;
+            svg.innerHTML = '';
+
+            const viewMode = document.getElementById('topo-view-mode') ? document.getElementById('topo-view-mode').value : 'GEO';
+            const subtitleEl = document.getElementById('topo-subtitle-mode');
+            if (subtitleEl) {
+                subtitleEl.innerText = viewMode === 'GEO' ? 'Proyección Geoespacial Real GPS' : 'Esquema Lógico Radial Equiespaciado';
+            }
+
+            const nodesObj = activeTopology.nodes || {};
+            const branches = activeTopology.branches || [];
+            const nodeIds = Object.keys(nodesObj).map(Number).sort((a, b) => a - b);
+            const totalNodes = nodeIds.length;
+            if (totalNodes === 0) return;
+
+            const width = 340;
+            const height = 240;
+            const padding = 38;
+            const coords = {};
+
+            if (viewMode === 'GEO') {
+                // Modo Geoespacial Real a partir de Latitud y Longitud
+                let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
+                nodeIds.forEach(id => {
+                    const n = nodesObj[String(id)] || {};
+                    const lat = n.lat !== undefined ? parseFloat(n.lat) : 4.71100 + (id * 0.0006);
+                    const lon = n.lon !== undefined ? parseFloat(n.lon) : -74.07210 + (id * 0.0006);
+                    if (lat < minLat) minLat = lat;
+                    if (lat > maxLat) maxLat = lat;
+                    if (lon < minLon) minLon = lon;
+                    if (lon > maxLon) maxLon = lon;
+                });
+
+                // Evitar división por cero si todos tienen la misma coordenada
+                if (maxLat - minLat < 0.0001) { maxLat += 0.0008; minLat -= 0.0008; }
+                if (maxLon - minLon < 0.0001) { maxLon += 0.0008; minLon -= 0.0008; }
+
+                // Cuadrícula cartográfica de fondo (Líneas de Lat/Lon)
+                for (let g = 0; g <= 3; g++) {
+                    const gx = padding + g * ((width - 2 * padding) / 3);
+                    const gy = padding + g * ((height - 2 * padding) / 3);
+                    
+                    const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    vLine.setAttribute("x1", gx); vLine.setAttribute("y1", 12);
+                    vLine.setAttribute("x2", gx); vLine.setAttribute("y2", height - 12);
+                    vLine.setAttribute("stroke", "rgba(255,255,255,0.04)");
+                    vLine.setAttribute("stroke-dasharray", "3,3");
+                    svg.appendChild(vLine);
+
+                    const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    hLine.setAttribute("x1", 12); hLine.setAttribute("y1", gy);
+                    hLine.setAttribute("x2", width - 12); hLine.setAttribute("y2", gy);
+                    hLine.setAttribute("stroke", "rgba(255,255,255,0.04)");
+                    hLine.setAttribute("stroke-dasharray", "3,3");
+                    svg.appendChild(hLine);
+                }
+
+                // Proyección ortomórfica local de coordenadas GPS
+                nodeIds.forEach(id => {
+                    const n = nodesObj[String(id)] || {};
+                    const lat = n.lat !== undefined ? parseFloat(n.lat) : 4.71100;
+                    const lon = n.lon !== undefined ? parseFloat(n.lon) : -74.07210;
+
+                    const normX = (lon - minLon) / (maxLon - minLon);
+                    const normY = (maxLat - lat) / (maxLat - minLat); // Latitud invertida en SVG
+
+                    coords[id] = {
+                        x: padding + normX * (width - 2 * padding),
+                        y: padding + normY * (height - 2 * padding),
+                        lat: lat,
+                        lon: lon
+                    };
+                });
+
+                // Indicador Rosa de los Vientos (Norte 🧭 N)
+                const compass = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                compass.innerHTML = `
+                    <circle cx="28" cy="24" r="12" fill="rgba(24,24,27,0.85)" stroke="var(--border)" stroke-width="1"/>
+                    <path d="M 28 16 L 31 24 L 28 22 L 25 24 Z" fill="var(--accent-danger)"/>
+                    <path d="M 28 32 L 31 24 L 28 22 L 25 24 Z" fill="var(--text-muted)"/>
+                    <text x="28" y="14" font-size="7" fill="var(--accent-danger)" text-anchor="middle" font-weight="bold">N</text>
+                `;
+                svg.appendChild(compass);
+
+                // Escala métrica gráfica (ej. 100 m)
+                const scaleG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                scaleG.innerHTML = `
+                    <line x1="${width - 80}" y1="${height - 14}" x2="${width - 20}" y2="${height - 14}" stroke="var(--text-secondary)" stroke-width="2"/>
+                    <line x1="${width - 80}" y1="${height - 18}" x2="${width - 80}" y2="${height - 10}" stroke="var(--text-secondary)" stroke-width="1.5"/>
+                    <line x1="${width - 20}" y1="${height - 18}" x2="${width - 20}" y2="${height - 10}" stroke="var(--text-secondary)" stroke-width="1.5"/>
+                    <text x="${width - 50}" y="${height - 6}" font-size="7" fill="var(--text-secondary)" text-anchor="middle" font-family="var(--font-mono)">100 m</text>
+                `;
+                svg.appendChild(scaleG);
+
+            } else {
+                // Modo Radial Lógico Clásico
+                const cx = width / 2;
+                const cy = height / 2;
+                const radius = 85;
+                nodeIds.forEach((id, idx) => {
+                    const angle = (2 * Math.PI * idx / totalNodes) - (Math.PI / 2);
+                    coords[id] = {
+                        x: cx + radius * Math.cos(angle),
+                        y: cy + radius * Math.sin(angle)
+                    };
+                });
+            }
+
+            // Dibujar ramas físicas
+            branches.forEach(b => {
+                const p1 = coords[b.from];
+                const p2 = coords[b.to];
+                if (p1 && p2) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", p1.x);
+                    line.setAttribute("y1", p1.y);
+                    line.setAttribute("x2", p2.x);
+                    line.setAttribute("y2", p2.y);
+                    line.setAttribute("stroke", "var(--border-highlight)");
+                    line.setAttribute("stroke-width", "1.75");
+                    line.setAttribute("stroke-linecap", "round");
+                    svg.appendChild(line);
+
+                    // Etiqueta de distancia geodésica si estamos en modo GEO
+                    if (viewMode === 'GEO' && p1.lat !== undefined && p2.lat !== undefined) {
+                        const distM = Math.round(haversineDistanceMeters(p1.lat, p1.lon, p2.lat, p2.lon));
+                        const mx = (p1.x + p2.x) / 2;
+                        const my = (p1.y + p2.y) / 2;
+                        const distText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        distText.setAttribute("x", mx);
+                        distText.setAttribute("y", my - 3);
+                        distText.setAttribute("font-size", "6.5");
+                        distText.setAttribute("fill", "var(--text-muted)");
+                        distText.setAttribute("font-family", "var(--font-mono)");
+                        distText.setAttribute("text-anchor", "middle");
+                        distText.textContent = `${distM}m`;
+                        svg.appendChild(distText);
+                    }
+                }
+            });
+
+            // Colores por tipo de nodo
+            const typeColors = {
+                'DIESEL': '#10b981', // Esmeralda
+                'SOLAR': '#f59e0b',  // Ámbar
+                'BESS': '#8b5cf6',   // Púrpura
+                'WIND': '#3b82f6',   // Azul
+                'HYDRO': '#06b6d4',  // Cian
+                'LOAD': '#ec4899'    // Rosa
+            };
+
+            // Dibujar nodos
+            nodeIds.forEach(id => {
+                const pt = coords[id];
+                if (!pt) return;
+                const nodeInfo = nodesObj[String(id)] || {};
+                const nType = (nodeInfo.type || 'LOAD').toUpperCase();
+                const color = typeColors[nType] || '#71717a';
+
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("style", "cursor: pointer;");
+
+                // Halo pulsante
+                const halo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                halo.setAttribute("cx", pt.x);
+                halo.setAttribute("cy", pt.y);
+                halo.setAttribute("r", "14");
+                halo.setAttribute("fill", color);
+                halo.setAttribute("opacity", "0.15");
+                g.appendChild(halo);
+
+                // Círculo base del nodo
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", pt.x);
+                circle.setAttribute("cy", pt.y);
+                circle.setAttribute("r", "9");
+                circle.setAttribute("fill", "var(--bg-card)");
+                circle.setAttribute("stroke", color);
+                circle.setAttribute("stroke-width", "2");
+                g.appendChild(circle);
+
+                // Etiqueta del nodo (N1, N2...)
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", pt.x);
+                text.setAttribute("y", pt.y + 3);
+                text.setAttribute("font-size", "7.5");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("fill", "var(--text-primary)");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("font-family", "var(--font-mono)");
+                text.textContent = `N${id}`;
+                g.appendChild(text);
+
+                // Etiqueta inferior con coordenadas GPS o tipo
+                const subLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                subLabel.setAttribute("x", pt.x);
+                subLabel.setAttribute("y", pt.y + 18);
+                subLabel.setAttribute("font-size", "6");
+                subLabel.setAttribute("fill", "var(--text-secondary)");
+                subLabel.setAttribute("text-anchor", "middle");
+                subLabel.setAttribute("font-family", "var(--font-mono)");
+                subLabel.setAttribute("id", `graph-volt-text-${id}`);
+                subLabel.textContent = "400 V";
+                g.appendChild(subLabel);
+
+                // Tooltip interactivo SVG
+                const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                const latStr = pt.lat !== undefined ? pt.lat.toFixed(5) : 'N/A';
+                const lonStr = pt.lon !== undefined ? pt.lon.toFixed(5) : 'N/A';
+                title.textContent = `Nodo ${id} (${nType})\nNombre: ${nodeInfo.name || ''}\nGPS: ${latStr}° N, ${lonStr}° W\nRol: ${nodeInfo.role || ''}`;
+                g.appendChild(title);
+
+                // Clic en nodo para seleccionarlo en el editor geoespacial
+                g.onclick = () => {
+                    const sel = document.getElementById('geo-node-select');
+                    if (sel) {
+                        sel.value = id;
+                        onGeoNodeSelectChange();
+                        log(`Nodo N${id} seleccionado: GPS (${latStr}, ${lonStr})`, 'info');
+                    }
+                };
+
+                svg.appendChild(g);
+            });
+        }
+
 
         window.onload = async function() {
             try {

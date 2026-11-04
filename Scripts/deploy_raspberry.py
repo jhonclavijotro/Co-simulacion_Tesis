@@ -28,15 +28,24 @@ class RaspberryDeployer:
         remote_dir: str = "/home/jhonclavijotro/Tesis_MAS_RPi",
         master_clock_host: str = "192.168.1.100",
         hold_mode: str = "ZOH",
-        zfoh_lambda: float = 0.7
+        froh_lambda: Optional[float] = None,
+        zfoh_lambda: Optional[float] = None
     ):
         self.host = host
         self.user = user
         self.port = port
         self.remote_dir = remote_dir
         self.master_clock_host = master_clock_host
-        self.hold_mode = hold_mode.upper()
-        self.zfoh_lambda = float(zfoh_lambda)
+        h_mode = hold_mode.upper()
+        self.hold_mode = "FROH" if h_mode == "ZFOH" else h_mode
+        if froh_lambda is not None:
+            eff_lambda = float(froh_lambda)
+        elif zfoh_lambda is not None:
+            eff_lambda = float(zfoh_lambda)
+        else:
+            eff_lambda = 0.7
+        self.froh_lambda = eff_lambda
+        self.zfoh_lambda = eff_lambda  # alias retrocompatible
 
     def _run_ssh(self, remote_command: str, timeout: int = 15) -> Dict[str, Any]:
         """Ejecuta un comando vía SSH con timeout y captura de salidas."""
@@ -102,10 +111,11 @@ class RaspberryDeployer:
             mode="ONLINE",
             network_profile=network_profile,
             hold_mode=self.hold_mode,
+            froh_lambda=self.froh_lambda,
             zfoh_lambda=self.zfoh_lambda,
             master_clock_host=self.master_clock_host
         )
-        print(f"[DESPLIEGUE RPi] Manifiesto generado en {out} (Hold: {self.hold_mode}, Lambda: {self.zfoh_lambda}, Master Clock: {self.master_clock_host})")
+        print(f"[DESPLIEGUE RPi] Manifiesto generado en {out} (Hold: {self.hold_mode}, Lambda: {self.froh_lambda}, Master Clock: {self.master_clock_host})")
         return out
 
     def sync_code(self, local_dir: str = ".") -> Dict[str, Any]:
@@ -182,8 +192,9 @@ if __name__ == "__main__":
     parser.add_argument("--user", default="jhonclavijotro", help="Usuario SSH en la Raspberry Pi")
     parser.add_argument("--port", type=int, default=22, help="Puerto SSH")
     parser.add_argument("--master-clock-host", default="192.168.1.100", help="IP del PC Central (Master Clock ZMQ)")
-    parser.add_argument("--hold-mode", default="ZFOH", choices=["ZOH", "FOH", "ZFOH"], help="Esquema Hold")
-    parser.add_argument("--lambda-val", type=float, default=0.7, help="Parámetro Lambda para ZFOH [0.0 - 1.0]")
+    parser.add_argument("--hold-mode", default="ZOH", choices=["ZOH", "FOH", "FROH", "ZFOH"], help="Esquema Hold (ZOH, FOH, FROH, ZFOH)")
+    parser.add_argument("--froh-lambda", type=float, default=None, help="Parámetro Lambda para FROH [0.0 - 1.0]")
+    parser.add_argument("--lambda-val", "--zfoh-lambda", dest="lambda_val", type=float, default=None, help="Alias retrocompatible para FROH Lambda")
     parser.add_argument("--action", default="all", choices=["test", "sync", "deploy", "stop", "status", "all"], help="Acción a realizar")
     args = parser.parse_args()
 
@@ -193,6 +204,7 @@ if __name__ == "__main__":
         port=args.port,
         master_clock_host=args.master_clock_host,
         hold_mode=args.hold_mode,
+        froh_lambda=args.froh_lambda,
         zfoh_lambda=args.lambda_val
     )
 

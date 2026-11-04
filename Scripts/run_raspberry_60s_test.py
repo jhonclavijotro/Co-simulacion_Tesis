@@ -36,8 +36,12 @@ class SevenNodeMicrogridRunner:
         output_csv: str = "output_data/test_7nodes_60s_results.csv",
         v_base: float = 400.0,
         s_base: float = 10000.0,
-        dt: float = 0.5
+        dt: float = 0.5,
+        hold_mode: str = "ZOH",
+        froh_lambda: float = 0.7
     ):
+        self.hold_mode = hold_mode
+        self.froh_lambda = froh_lambda
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.topology_path = topology_path or os.path.join(base_dir, "config", "topologia_BT_7nodos.csv")
         self.scenario_path = scenario_path or os.path.join(base_dir, "mock_data", "scenario_60s_bt.json")
@@ -81,8 +85,8 @@ class SevenNodeMicrogridRunner:
         for i in range(1, 8):
             self.nodes[i] = NodeDynamicProcess(
                 node_id=i,
-                hold_mode="ZFOH",
-                zfoh_lambda=0.5
+                hold_mode=self.hold_mode,
+                froh_lambda=self.froh_lambda
             )
             # Agentes de consenso FxTS
             self.agents[i] = FixedTimeConsensusAgent(

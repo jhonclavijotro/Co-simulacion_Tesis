@@ -1,12 +1,12 @@
 {
-  "run_id": "20261103T193148_bench-v2_seed42",
-  "path": "outputs/benchmark/results/20261103T193148_bench-v2_seed42",
-  "results_dir": "outputs/benchmark/results/20261103T193148_bench-v2_seed42",
-  "timestamp_utc": "2026-11-03T19:31:48.631956+00:00",
+  "run_id": "20261104T161520_bench-v2_seed42",
+  "path": "outputs/benchmark/results/20261104T161520_bench-v2_seed42",
+  "results_dir": "outputs/benchmark/results/20261104T161520_bench-v2_seed42",
+  "timestamp_utc": "2026-11-04T16:15:20.791121+00:00",
   "seed": 42,
   "scenario": "E1",
-  "manifest_sha256": "46b801e7cc951aedd2c8a93ad9cdb7120ed11dfc6d2023f19b8c2e5403bdb059",
-  "supersedes": "20261103T172149_bench-v2_seed42",
+  "manifest_sha256": "00e0315edf8d90fa57b50df0610365ed468c61353554198ce14bd0415b542792",
+  "supersedes": "20261103T193148_bench-v2_seed42",
   "canonical": true,
   "all_gates_passed_fxts": true
 }

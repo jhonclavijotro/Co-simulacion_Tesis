@@ -61,11 +61,29 @@ def build_system_manifest(config_path: str) -> Dict[str, Any]:
     baselines_path = os.path.join(os.path.dirname(__file__), "baselines_v2.py")
     metrics_path = os.path.join(os.path.dirname(__file__), "metrics_v2.py")
 
+    hold_mode = "ZOH"
+    froh_lambda = 0.7
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                if config_path.endswith((".yaml", ".yml")):
+                    cdata = yaml.safe_load(f) or {}
+                else:
+                    cdata = json.load(f)
+                pg = cdata.get("parametros_generales", {})
+                net = cdata.get("network", {})
+                hold_mode = pg.get("hold_mode", net.get("hold_mode", cdata.get("hold_mode", hold_mode)))
+                froh_lambda = pg.get("froh_lambda", net.get("froh_lambda", cdata.get("froh_lambda", froh_lambda)))
+        except Exception:
+            pass
+
     return {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "python_version": platform.python_version(),
         "platform": platform.platform(),
         "processor": platform.processor(),
+        "hold_mode": hold_mode,
+        "froh_lambda": froh_lambda,
         "file_hashes_sha256": {
             "controller_finite_time_consensus": calculate_sha256(controller_path),
             "config_bench_8nodos": calculate_sha256(config_path),
@@ -513,7 +531,7 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         "",
         f"**Run ID:** `{manifest.get('run_id')}` · **Sustituye a:** `{manifest.get('supersedes') or 'Ninguno'}`",
         f"**Fecha:** {manifest['timestamp_utc']} · **Semilla:** {manifest.get('seed', 42)} · **Escenario:** E1 (Paso de Carga +50 %)",
-        f"**Entorno:** Python {manifest['python_version']} ({manifest['platform']})",
+        f"**Entorno:** Python {manifest['python_version']} ({manifest['platform']}) · **Hold Reconstrucción:** `{manifest.get('hold_mode', 'ZOH')}` (λ={manifest.get('froh_lambda', 0.7)})",
         "",
         "### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad",
         "",

@@ -15,6 +15,8 @@ network:
   f_nom_hz: 60.0        # Frecuencia nominal [Hz]
   dt: 0.5               # Paso de integración secundario macro [s] (2.0 Hz)
   escenario_ref: "ESC-HIL-003_consolidado_rev5"
+  hold_mode: "ZOH"      # Esquema canónico de reconstrucción multitasa (S-24 S1/S2)
+  froh_lambda: 0.7      # Parámetro de ponderación predictiva FROH
 
 consensus_graph:
   n_agents: 3

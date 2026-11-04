@@ -4,25 +4,23 @@ import time
 import math
 import argparse
 import json
+from typing import Optional
 import zmq
-
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from Agents.node_dynamic_process import NodeDynamicProcess
 from Agents.finite_time_consensus import FixedTimeConsensusAgent
 
+
 class DistributedNodeRunner:
     """
-    Ejecutor de Nodo Distribuido para Raspberry Pi 5.
-    Desacopla la Dinamica Fisica (1 kHz / micro-paso) y el Agente de Control Secundario (FxTS)
-    intercambiando informacion P2P con nodos adyacentes sobre Ethernet y sincronizandose
-    con el PC Central (Reloj Maestro ZMQ a 500 ms).
+    Orquestador ejecutable de un Nodo DER Distribuido en hardware real (Raspberry Pi 5) o local.
+    Integra:
+      1. Dinámica física local (1 kHz integrado en micro-pasos a 500 ms con esquema Hold ZOH/FROH).
+      2. Agente de Consenso Distribuido en Tiempo Fijo (FxTS) P2P entre Raspberry Pis.
+      3. Sincronización y reporte de inyecciones (P, Q) mediante sockets ZeroMQ
+         con el PC Central (Reloj Maestro ZMQ a 500 ms).
     """
     def __init__(
         self,
@@ -33,8 +31,10 @@ class DistributedNodeRunner:
         port_pub: int = 5556,
         p2p_port: int = 6000,
         neighbors: list = None,
-        hold_mode: str = "ZFOH",
-        zfoh_lambda: float = 0.7,
+        hold_mode: str = "ZOH",
+        froh_lambda: float = 0.7,
+        zfoh_lambda: Optional[float] = None,
+        scenario_file: Optional[str] = None,
         v_base: float = 400.0,
         q_max: float = 10000.0,
         p_max: float = 20000.0,
@@ -49,8 +49,27 @@ class DistributedNodeRunner:
         self.port_pub = port_pub
         self.p2p_port = p2p_port
         self.neighbors_targets = neighbors or []  # List of "ip:port"
-        self.hold_mode = hold_mode.upper()
-        self.zfoh_lambda = float(zfoh_lambda)
+
+        # Cargar parámetros generales del escenario si se especifica archivo (S-24 S2)
+        if scenario_file and os.path.exists(scenario_file):
+            try:
+                with open(scenario_file, "r", encoding="utf-8") as f:
+                    scen_data = json.load(f)
+                pg = scen_data.get("parametros_generales", {})
+                if "hold_mode" in pg:
+                    hold_mode = pg["hold_mode"]
+                if "froh_lambda" in pg:
+                    froh_lambda = float(pg["froh_lambda"])
+                elif "zfoh_lambda" in pg:
+                    froh_lambda = float(pg["zfoh_lambda"])
+            except Exception as e:
+                print(f"[AVISO] No se pudo leer {scenario_file}: {e}")
+
+        h_mode = hold_mode.upper()
+        self.hold_mode = "FROH" if h_mode == "ZFOH" else h_mode
+        self.froh_lambda = float(zfoh_lambda if zfoh_lambda is not None else froh_lambda)
+        self.zfoh_lambda = self.froh_lambda  # Alias retrocompatible
+
         self.v_base = float(v_base)
         self.q_max = float(q_max)
         self.p_max = float(p_max)
@@ -63,12 +82,12 @@ class DistributedNodeRunner:
         self.k_p_freq = 250.0  # W/(rad/s)
         self.k_i_freq = 80.0   # W/(rad/s*s) - Restaura f a 60.0 Hz en 10-15s sin sobreimpulso
 
-        # 1. Proceso de Dinamica Fisica (1 kHz)
+        # 1. Proceso de Dinamica Fisica (1 kHz) con ZOH por defecto unificado (S-24 S4, S5)
         self.dynamic_proc = NodeDynamicProcess(
             node_id=self.node_id,
             source_type=self.source_type,
             hold_mode=self.hold_mode,
-            zfoh_lambda=self.zfoh_lambda
+            froh_lambda=self.froh_lambda
         )
 
         # 2. Agente de Consenso en Tiempo Fijo (FxTS)
@@ -130,7 +149,7 @@ class DistributedNodeRunner:
         print(f" - Servidor Maestro:    {self.master_host}:{self.port_pub}")
         print(f" - Puerto P2P Local:    PUB :{self.p2p_port}")
         print(f" - Vecinos P2P:         {self.neighbors_targets}")
-        print(f" - Reconstruccion Hold: {self.hold_mode} (lambda={self.zfoh_lambda})")
+        print(f" - Reconstruccion Hold: {self.hold_mode} (lambda={self.froh_lambda})")
         print(f" - Limites Capacidad:   P_max={self.p_max/1000:.0f}kW, Q_max={self.q_max/1000:.0f}kvar")
         print("=" * 65)
         print("Esperando sincronizacion del PC Central...\n")
@@ -292,8 +311,11 @@ if __name__ == "__main__":
     parser.add_argument("--port-pub", type=int, default=5556, help="Puerto PUB del reloj")
     parser.add_argument("--p2p-port", type=int, default=6000, help="Puerto PUB local para consenso P2P")
     parser.add_argument("--neighbors", nargs="*", default=[], help="Lista de vecinos en formato ip:puerto")
-    parser.add_argument("--hold-mode", default="ZFOH", choices=["ZOH", "FOH", "ZFOH"], help="Esquema Hold")
-    parser.add_argument("--lambda-val", type=float, default=0.7, help="Parametro lambda ZFOH")
+    parser.add_argument("--hold-mode", default="ZOH", choices=["ZOH", "FOH", "FROH", "ZFOH"], help="Esquema Hold (ZOH canónico por defecto, FOH, FROH)")
+    parser.add_argument("--froh-lambda", type=float, default=0.7, help="Parámetro lambda FROH")
+    parser.add_argument("--lambda-val", type=float, default=None, help="Alias retrocompatible de lambda")
+    parser.add_argument("--zfoh-lambda", type=float, default=None, help="Alias retrocompatible de lambda ZFOH")
+    parser.add_argument("--scenario-file", default=None, help="Ruta al archivo JSON de configuración del escenario (prevalece sobre defaults)")
     parser.add_argument("--v-base", type=float, default=400.0, help="Tension base nominal [V]")
     parser.add_argument("--q-max", type=float, default=10000.0, help="Capacidad reactiva maxima [var]")
     parser.add_argument("--p-max", type=float, default=20000.0, help="Capacidad activa maxima [W]")
@@ -302,6 +324,13 @@ if __name__ == "__main__":
     parser.add_argument("--mode", default="OFFLINE", choices=["ONLINE", "OFFLINE"], help="Modo de operacion")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
     args = parser.parse_args()
+
+    # Resolver alias de lambda
+    active_lambda = args.froh_lambda
+    if args.lambda_val is not None:
+        active_lambda = args.lambda_val
+    elif args.zfoh_lambda is not None:
+        active_lambda = args.zfoh_lambda
 
     runner = DistributedNodeRunner(
         node_id=args.node_id,
@@ -312,7 +341,8 @@ if __name__ == "__main__":
         p2p_port=args.p2p_port,
         neighbors=args.neighbors,
         hold_mode=args.hold_mode,
-        zfoh_lambda=args.lambda_val,
+        froh_lambda=active_lambda,
+        scenario_file=args.scenario_file,
         v_base=args.v_base,
         q_max=args.q_max,
         p_max=args.p_max,

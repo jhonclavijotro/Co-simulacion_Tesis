@@ -1,15 +1,15 @@
 # Valores Canónicos de Referencia — Benchmark v2 (Fase E)
 
-**Run ID:** `20261103T193148_bench-v2_seed42` · **Sustituye a:** `20261103T172149_bench-v2_seed42`
-**Fecha:** 2026-11-03T19:31:48.631956+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
-**Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0)
+**Run ID:** `20261104T161520_bench-v2_seed42` · **Sustituye a:** `20261103T193148_bench-v2_seed42`
+**Fecha:** 2026-11-04T16:15:20.791121+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
+**Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0) · **Hold Reconstrucción:** `ZOH` (λ=0.7)
 
 ### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
 
 | Componente | Archivo Fuente | Hash SHA-256 |
 |---|---|---|
 | `controller_finite_time_consensus` | `controller_finite_time_consensus` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
-| `config_bench_8nodos` | `config_bench_8nodos` | `c43361fcee83e5dc63b7d5264922a83361e7e472282dcf4d5d6c336c4cfd5c9c` |
+| `config_bench_8nodos` | `config_bench_8nodos` | `54fafa87411bbca16a51cdeb6f0b45827511a93b3ce3b09d0e91e5ddd8b12805` |
 | `harness_v2` | `harness_v2` | `8c81a2a5a437d7a5e7ded39b9502d39206a1246b30bb9bced951087dd7f68910` |
 | `baselines_v2` | `baselines_v2` | `83a5f1e08750538418d69e6b6bbfaf7386ec375d7dfc01d82550ce17b9a9d713` |
 | `metrics_v2` | `metrics_v2` | `8a91fd41baa915f093807b24a26510b68ac7333e4724f6b87a7cb2937d264cdf` |

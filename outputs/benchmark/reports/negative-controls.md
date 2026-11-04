@@ -1,6 +1,6 @@
 # Informe de Controles Negativos — Benchmark v2 (Fase D)
 
-**Fecha de ejecución:** 2026-11-03 19:31:48 UTC · **Plataforma:** Windows-11-10.0.26300-SP0 · **Python:** 3.12.10
+**Fecha de ejecución:** 2026-11-04 16:15:20 UTC · **Plataforma:** Windows-11-10.0.26300-SP0 · **Python:** 3.12.10
 **Escenario evaluado:** E1 (Paso de carga +50 %) sobre banco de 8 nodos ($N_{bus}=8$, $N_{DER}=3$)
 
 ---

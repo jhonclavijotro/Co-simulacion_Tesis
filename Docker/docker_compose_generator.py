@@ -106,11 +106,20 @@ class DockerComposeGenerator:
         cpu_limit: str = "0.5",
         mem_limit: str = "256m",
         hold_mode: str = "ZOH",
-        zfoh_lambda: float = 0.7,
+        froh_lambda: Optional[float] = None,
+        zfoh_lambda: Optional[float] = None,
         master_clock_host: str = "host.docker.internal"
     ) -> str:
         active_map = sources_map if sources_map is not None else self.sources_map
         
+        # Resolver lambda con retrocompatibilidad (froh_lambda o zfoh_lambda)
+        if froh_lambda is not None:
+            eff_lambda = float(froh_lambda)
+        elif zfoh_lambda is not None:
+            eff_lambda = float(zfoh_lambda)
+        else:
+            eff_lambda = 0.7
+
         yaml_lines = [
             "# Manifiesto Autogenerado de Co-Simulación Docker (Separación Estricta de Procesos y Emulación de Red)",
             "version: '3.8'",
@@ -136,7 +145,8 @@ class DockerComposeGenerator:
                 f"      - NODE_ID={n}",
                 f"      - SOURCE_TYPE={source}",
                 f"      - HOLD_MODE={hold_mode}",
-                f"      - ZFOH_LAMBDA={zfoh_lambda}",
+                f"      - FROH_LAMBDA={eff_lambda}",
+                f"      - ZFOH_LAMBDA={eff_lambda}",
                 f"      - MASTER_CLOCK_HOST={master_clock_host}",
                 "    deploy:",
                 "      resources:",
@@ -163,7 +173,8 @@ class DockerComposeGenerator:
                 f"      - PACKET_LOSS_RATE={packet_loss_rate}",
                 f"      - TIMEOUT_STEPS={timeout_steps}",
                 f"      - HOLD_MODE={hold_mode}",
-                f"      - ZFOH_LAMBDA={zfoh_lambda}",
+                f"      - FROH_LAMBDA={eff_lambda}",
+                f"      - ZFOH_LAMBDA={eff_lambda}",
                 f"      - MASTER_CLOCK_HOST={master_clock_host}",
                 "    deploy:",
                 "      resources:",

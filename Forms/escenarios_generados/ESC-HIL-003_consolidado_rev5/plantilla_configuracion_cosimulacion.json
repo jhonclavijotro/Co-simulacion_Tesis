@@ -13,7 +13,9 @@
         "potencia_base_kVA": 10.0,
         "frecuencia_nominal_Hz": 60.0,
         "nota_potencia_base": "S_base unica del banco de 8 nodos. Coincide con run_simulation_bt_formatos.py (10000 VA). Si se cambia, H_sys y D_sys en pu deben recalcularse sobre la nueva base.",
-        "inicio_absoluto": "2026-09-12T06:30:00.000-05:00"
+        "inicio_absoluto": "2026-09-12T06:30:00.000-05:00",
+        "hold_mode": "ZOH",
+        "froh_lambda": 0.7
     },
     "comunicaciones_zeromq": {
         "pc_central_ip": "127.0.0.1",
