@@ -1,6 +1,6 @@
 # Informe de Controles Negativos — Benchmark v2 (Fase D)
 
-**Fecha de ejecución:** 2026-11-04 16:15:20 UTC · **Plataforma:** Windows-11-10.0.26300-SP0 · **Python:** 3.12.10
+**Fecha de ejecución:** 2026-11-04 16:33:56 UTC · **Plataforma:** Windows-11-10.0.26300-SP0 · **Python:** 3.12.10
 **Escenario evaluado:** E1 (Paso de carga +50 %) sobre banco de 8 nodos ($N_{bus}=8$, $N_{DER}=3$)
 
 ---
@@ -31,7 +31,7 @@ A continuación se presenta la verificación empírica de los cuatro controles o
 | **G4** | Error de reparto de potencia activa | 0.1867 p.u. | < 0.02 | `FAIL` | Dispersión activa 0.1867 >= 0.020 |
 | **G5** | Error de restauracion de tension | 0.2 p.u. | <= 0.005 | `FAIL` | Error estacionario tensión 0.2000 p.u. > umbral 0.005 p.u. |
 | **G6** | Error de restauracion de frecuencia | 0.4667 Hz | <= 0.1 | `FAIL` | Error estacionario frecuencia 0.4667 Hz > umbral 0.100 Hz |
-| **G7** | Estabilidad CFL discreta (cota nodal soporte) | 0.4 num | < 1.0 | `PASS` | Cumple criterio |
+| **G7** | Estabilidad CFL discreta (forma espectral) | 0.8385 num | < 1.0 | `PASS` | Cumple criterio |
 | **G8** | Tolerancia a retardo de red (tau_crit) | N/A | >= 50.0 | `N/A` | N/A: Control sin capa de consenso secundario distribuido |
 
 ### Control N2: Ganancias ajenas (c1=0.15, c2=0.85, alpha=0.5, beta=2.0)
@@ -44,7 +44,7 @@ A continuación se presenta la verificación empírica de los cuatro controles o
 | **G4** | Error de reparto de potencia activa | 0.2009 p.u. | < 0.02 | `FAIL` | Dispersión activa 0.2009 >= 0.020 |
 | **G5** | Error de restauracion de tension | 0.0952 p.u. | <= 0.005 | `FAIL` | Error estacionario tensión 0.0952 p.u. > umbral 0.005 p.u. |
 | **G6** | Error de restauracion de frecuencia | 0.1144 Hz | <= 0.1 | `FAIL` | Error estacionario frecuencia 0.1144 Hz > umbral 0.100 Hz |
-| **G7** | Estabilidad CFL discreta (cota nodal soporte) | 1.0 num | < 1.0 | `FAIL` | CFL nodal 1.0000 >= 1.0 |
+| **G7** | Estabilidad CFL discreta (forma espectral) | 3.8512 num | < 1.0 | `FAIL` | CFL espectral 3.8512 >= 1.0 |
 | **G8** | Tolerancia a retardo de red (tau_crit) | N/A | >= 50.0 | `N/A` | N/A: Control sin capa de consenso secundario distribuido |
 
 ### Control N3: Signo invertido en control secundario (-u en lugar de +u)
@@ -57,7 +57,7 @@ A continuación se presenta la verificación empírica de los cuatro controles o
 | **G4** | Error de reparto de potencia activa | 590.9863 p.u. | < 0.02 | `FAIL` | Divergencia física detectada |
 | **G5** | Error de restauracion de tension | inf p.u. | <= 0.005 | `FAIL` | Divergencia física detectada |
 | **G6** | Error de restauracion de frecuencia | inf Hz | <= 0.1 | `FAIL` | Divergencia física detectada |
-| **G7** | Estabilidad CFL discreta (cota nodal soporte) | 0.4 num | < 1.0 | `FAIL` | Divergencia física detectada |
+| **G7** | Estabilidad CFL discreta (forma espectral) | 0.8385 num | < 1.0 | `FAIL` | Divergencia física detectada |
 | **G8** | Tolerancia a retardo de red (tau_crit) | N/A | >= 50.0 | `N/A` | N/A: Control sin capa de consenso secundario distribuido |
 
 ### Control N4: Línea base canónica DAPI (Simpson-Porco et al., 2015)
@@ -70,7 +70,7 @@ A continuación se presenta la verificación empírica de los cuatro controles o
 | **G4** | Error de reparto de potencia activa | 0.0 p.u. | < 0.02 | `PASS` | Cumple criterio |
 | **G5** | Error de restauracion de tension | 0.0196 p.u. | <= 0.005 | `FAIL` | Error estacionario tensión 0.0196 p.u. > umbral 0.005 p.u. |
 | **G6** | Error de restauracion de frecuencia | 0.0412 Hz | <= 0.1 | `PASS` | Cumple criterio |
-| **G7** | Estabilidad CFL discreta (cota nodal soporte) | 0.2 num | < 1.0 | `PASS` | Cumple criterio |
+| **G7** | Estabilidad CFL discreta (forma espectral) | 0.1623 num | < 1.0 | `PASS` | Cumple criterio |
 | **G8** | Tolerancia a retardo de red (tau_crit) | 2579.8 ms | >= 50.0 | `PASS` | Cumple criterio |
 
 ---

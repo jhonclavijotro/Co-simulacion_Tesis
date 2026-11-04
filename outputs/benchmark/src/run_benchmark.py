@@ -547,7 +547,7 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         "",
         "## 1. Tabla Comparativa de Desempeño Multicriterio",
         "",
-        "| Controlador / Línea Base | Sintonización | $t_{s, \\text{norm}}$ [s] | $t_s(10\\%)$ [s] | $t_s(5\\%)$ [s] | $t_s(2\\%)$ [s] | $\\Delta f_{p\\text{-}p}$ [Hz] | $\\Delta \\eta_Q$ | $\\Delta \\eta_P$ | $e_V$ [p.u.] | $e_\\omega$ [Hz] | CFL (Nodal Soporte) | $\\tau_{\\text{crit}}$ | Gates |",
+        "| Controlador / Línea Base | Sintonización | $t_{s, \\text{norm}}$ [s] | $t_s(10\\%)$ [s] | $t_s(5\\%)$ [s] | $t_s(2\\%)$ [s] | $\\Delta f_{p\\text{-}p}$ [Hz] | $\\Delta \\eta_Q$ | $\\Delta \\eta_P$ | $e_V$ [p.u.] | $e_\\omega$ [Hz] | CFL (Espectral) | $\\tau_{\\text{crit}}$ | Gates |",
         "|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
     ])
 

@@ -331,31 +331,49 @@ class MicrogridBenchmarkHarness:
         return df_telemetry, metrics
 
     def _compute_cfl_number(self, ctrl: BaseSecondaryController, ctrl_name: str, neg_mode: Optional[str]) -> float:
-        """Calcula el número CFL analítico exacto dt * d_max * g_ctrl derivado del objeto controlador."""
+        """
+        Calcula el número CFL espectral analítico normalizado (S-25 A-2):
+            cfl_number = 0.5 * dt * lambda_max_H * g_ef
+        equivalente a la condición de Euler explícito gobernante:
+            dt * lambda_max_H * g_ef < 2.0 (TEORIA.tex:218)
+        donde cfl_number < 1.0 garantiza estabilidad con margen (1 - cfl_number).
+        Para FxTS canónico: dt=0.5, lambda_max=3.247, g_ef=1.033 s^-1 -> cfl_number = 0.8385 (margen 16.2%).
+        """
         dt = self.dt
-        d_max = self.d_max
+        lambda_max_H = float(self.cfg.get("consensus_graph", {}).get("lambda_max_H", 3.247))
 
         if neg_mode == "N2":
-            # Ganancias ajenas con violación CFL: c1=0.15, c2=0.85
-            return dt * d_max * (0.15 + 0.85)  # 0.5 * 2 * 1.0 = 1.0000
+            # Ganancias ajenas con violación CFL: c1=0.15, c2=0.85, alpha=0.5, beta=2.0, eps=0.001
+            # g_ef = 0.15 * (1e-3)**(-0.5) + 0.85 * (1e-3)**(1.0) = 4.744 s^-1
+            # cfl_number = 0.5 * 0.5 * 3.247 * 4.744 = 3.851 >= 1.0 (VIOLACIÓN SEVERA)
+            g_ef = 0.15 * (0.001 ** -0.5) + 0.85 * (0.001 ** 1.0)
+            return round(0.5 * dt * lambda_max_H * g_ef, 4)
 
         name = ctrl_name.lower()
         if "fxts" in name:
             agent = getattr(ctrl, "agent", ctrl)
             c1 = float(getattr(agent, "c1", 0.25))
             c2 = float(getattr(agent, "c2", 0.15))
-            return dt * d_max * (c1 + c2)  # 0.5 * 2 * 0.40 = 0.4000
+            alpha = float(getattr(agent, "alpha", 0.8))
+            beta = float(getattr(agent, "beta", 1.2))
+            eps = float(getattr(agent, "epsilon", 0.001))
+            g_ef = c1 * (eps ** (alpha - 1.0)) + c2 * (eps ** (beta - 1.0))
+            return round(0.5 * dt * lambda_max_H * g_ef, 4)
         elif "fts" in name:
             c1 = float(getattr(ctrl, "c1", 0.25))
-            return dt * d_max * c1         # 0.5 * 2 * 0.25 = 0.2500 (o 0.35 si opt)
+            alpha = float(getattr(ctrl, "alpha", 0.8))
+            eps = float(getattr(ctrl, "epsilon", 0.001))
+            g_ef = c1 * (eps ** (alpha - 1.0))
+            return round(0.5 * dt * lambda_max_H * g_ef, 4)
         elif "dapi" in name:
             k = float(max(getattr(ctrl, "k_w", 0.2), getattr(ctrl, "k_v", 0.2), getattr(ctrl, "k_p", 0.2), getattr(ctrl, "k_q", 0.2)))
-            return dt * d_max * k          # 0.5 * 2 * 0.20 = 0.2000 (o 0.22 si opt)
+            g_ef = k
+            return round(0.5 * dt * lambda_max_H * g_ef, 4)
         elif "droop" in name:
             return 0.0
         elif "pi" in name:
             return 0.25
-        return 0.40
+        return 0.8385
 
     def _compute_tau_crit(
         self,

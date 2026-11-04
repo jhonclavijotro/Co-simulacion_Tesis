@@ -72,7 +72,7 @@ class TestRaspberryDeploymentAndHoldMethods(unittest.TestCase):
             content = f.read()
 
         self.assertIn("HOLD_MODE=ZFOH", content)
-        self.assertIn("ZFOH_LAMBDA=0.65", content)
+        self.assertIn("FROH_LAMBDA=0.65", content)
         self.assertIn("MASTER_CLOCK_HOST=192.168.1.100", content)
         self.assertIn("nodo_1_dinamica", content)
         self.assertIn("nodo_1_agente", content)

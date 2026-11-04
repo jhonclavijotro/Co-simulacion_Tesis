@@ -10,7 +10,7 @@ class SRFPLL:
         - PI actúa sobre v_q para anular el error de fase
         - Integrador angular actualiza theta con omega_est
     """
-    def __init__(self, f_nom=60.0, Kp_pll=94.25, Ki_pll=2220.0, Ts=0.001):
+    def __init__(self, f_nom=60.0, Kp_pll=94.25, Ki_pll=2220.66, Ts=0.001):
         self.omega_nom = 2.0 * math.pi * f_nom
         self.Kp = Kp_pll
         self.Ki = Ki_pll

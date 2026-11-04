@@ -260,14 +260,14 @@ def evaluate_gates(
     cfl_num = metrics.get("cfl_number", 0.0)
     cfl_ok = bool(metrics.get("cfl_stable", False)) and (cfl_num < 1.0) and (not divergence)
     gates_result["G7"] = {
-        "name": "Estabilidad CFL discreta (cota nodal soporte)",
+        "name": "Estabilidad CFL discreta (forma espectral)",
         "passed": bool(cfl_ok),
         "value": round(cfl_num, 4),
         "threshold": 1.0,
         "operator": "<",
         "unit": "num",
         "description": "Cota nodal soporte: dt * d_max * (c1 + c2) < 1.0 (gobernante espectral 16.2% en TEORIA.tex:218)",
-        "reason": None if cfl_ok else ("Divergencia física detectada" if divergence else f"CFL nodal {cfl_num:.4f} >= 1.0")
+        "reason": None if cfl_ok else ("Divergencia física detectada" if divergence else f"CFL espectral {cfl_num:.4f} >= 1.0")
     }
 
     # G8: Cota analítica de retardo crítico tau_crit >= 50.0 ms (D-18 Opción C)

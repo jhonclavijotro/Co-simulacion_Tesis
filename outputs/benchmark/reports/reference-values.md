@@ -1,7 +1,7 @@
 # Valores Canónicos de Referencia — Benchmark v2 (Fase E)
 
-**Run ID:** `20261104T161520_bench-v2_seed42` · **Sustituye a:** `20261103T193148_bench-v2_seed42`
-**Fecha:** 2026-11-04T16:15:20.791121+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
+**Run ID:** `20261104T163357_bench-v2_seed42` · **Sustituye a:** `20261104T163322_bench-v2_seed42`
+**Fecha:** 2026-11-04T16:33:57.040647+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
 **Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0) · **Hold Reconstrucción:** `ZOH` (λ=0.7)
 
 ### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
@@ -10,25 +10,25 @@
 |---|---|---|
 | `controller_finite_time_consensus` | `controller_finite_time_consensus` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
 | `config_bench_8nodos` | `config_bench_8nodos` | `54fafa87411bbca16a51cdeb6f0b45827511a93b3ce3b09d0e91e5ddd8b12805` |
-| `harness_v2` | `harness_v2` | `8c81a2a5a437d7a5e7ded39b9502d39206a1246b30bb9bced951087dd7f68910` |
+| `harness_v2` | `harness_v2` | `04d31402d999c910b2c9158780dc1918ff21b0f3dad2be7cfe029f96f38bb781` |
 | `baselines_v2` | `baselines_v2` | `83a5f1e08750538418d69e6b6bbfaf7386ec375d7dfc01d82550ce17b9a9d713` |
-| `metrics_v2` | `metrics_v2` | `8a91fd41baa915f093807b24a26510b68ac7333e4724f6b87a7cb2937d264cdf` |
+| `metrics_v2` | `metrics_v2` | `30d6852ebfa61857f13fd07fcce2f419005d17ed14166cfca1caa039619e6ecf` |
 
 ---
 
 ## 1. Tabla Comparativa de Desempeño Multicriterio
 
-| Controlador / Línea Base | Sintonización | $t_{s, \text{norm}}$ [s] | $t_s(10\%)$ [s] | $t_s(5\%)$ [s] | $t_s(2\%)$ [s] | $\Delta f_{p\text{-}p}$ [Hz] | $\Delta \eta_Q$ | $\Delta \eta_P$ | $e_V$ [p.u.] | $e_\omega$ [Hz] | CFL (Nodal Soporte) | $\tau_{\text{crit}}$ | Gates |
+| Controlador / Línea Base | Sintonización | $t_{s, \text{norm}}$ [s] | $t_s(10\%)$ [s] | $t_s(5\%)$ [s] | $t_s(2\%)$ [s] | $\Delta f_{p\text{-}p}$ [Hz] | $\Delta \eta_Q$ | $\Delta \eta_P$ | $e_V$ [p.u.] | $e_\omega$ [Hz] | CFL (Espectral) | $\tau_{\text{crit}}$ | Gates |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Droop Puro (Guerrero 2011)** | `published` | ∞ | ∞ | ∞ | ∞ | 0.0000 | 0.0800 | 0.1867 | 0.2000 | 0.4667 | `0.00 (OK)` | `N/A` | REPROBADO |
 | **Droop Puro (Optimizado)** | `optimized` | ∞ | ∞ | ∞ | ∞ | 0.0000 | 0.0800 | 0.1867 | 0.2000 | 0.4667 | `0.00 (OK)` | `N/A` | REPROBADO |
 | **PI Centralizado (Canónico)** | `published` | 8.50 | 11.00 | 13.50 | 16.00 | 0.0000 | 0.0800 | 0.1867 | 0.0001 | 0.0000 | `0.25 (OK)` | `N/A` | REPROBADO |
 | **PI Centralizado (Optimizado)** | `optimized` | 7.00 | 11.50 | 12.50 | 17.50 | 0.0000 | 0.0800 | 0.1867 | 0.0000 | 0.0000 | `0.25 (OK)` | `N/A` | REPROBADO |
-| **DAPI (Simpson-Porco 2015)** | `published` | 26.00 | 45.50 | 70.00 | ∞ | 0.0120 | 0.0000 | 0.0000 | 0.0088 | 0.0236 | `0.20 (OK)` | `2579.8 ms` | REPROBADO |
-| **DAPI (Optimizado)** | `optimized` | 23.50 | 41.50 | 63.50 | ∞ | 0.0107 | 0.0000 | 0.0000 | 0.0067 | 0.0198 | `0.22 (OK)` | `2299.8 ms` | REPROBADO |
-| **FTS Tiempo Finito (Wang 2021)** | `published` | 21.50 | 33.00 | 45.50 | 62.50 | 0.0075 | 0.0000 | 0.0000 | 0.0000 | 0.0063 | `0.25 (OK)` | `118.9 ms` | **APROBADO** |
-| **FTS Tiempo Finito (Optimizado)** | `optimized` | 15.50 | 23.00 | 31.00 | 41.50 | 0.0017 | 0.0047 | 0.0047 | 0.0017 | 0.0009 | `0.35 (OK)` | `-187.0 ms` | REPROBADO |
-| **FxTS Tiempo Fijo (La Tesis - Certificado)** | `published` | 13.00 | 21.50 | 31.50 | 46.00 | 0.0029 | 0.0000 | 0.0000 | 0.0000 | 0.0018 | `0.40 (OK)` | `96.3 ms` | **APROBADO** |
+| **DAPI (Simpson-Porco 2015)** | `published` | 26.00 | 45.50 | 70.00 | ∞ | 0.0120 | 0.0000 | 0.0000 | 0.0088 | 0.0236 | `0.16 (OK)` | `2579.8 ms` | REPROBADO |
+| **DAPI (Optimizado)** | `optimized` | 23.50 | 41.50 | 63.50 | ∞ | 0.0107 | 0.0000 | 0.0000 | 0.0067 | 0.0198 | `0.18 (OK)` | `2299.8 ms` | REPROBADO |
+| **FTS Tiempo Finito (Wang 2021)** | `published` | 21.50 | 33.00 | 45.50 | 62.50 | 0.0075 | 0.0000 | 0.0000 | 0.0000 | 0.0063 | `0.81 (OK)` | `118.9 ms` | **APROBADO** |
+| **FTS Tiempo Finito (Optimizado)** | `optimized` | 15.50 | 23.00 | 31.00 | 41.50 | 0.0017 | 0.0047 | 0.0047 | 0.0017 | 0.0009 | `1.60 (VIOL)` | `-187.0 ms` | REPROBADO |
+| **FxTS Tiempo Fijo (La Tesis - Certificado)** | `published` | 13.00 | 21.50 | 31.50 | 46.00 | 0.0029 | 0.0000 | 0.0000 | 0.0000 | 0.0018 | `0.84 (OK)` | `96.3 ms` | **APROBADO** |
 
 ---
 

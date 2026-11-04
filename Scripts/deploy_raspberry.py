@@ -16,7 +16,7 @@ class RaspberryDeployer:
     Permite:
       - Diagnóstico de conexión SSH y estado de Docker en RPi 5.
       - Sincronización diferencial de archivos fuente excluyendo temporales.
-      - Generación paramétrica de manifiestos docker-compose con esquemas Hold (ZOH, FOH, ZFOH).
+      - Generación paramétrica de manifiestos docker-compose con esquemas Hold (ZOH, FOH, FROH / ZFOH).
       - Ejecución remota de contenedores y monitoreo de estado.
       - Pruebas de estrés y evaluación de desempeño multitasa.
     """

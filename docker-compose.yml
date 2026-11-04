@@ -16,8 +16,7 @@ services:
       - SOURCE_TYPE=DIESEL
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -34,14 +33,13 @@ services:
     environment:
       - NODE_ID=1
       - OPERATING_MODE=ONLINE
-      - NETWORK_PROFILE=IDEAL
-      - NETWORK_DELAY_MS=0.0
-      - PACKET_LOSS_RATE=0.0
+      - NETWORK_PROFILE=LAN_ETHERNET
+      - NETWORK_DELAY_MS=5.0
+      - PACKET_LOSS_RATE=0.005
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -60,8 +58,7 @@ services:
       - SOURCE_TYPE=SOLAR
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -78,14 +75,13 @@ services:
     environment:
       - NODE_ID=2
       - OPERATING_MODE=ONLINE
-      - NETWORK_PROFILE=IDEAL
-      - NETWORK_DELAY_MS=0.0
-      - PACKET_LOSS_RATE=0.0
+      - NETWORK_PROFILE=LAN_ETHERNET
+      - NETWORK_DELAY_MS=5.0
+      - PACKET_LOSS_RATE=0.005
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -104,8 +100,7 @@ services:
       - SOURCE_TYPE=BESS
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -122,14 +117,13 @@ services:
     environment:
       - NODE_ID=3
       - OPERATING_MODE=ONLINE
-      - NETWORK_PROFILE=IDEAL
-      - NETWORK_DELAY_MS=0.0
-      - PACKET_LOSS_RATE=0.0
+      - NETWORK_PROFILE=LAN_ETHERNET
+      - NETWORK_DELAY_MS=5.0
+      - PACKET_LOSS_RATE=0.005
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -148,8 +142,7 @@ services:
       - SOURCE_TYPE=DEMANDA
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:
@@ -166,14 +159,13 @@ services:
     environment:
       - NODE_ID=4
       - OPERATING_MODE=ONLINE
-      - NETWORK_PROFILE=IDEAL
-      - NETWORK_DELAY_MS=0.0
-      - PACKET_LOSS_RATE=0.0
+      - NETWORK_PROFILE=LAN_ETHERNET
+      - NETWORK_DELAY_MS=5.0
+      - PACKET_LOSS_RATE=0.005
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
       - FROH_LAMBDA=0.7
-      - ZFOH_LAMBDA=0.7
-      - MASTER_CLOCK_HOST=host.docker.internal
+      - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
         limits:

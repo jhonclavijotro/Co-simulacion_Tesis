@@ -24,7 +24,7 @@ class GUICommandCenter:
       - Seleccionar solucionador del PC Central (Modo A FBS vs Modo B Sensibilidad).
       - Seleccionar la configuración de Malla para el Modo B (RADIAL, RING_ZBUS, FULL_JACOBIAN).
       - Seleccionar el Perfil de Canal de Comunicación (IDEAL, LAN_ETHERNET, INDUSTRIAL_WIFI, SEVERE_STRESS, CRITICAL_PARTITION).
-      - Seleccionar Esquemas de Reconstrucción Multitasa: ZOH, FOH, ZFOH (con parámetro lambda).
+      - Seleccionar Esquemas de Reconstrucción Multitasa: ZOH, FOH, FROH (con ZFOH como alias retrocompatible).
       - Orquestación y despliegue automático de contenedores Docker locales y en clúster Raspberry Pi 5 con 1 clic.
       - Ejecución continua asíncrona (background thread) para integración fluida con API Web / Tkinter.
       - Exportación de telemetría a formatos CSV y JSON.
@@ -120,7 +120,7 @@ class GUICommandCenter:
         self._log_event(f"Perfil de canal ciberfísico establecido en: {self.network_profile}")
 
     def set_hold_mode(self, hold_mode: str, zfoh_lambda: Optional[float] = None):
-        """Actualiza el esquema de reconstrucción/extrapolación (ZOH, FOH, ZFOH)."""
+        """Actualiza el esquema de reconstrucción/extrapolación (ZOH, FOH, FROH / ZFOH alias)."""
         self.hold_mode = hold_mode.upper()
         if zfoh_lambda is not None:
             self.zfoh_lambda = max(0.0, min(1.0, float(zfoh_lambda)))
