@@ -181,6 +181,55 @@ class ClusterDeployer:
             except Exception as e:
                 print(f"    [AVISO] No se pudo sincronizar {name} ({ip}): {e}")
 
+    sync_code_to_cluster = sync_code_to_all
+
+    def sync_node_code(self, target_ip_or_name: str, local_root: str = "."):
+        """Sincroniza el codigo fuente a un nodo especifico del cluster."""
+        target_nodes = [n for n in self.nodes if n["ip"] == target_ip_or_name or n["name"] == target_ip_or_name]
+        if not target_nodes:
+            print(f"[ERROR] No se encontro el nodo {target_ip_or_name}")
+            return
+        node = target_nodes[0]
+        items_to_sync = [
+            "Agents", "Central_PC", "Solar", "Eolica", "Hidrica",
+            "BESS", "Diesel", "Demanda", "config", "mock_data",
+            "Forms", "Docker", "common", "requirements.txt", "raspberry_list.md", "GUI"
+        ]
+        ip = node["ip"]
+        name = node["name"]
+        remote_dir = self.get_remote_dir(node)
+        print(f"--> Sincronizando especificamente {name} ({ip}) en {remote_dir}...")
+        try:
+            ssh = self._get_ssh_client(node, timeout=5)
+            sftp = ssh.open_sftp()
+            ssh.exec_command(f"mkdir -p {remote_dir}")
+            for item in items_to_sync:
+                local_item_path = os.path.join(local_root, item)
+                remote_item_path = f"{remote_dir}/{item}"
+                if not os.path.exists(local_item_path):
+                    continue
+                if os.path.isfile(local_item_path):
+                    sftp.put(local_item_path, remote_item_path)
+                elif os.path.isdir(local_item_path):
+                    ssh.exec_command(f"mkdir -p {remote_item_path}")
+                    for root, _, files in os.walk(local_item_path):
+                        if "__pycache__" in root or ".git" in root:
+                            continue
+                        rel_root = os.path.relpath(root, local_item_path)
+                        rem_sub = f"{remote_item_path}/{rel_root}".replace("\\", "/") if rel_root != "." else remote_item_path
+                        ssh.exec_command(f"mkdir -p {rem_sub}")
+                        for f in files:
+                            if f.endswith(".pyc"):
+                                continue
+                            local_f = os.path.join(root, f)
+                            remote_f = f"{rem_sub}/{f}".replace("\\", "/")
+                            sftp.put(local_f, remote_f)
+            sftp.close()
+            ssh.close()
+            print(f"    [OK] {name} ({ip}) sincronizado exitosamente.")
+        except Exception as e:
+            print(f"    [FAIL] Error sincronizando {name} ({ip}): {e}")
+
     def build_images(self):
         """Compila la imagen Docker 'tesis-rpi:latest' en todas las Raspberry Pi (ARM64)."""
         print("\n" + "=" * 65)
@@ -316,6 +365,7 @@ class ClusterDeployer:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Orquestador Multi-RPi para Microrred Distribuida")
     parser.add_argument("--action", default="test", choices=["test", "sync", "build", "start", "stop", "status", "all"], help="Accion a ejecutar")
+    parser.add_argument("--target", default=None, help="IP o nombre del nodo objetivo (opcional)")
     parser.add_argument("--engine", default="docker", choices=["docker", "native"], help="Motor de ejecucion (docker o native)")
     parser.add_argument("--steps", type=int, default=None, help="Numero de pasos para --action start")
     parser.add_argument("--list-file", default="raspberry_list.md", help="Ruta al archivo raspberry_list.md")
@@ -327,7 +377,10 @@ if __name__ == "__main__":
         deployer.test_connectivity()
 
     if args.action in ["sync", "all"]:
-        deployer.sync_code_to_all()
+        if args.target:
+            deployer.sync_node_code(args.target)
+        else:
+            deployer.sync_code_to_all()
 
     if args.action in ["build", "all"]:
         deployer.build_images()

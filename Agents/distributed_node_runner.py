@@ -239,20 +239,20 @@ class DistributedNodeRunner:
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
 
                 # Lazo Restaurativo Secundario de Frecuencia hacia Potencia Activa (Control Amortiguado)
-                # Se desacopla dP (consenso de activa) para evitar conflicto con generacion no despachable (Solar)
+                # Acoplamiento de dP (consenso activo proporcional) y anti-windup ampliado a +/-75.0 rad
                 if self.source_type == "DIESEL":
                     err_w = (2.0 * math.pi * 60.0) - omega_local
-                    # Anti-windup acotado a [-50.0, +50.0] rad (hasta +/- 4.0 kW de compensacion integral)
-                    self.int_freq_error = max(-50.0, min(50.0, self.int_freq_error + err_w * 0.5))
+                    # Anti-windup acotado a [-75.0, +75.0] rad (hasta +/- 6.0 kW de compensacion integral)
+                    self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * 0.5))
                     delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
-                    base_p = self.p_init if self.p_init > 0 else 3000.0
-                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_restore))
+                    base_p = self.p_init if self.p_init > 0 else 4000.0
+                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_restore + dP))
                 elif self.source_type == "BESS":
-                    # BESS opera como soporte proporcional de inercia sintetica / droop primario sin integrador lento
+                    # BESS opera como soporte de inercia sintetica y reparto coordinado dP sin integrador lento
                     err_w = (2.0 * math.pi * 60.0) - omega_local
                     delta_P_droop = 40.0 * err_w
                     base_p = self.p_init if self.p_init > 0 else 750.0
-                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_droop))
+                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_droop + dP))
                 else:
                     self.P_ref = max(0.0, min(self.p_max, self.P_ref))
 
