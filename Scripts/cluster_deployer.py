@@ -4,7 +4,7 @@ import re
 import time
 import socket
 import argparse
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 # Permitir ejecucion con entorno virtual o python del sistema
 try:
@@ -259,11 +259,32 @@ class ClusterDeployer:
             except Exception as e:
                 print(f"    [ERROR] Fallo en conexion a {name}: {e}")
 
-    def start_cluster(self, steps=None, engine="docker"):
+    def start_cluster(
+        self,
+        steps=None,
+        engine="docker",
+        p_min_diesel: Optional[float] = None,
+        p_charge_max: Optional[float] = None,
+        network_profile: Optional[str] = None,
+        contingencies_file: Optional[str] = None,
+        network_seed: Optional[int] = None,
+        scenario_file: Optional[str] = None,
+        extra_diesel_args: str = "",
+        extra_solar_args: str = "",
+        extra_bess_args: str = "",
+    ):
         """Inicia los servicios en cada Raspberry Pi segun su rol asignado (Docker o Nativo)."""
         print("\n" + "=" * 65)
         print(f" INICIANDO SERVICIOS DEL CLUSTER (MODO: {engine.upper()} - BAJA TENSIÓN 400V)")
         print(f" - Servidor PC Central: {self.master_host}")
+        if p_min_diesel is not None:
+            print(f" - P_min Diésel: {p_min_diesel} W")
+        if p_charge_max is not None:
+            print(f" - P_charge_max BESS: {p_charge_max} W")
+        if network_profile:
+            print(f" - Perfil Telemático: {network_profile}")
+        if contingencies_file:
+            print(f" - Contingencias: {contingencies_file}")
         print("=" * 65)
 
         steps_arg = f"--steps {steps}" if steps else ""
@@ -280,12 +301,46 @@ class ClusterDeployer:
             if role == "DIESEL_SLACK":
                 cname = "nodo_1_diesel"
                 py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL --master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 --mode OFFLINE --v-base 400.0 --p-max 12000.0 --q-max 9000.0 --q-init 2000.0 --p-init 4000.0 {steps_arg}"
+                if p_min_diesel is not None:
+                    py_cmd += f" --p-min-diesel {p_min_diesel}"
+                if network_profile:
+                    py_cmd += f" --network-profile {network_profile}"
+                if contingencies_file:
+                    py_cmd += f" --contingencies-file {contingencies_file}"
+                if network_seed is not None:
+                    py_cmd += f" --network-seed {network_seed}"
+                if scenario_file:
+                    py_cmd += f" --scenario-file {scenario_file}"
+                if extra_diesel_args:
+                    py_cmd += f" {extra_diesel_args}"
             elif role == "SOLAR_PV":
                 cname = "nodo_2_solar"
                 py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR --master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 --mode OFFLINE --v-base 400.0 --p-max 5000.0 --q-max 3000.0 --q-init 600.0 --p-init 2000.0 {steps_arg}"
+                if network_profile:
+                    py_cmd += f" --network-profile {network_profile}"
+                if contingencies_file:
+                    py_cmd += f" --contingencies-file {contingencies_file}"
+                if network_seed is not None:
+                    py_cmd += f" --network-seed {network_seed}"
+                if scenario_file:
+                    py_cmd += f" --scenario-file {scenario_file}"
+                if extra_solar_args:
+                    py_cmd += f" {extra_solar_args}"
             elif role == "BESS_STORAGE":
                 cname = "nodo_3_bess"
                 py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS --master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 --mode OFFLINE --v-base 400.0 --p-max 1500.0 --q-max 1000.0 --q-init 500.0 --p-init 750.0 {steps_arg}"
+                if p_charge_max is not None:
+                    py_cmd += f" --p-charge-max {p_charge_max}"
+                if network_profile:
+                    py_cmd += f" --network-profile {network_profile}"
+                if contingencies_file:
+                    py_cmd += f" --contingencies-file {contingencies_file}"
+                if network_seed is not None:
+                    py_cmd += f" --network-seed {network_seed}"
+                if scenario_file:
+                    py_cmd += f" --scenario-file {scenario_file}"
+                if extra_bess_args:
+                    py_cmd += f" {extra_bess_args}"
             elif role in ["LOADS_RES_COM", "LOADS_TRIPLE"]:
                 cname = "nodos_cargas"
                 py_cmd = f"python3 Agents/multi_load_process.py --master-host {self.master_host} {steps_arg}"
@@ -369,6 +424,12 @@ if __name__ == "__main__":
     parser.add_argument("--engine", default="docker", choices=["docker", "native"], help="Motor de ejecucion (docker o native)")
     parser.add_argument("--steps", type=int, default=None, help="Numero de pasos para --action start")
     parser.add_argument("--list-file", default="raspberry_list.md", help="Ruta al archivo raspberry_list.md")
+    parser.add_argument("--p-min-diesel", type=float, default=None, help="Potencia minima tecnica diesel [W]")
+    parser.add_argument("--p-charge-max", type=float, default=None, help="Potencia maxima de carga BESS [W]")
+    parser.add_argument("--network-profile", default=None, help="Perfil telematico (IDEAL, LATENCY, PACKET_LOSS, DISCONNECT, etc.)")
+    parser.add_argument("--contingencies-file", default=None, help="Ruta o nombre del archivo de contingencias telematicas")
+    parser.add_argument("--network-seed", type=int, default=None, help="Semilla deterministica del canal")
+    parser.add_argument("--scenario-file", default=None, help="Ruta al archivo JSON de configuracion del escenario")
     args = parser.parse_args()
 
     deployer = ClusterDeployer(list_path=args.list_file)
@@ -386,7 +447,16 @@ if __name__ == "__main__":
         deployer.build_images()
 
     if args.action == "start":
-        deployer.start_cluster(steps=args.steps, engine=args.engine)
+        deployer.start_cluster(
+            steps=args.steps,
+            engine=args.engine,
+            p_min_diesel=args.p_min_diesel,
+            p_charge_max=args.p_charge_max,
+            network_profile=args.network_profile,
+            contingencies_file=args.contingencies_file,
+            network_seed=args.network_seed,
+            scenario_file=args.scenario_file,
+        )
 
     if args.action == "status":
         deployer.status_cluster()
