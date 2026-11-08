@@ -22,8 +22,8 @@
     "contingencias_csv": {
       "archivo": "contingencias_telematicas.csv",
       "filas": 5,
-      "bytes": 589,
-      "sha256": "03ef3429c3db4600b46fcc6ed45c5bdb2ebe1b9b39ea0deab0b4f944e2d40392"
+      "bytes": 629,
+      "sha256": "dbbdf606ec2f2627bf12770862797549ad1ed2e3aa4cf86254bad63108ee355e"
     }
   },
   "metricas": {

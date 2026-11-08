@@ -52,7 +52,8 @@ class TelemetryResilienceCampaignRunner:
         dt_s: float = 0.5,
         v_base: float = 400.0,
         s_base: float = 10000.0,
-        output_dir: str = None
+        output_dir: str = None,
+        run_id: str = None
     ):
         self.topology_csv = topology_csv
         self.seed = int(seed)
@@ -62,10 +63,13 @@ class TelemetryResilienceCampaignRunner:
         self.v_base = float(v_base)
         self.s_base = float(s_base)
 
-        # Generar run_id con timestamp UTC
-        now_utc = datetime.datetime.now(datetime.timezone.utc)
-        self.timestamp_str = now_utc.strftime("%Y%m%dT%H%M%S")
-        self.run_id = f"{self.timestamp_str}_resilience_seed{self.seed}"
+        if run_id:
+            self.run_id = run_id
+            self.timestamp_str = run_id.split("_")[0]
+        else:
+            now_utc = datetime.datetime.now(datetime.timezone.utc)
+            self.timestamp_str = now_utc.strftime("%Y%m%dT%H%M%S")
+            self.run_id = f"{self.timestamp_str}_resilience_seed{self.seed}"
 
         if output_dir is None:
             output_dir = os.path.join(PROJECT_ROOT, "outputs", "resilience", "results", self.run_id)
@@ -135,12 +139,18 @@ class TelemetryResilienceCampaignRunner:
             "id", "tipo", "alcance", "origen", "destino", "inicio_s", "fin_s",
             "param_min", "param_max", "unidad", "modelo", "reintento_s", "semilla", "justificacion"
         ]
+
+        def _cell_seed(c_id: str, orig: str, dest: str) -> str:
+            # Fórmula normativa D-25 §4: sha256("{semilla_base}|{id}|{origen}|{destino}")[:8]
+            key = f"{self.seed}|{c_id}|{orig}|{dest}"
+            return hashlib.sha256(key.encode("utf-8")).hexdigest()[:8]
+
         rows = [
-            ["F1", "latencia", "global", "", "", "100.0", "200.0", "50.0", "500.0", "ms", "", "5.0", "", "Actividad 3.3 - Rampa estocastica"],
-            ["F2_23", "perdida", "enlace", "2", "3", "200.0", "300.0", "0.20", "0.20", "fraccion", "bernoulli", "5.0", "", "Actividad 3.3 - Perdida 20%"],
-            ["F2_32", "perdida", "enlace", "3", "2", "200.0", "300.0", "0.20", "0.20", "fraccion", "bernoulli", "5.0", "", "Actividad 3.3 - Perdida 20%"],
-            ["F3_12", "desconexion", "enlace", "1", "2", "220.0", "250.0", "", "", "", "", "5.0", "", "Actividad 4.2 - Corte temporal enlace 30s"],
-            ["F3_21", "desconexion", "enlace", "2", "1", "220.0", "250.0", "", "", "", "", "5.0", "", "Actividad 4.2 - Corte temporal enlace 30s"]
+            ["F1", "latencia", "global", "", "", "100.0", "200.0", "50.0", "500.0", "ms", "", "5.0", _cell_seed("F1", "", ""), "Actividad 3.3 - Rampa estocastica"],
+            ["F2_23", "perdida", "enlace", "2", "3", "200.0", "300.0", "0.20", "0.20", "fraccion", "bernoulli", "5.0", _cell_seed("F2_23", "2", "3"), "Actividad 3.3 - Perdida 20%"],
+            ["F2_32", "perdida", "enlace", "3", "2", "200.0", "300.0", "0.20", "0.20", "fraccion", "bernoulli", "5.0", _cell_seed("F2_32", "3", "2"), "Actividad 3.3 - Perdida 20%"],
+            ["F3_12", "desconexion", "enlace", "1", "2", "220.0", "250.0", "", "", "", "", "5.0", _cell_seed("F3_12", "1", "2"), "Actividad 4.2 - Corte temporal enlace 30s"],
+            ["F3_21", "desconexion", "enlace", "2", "1", "220.0", "250.0", "", "", "", "", "5.0", _cell_seed("F3_21", "2", "1"), "Actividad 4.2 - Corte temporal enlace 30s"]
         ]
 
         with open(contingency_file, "w", newline="", encoding="utf-8") as f:
@@ -511,8 +521,13 @@ class TelemetryResilienceCampaignRunner:
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Ejecutor Campaña de Resiliencia S-34")
+    parser.add_argument("--run-id", default="20261108T170925_resilience_seed42", help="ID de la corrida a generar/actualizar")
+    args = parser.parse_args()
+
     topo = os.path.join(PROJECT_ROOT, "Forms", "escenarios_generados", "ESC-HIL-003_consolidado_rev5", "topologia_red_8nodos.csv")
-    runner = TelemetryResilienceCampaignRunner(topology_csv=topo, seed=42)
+    runner = TelemetryResilienceCampaignRunner(topology_csv=topo, seed=42, run_id=args.run_id)
     res = runner.run_campaign()
     print("\n=======================================================")
     print(" CAMPAÑA DE RESILIENCIA TELEMÉTRICA S-34 COMPLETADA")

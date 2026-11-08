@@ -1,6 +1,6 @@
 id,tipo,alcance,origen,destino,inicio_s,fin_s,param_min,param_max,unidad,modelo,reintento_s,semilla,justificacion
-F1,latencia,global,,,100.0,200.0,50.0,500.0,ms,,5.0,,Actividad 3.3 - Rampa estocastica
-F2_23,perdida,enlace,2,3,200.0,300.0,0.20,0.20,fraccion,bernoulli,5.0,,Actividad 3.3 - Perdida 20%
-F2_32,perdida,enlace,3,2,200.0,300.0,0.20,0.20,fraccion,bernoulli,5.0,,Actividad 3.3 - Perdida 20%
-F3_12,desconexion,enlace,1,2,220.0,250.0,,,,,5.0,,Actividad 4.2 - Corte temporal enlace 30s
-F3_21,desconexion,enlace,2,1,220.0,250.0,,,,,5.0,,Actividad 4.2 - Corte temporal enlace 30s
+F1,latencia,global,,,100.0,200.0,50.0,500.0,ms,,5.0,3c5dd39d,Actividad 3.3 - Rampa estocastica
+F2_23,perdida,enlace,2,3,200.0,300.0,0.20,0.20,fraccion,bernoulli,5.0,fd8cad55,Actividad 3.3 - Perdida 20%
+F2_32,perdida,enlace,3,2,200.0,300.0,0.20,0.20,fraccion,bernoulli,5.0,d984398d,Actividad 3.3 - Perdida 20%
+F3_12,desconexion,enlace,1,2,220.0,250.0,,,,,5.0,77323a6c,Actividad 4.2 - Corte temporal enlace 30s
+F3_21,desconexion,enlace,2,1,220.0,250.0,,,,,5.0,648ea215,Actividad 4.2 - Corte temporal enlace 30s

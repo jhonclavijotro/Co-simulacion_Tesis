@@ -5,8 +5,8 @@
 - **Contrato:** D-25 v1 (Anexo O-10) · Semilla base: `42`
 - **Duración:** 300.0 s (601 muestras a 2 Hz)
 - **Telemetría SHA-256:** `ba21fe9b34ee0c8383788663eea492ae2d94d32ec4964bf5f7656a5bb5f9600a` (601 filas, 127559 B)
-- **Contingencias SHA-256:** `03ef3429c3db4600b46fcc6ed45c5bdb2ebe1b9b39ea0deab0b4f944e2d40392`
-- **Manifiesto SHA-256:** `9c4dfc8726906743745618c1509294f09d5335f153d0b842aa9a02bbbe735d1b`
+- **Contingencias SHA-256:** `dbbdf606ec2f2627bf12770862797549ad1ed2e3aa4cf86254bad63108ee355e`
+- **Manifiesto SHA-256:** `c67f84452f41c1224831649e90a80e6ae9ec67a5f8b222552960e396fcc74e5b`
 
 ## 1. Resumen Ejecutivo de Tramos de Evaluación
 
