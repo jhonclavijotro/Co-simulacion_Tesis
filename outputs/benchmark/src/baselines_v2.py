@@ -7,7 +7,7 @@ Implementa los cinco controladores evaluados según benchmark-spec-v2.md §5:
   2. PI centralizado (SPoF / referencia clásica de control secundario)
   3. DAPI: Consenso asintótico lineal (Simpson-Porco et al., 2015 - IEEE TIE 62(11))
   4. FTS: Consenso en tiempo finito simple (Wang et al., 2021 - Energies 14(19))
-  5. FxTS: Consenso en tiempo fijo de la tesis (importado desde Agents.finite_time_consensus)
+  5. FxTS: Consenso en tiempo fijo de la tesis (importado desde Agents.fixed_time_consensus)
 
 Cada línea base soporta dos modalidades de sintonización:
   - "published": Parámetros tal como aparecen en los papers de referencia.
@@ -25,7 +25,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Agents.finite_time_consensus import FixedTimeConsensusAgent, sig_pow
+from Agents.fixed_time_consensus import FixedTimeConsensusAgent, sig_pow
 
 
 class BaseSecondaryController:
@@ -242,7 +242,7 @@ class FTSController(BaseSecondaryController):
 class FxTSControllerWrapper(BaseSecondaryController):
     """
     5. FxTS: Consenso en Tiempo Fijo de la Tesis.
-    IMPORTA DIRECTAMENTE FixedTimeConsensusAgent desde Agents.finite_time_consensus.
+    IMPORTA DIRECTAMENTE FixedTimeConsensusAgent desde Agents.fixed_time_consensus.
     Garantiza cota independiente del estado inicial respetando CFL.
     """
     def __init__(

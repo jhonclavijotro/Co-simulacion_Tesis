@@ -5,7 +5,7 @@ import math
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from Agents.finite_time_consensus import FixedTimeConsensusAgent, FiniteTimeConsensusAgent
+from Agents.fixed_time_consensus import FixedTimeConsensusAgent, FiniteTimeConsensusAgent
 from Diesel.SistemaDiesel import SistemaDiesel
 from BESS.SistemaBESS import SistemaBESS
 from Agents.node_dynamic_process import NodeDynamicProcess

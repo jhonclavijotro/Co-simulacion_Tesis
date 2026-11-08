@@ -10,7 +10,7 @@ import zmq
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from Agents.node_dynamic_process import NodeDynamicProcess
-from Agents.finite_time_consensus import FixedTimeConsensusAgent
+from Agents.fixed_time_consensus import FixedTimeConsensusAgent
 
 
 class DistributedNodeRunner:

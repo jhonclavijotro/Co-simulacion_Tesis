@@ -1,0 +1,189 @@
+[
+ {
+  "doi": "10.1109/TCYB.2022.3218026",
+  "status": "OK",
+  "title": "Event-Triggered Distributed Secondary Control With Model-Free Predictive Compensation in AC/DC Networked Microgrids Under DoS Attacks",
+  "container": "IEEE Transactions on Cybernetics",
+  "issued": "2024-1",
+  "volume": "54",
+  "issue": "1",
+  "page": "298-307",
+  "authors": [
+   "Hanqing Yang",
+   "Tieshan Li",
+   "Yue Long",
+   "Yang Xiao"
+  ],
+  "abstract": "This article presents an event-triggered distributed secondary control with predictive compensation based on the model-free predictive control under Denial-of-Service (DoS) attacks in ac/dc-networked microgrids. First, models of ac/dc networked microgrids in both electric network and communication network are established. On this premise, event-triggered distributed secondary control is proposed to solve the problems of strong communication burden and low-power distribution accuracy. Besides, aiming at the impact of DoS attacks on distributed secondary control, a compensation algorithm based on model-free predictive control is designed to estimate the control variables when the DoS attack occurs, which can improve the control performance and maintain the stable operation without a specific system structure system. Then, the convergence of event-triggered distributed secondary control with the condition of whether DoS attacks happen are analyzed. Finally, the effectiveness of the proposed control is verified on the hardware-in-loop (HIL) simulation platform consisting of the RT-LAB simulator, MATLAB/Simulink simulation model, and DSP controller.",
+  "citations": 41
+ },
+ {
+  "doi": "10.1016/j.epsr.2025.111646",
+  "status": "OK",
+  "title": "Controller design and weight optimization for discrete-time distributed secondary voltage control of AC microgrids",
+  "container": "Electric Power Systems Research",
+  "issued": "2025-9",
+  "volume": "246",
+  "issue": null,
+  "page": "111646",
+  "authors": [
+   "Lei Huang",
+   "Wei Sun",
+   "Qiyue Li",
+   "Weitao Li"
+  ],
+  "abstract": null,
+  "citations": 4
+ },
+ {
+  "doi": "10.1016/j.apenergy.2024.124722",
+  "status": "OK",
+  "title": "Privacy-preserving distributed secondary voltage control with predefined-time convergence for microgrids",
+  "container": "Applied Energy",
+  "issued": "2025-1",
+  "volume": "378",
+  "issue": null,
+  "page": "124722",
+  "authors": [
+   "Hao Li",
+   "Ting Yang",
+   "Hengyu Wang",
+   "Yanhong Chen"
+  ],
+  "abstract": null,
+  "citations": 6
+ },
+ {
+  "doi": "10.1109/TCSI.2024.3449896",
+  "status": "OK",
+  "title": "Distributed Resilient Secondary Control for AC Microgrids Against Hybrid Attacks",
+  "container": "IEEE Transactions on Circuits and Systems I: Regular Papers",
+  "issued": "2024-11",
+  "volume": "71",
+  "issue": "11",
+  "page": "5211-5220",
+  "authors": [
+   "Jianwen Zhang",
+   "Sha Fan",
+   "Chao Deng",
+   "Bohui Wang",
+   "Xiangpeng Xie"
+  ],
+  "abstract": "In this paper, the distributed secondary voltage and frequency restoration problem is addressed in AC microgrid systems subjected to hybrid false data injection (FDI) and denial-of-service (DoS) attacks. Firstly, a new distributed resilient iterative estimator based on the k-step estimation method is proposed that can accurately estimate the FDI attack signals as well as the voltage and frequency of each distributed generation (DG) even under the impact of DoS attacks. Then, based on the mean value of the attack estimation signal, a distributed resilient secondary controller is designed to compensate for the considered hybrid attacks. Compared with existing researches on resilient control of AC microgrids under hybrid attacks, the voltage and frequency regulation errors of the microgrid system converge to zero for the first time. Finally, the precise convergence of voltage and frequency in the AC microgrid system under the proposed method is verified through a real-time controller-hardware-in-the-loop experiment in OPAL-RT.",
+  "citations": 26
+ },
+ {
+  "doi": "10.1109/TCYB.2024.3364820",
+  "status": "OK",
+  "title": "Distributed Dynamic Event-Triggered Control for Voltage Recovery in Islanded Microgrids by Using Artificial Delays",
+  "container": "IEEE Transactions on Cybernetics",
+  "issued": "2024-7",
+  "volume": "54",
+  "issue": "7",
+  "page": "3890-3903",
+  "authors": [
+   "Amedeo Andreotti",
+   "Bianca Caiazzo",
+   "Emilia Fridman",
+   "Alberto Petrillo",
+   "Stefania Santini"
+  ],
+  "abstract": "This article tackles secondary voltage recovery problem in islanded microgrids with the aim of reducing communication frequency among distributed generation (DG) units, while maintaining desired performance and saving communication network workload. To pursue this objective, a distributed proportional-integral-derivative controller is first introduced, whose sampled-data implementation is enabled by leveraging the finite-difference approximation for the derivative action, which leads to a distributed proportional-integral-retarded (PIR) controller with a small enough sampling period $h>0$ . Then, the resulting fully distributed PIR control law is combined with a dynamic event-triggered mechanism (DETM), which embeds Zeno-freeness property and avoids the requirement of continuous transmission in triggering process. Thus, the communication burden is significantly mitigated and the waste of communication resources is avoided. By exploiting Lyapunov–Krasovkii method, we derive exponential stability conditions expressed as linear matrix inequalities (LMIs), whose solution allows evaluating the maximum sampling period and DETM parameters preserving the stability of the microgrid. A thorough numerical analysis, carried out on the standard IEEE 14-bus test system, confirms the theoretical derivation.",
+  "citations": 28
+ },
+ {
+  "doi": "10.1016/j.segan.2025.102068",
+  "status": "OK",
+  "title": "Distributed dynamic event-triggered predefined-time secondary control for islanded microgrids with disturbance rejection",
+  "container": "Sustainable Energy, Grids and Networks",
+  "issued": "2026-3",
+  "volume": "45",
+  "issue": null,
+  "page": "102068",
+  "authors": [
+   "Junjie Guan",
+   "Shiming Chen",
+   "Huijun Xu",
+   "Zheng Zhang",
+   "Xin Huang",
+   "Yang Zhang"
+  ],
+  "abstract": null,
+  "citations": 0
+ },
+ {
+  "doi": "10.1049/rpg2.70055",
+  "status": "OK",
+  "title": "Resilient Distributed Predefined Time Secondary Control for Cyber‐Physical Microgrids",
+  "container": "IET Renewable Power Generation",
+  "issued": "2025-1",
+  "volume": "19",
+  "issue": "1",
+  "page": null,
+  "authors": [
+   "Junfeng Tan",
+   "Fan Zhang",
+   "Yanlu Huang",
+   "Shuai Zhao",
+   "Hongyu Su"
+  ],
+  "abstract": "This paper proposed a resilient distributed predefined‐time sliding mode control for islanded AC microgrids with external disturbances caused by noisy circumstances or cyber‐attacks. By utilizing the predefined‐time convergence theory, the voltage regulation and frequency restoration as well as active power sharing can be achieved within a predefined time, which is directly equal to an adjustable parameter. Furthermore, based on the integral sliding mode control approach, the proposed method can completely compensate the external disturbance. Different from some voltage control methods based on complex second‐order consensus, a novel secondary controller is designed by adopting the virtual control technique, such that the voltage regulation can be achieved under a first‐order consensus with a corresponding tracking controller. In addition, the direct Lyapunov method is utilized to prove the stability of islanded AC microgrids under the proposed controller, and the analysis of predefined‐time convergence is also given. Finally, case studies on a microgrid test system with four distributed generator is built in the MATLAB/SimPowerSystems software environment are conducted to demonstrate the effectiveness and superior performance of the proposed control scheme.",
+  "citations": 4
+ },
+ {
+  "doi": "10.3390/en18071755",
+  "status": "OK",
+  "title": "Fully Distributed Consensus Voltage Restoration Control Based on Dynamic Event-Triggered Mechanisms for Offshore Wind Power Systems",
+  "container": "Energies",
+  "issued": "2025-3-31",
+  "volume": "18",
+  "issue": "7",
+  "page": "1755",
+  "authors": [
+   "Dawei Chen",
+   "Zhijie Zeng",
+   "Ye Tian",
+   "Chenyu Wang",
+   "Jun Xiao",
+   "Xiaoqing Lin"
+  ],
+  "abstract": "Although voltage regulation in distributed generation (DG) in offshore wind power systems has been deeply studied, information on the global communication network structure and high communication bandwidths still remain key factors restricting the integration of a high proportion of new energy sources. In order to achieve precise voltage regulation while reducing communication, this paper proposes a fully distributed dynamic event-triggered secondary voltage restoration control for offshore wind power systems. Firstly, the nonlinear system model is switched to the linear second-order multi-agent system (MAS) by feedback linearization. This is a crucial step for the subsequent research. From there, a fully distributed voltage restoration control strategy is proposed, which utilizes adaptive event-triggered protocol. The proposed protocol operates independently of global information. Finally, the effectiveness of the control protocol is verified through simulation.",
+  "citations": 3
+ },
+ {
+  "doi": "10.1109/JSYST.2024.3469932",
+  "status": "OK",
+  "title": "Distributed Event-Triggered Fixed-Time Secondary Voltage Control and Automatic Power Sharing for MTDC Grids",
+  "container": "IEEE Systems Journal",
+  "issued": "2024-12",
+  "volume": "18",
+  "issue": "4",
+  "page": "2010-2021",
+  "authors": [
+   "Xinghua Liu",
+   "Jun Yan",
+   "Gaoxi Xiao",
+   "Xiaoyue Zhang",
+   "Tianyang Zhao",
+   "Peng Wang"
+  ],
+  "abstract": "In this article, a novel distributed secondary voltage and active power-sharing control strategy with a Zeno-free event triggering mechanism is proposed, to overcome voltage deviation and inaccurate power-sharing caused by the conventional V-P droop control strategy in multiterminal high voltage direct current grids. The secondary controllers can achieve the voltage restoration and proportional active power sharing within a fixed time. Utilizing the Lyapunov method, the trigger function and trigger condition for the controllers of each voltage source converter (VSC) station are designed, resulting in a significant reduction in the number of controller triggers during system transients and steady state. The fixed-time stabilization theory is employed, which allows a faster convergence performance. Moreover, by using the tanh function, we can get rigorous proof of avoiding Zeno behavior. Finally, a simulation model of five connecting VSC stations is built to demonstrate the satisfactory performance of the proposed control strategy.",
+  "citations": 5
+ },
+ {
+  "doi": "10.1016/j.amc.2024.129184",
+  "status": "OK",
+  "title": "Fully distributed event-triggered secondary voltage resilient tracking control for microgrids",
+  "container": "Applied Mathematics and Computation",
+  "issued": "2025-4",
+  "volume": "490",
+  "issue": null,
+  "page": "129184",
+  "authors": [
+   "Xin-Yu Liu",
+   "Wei-Wei Che"
+  ],
+  "abstract": null,
+  "citations": 3
+ }
+]

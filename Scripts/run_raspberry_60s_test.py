@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from Central_PC.power_flow_fbs import ForwardBackwardSweepSolver
 from Agents.node_dynamic_process import NodeDynamicProcess
-from Agents.finite_time_consensus import FixedTimeConsensusAgent
+from Agents.fixed_time_consensus import FixedTimeConsensusAgent
 from Agents.network_impairment_proxy import NetworkImpairmentProxy
 
 

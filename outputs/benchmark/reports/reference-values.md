@@ -1,18 +1,21 @@
 # Valores Canónicos de Referencia — Benchmark v2 (Fase E)
 
-**Run ID:** `20261104T163357_bench-v2_seed42` · **Sustituye a:** `20261104T163322_bench-v2_seed42`
-**Fecha:** 2026-11-04T16:33:57.040647+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
+**Run ID:** `20261108T152458_bench-v2_seed42` · **Sustituye a:** `20261107T161041_bench-v2_seed42`
+**Fecha:** 2026-11-08T15:24:58.942190+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
 **Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0)
 
 ### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
 
 | Componente | Archivo Fuente | Hash SHA-256 |
 |---|---|---|
-| `controller_finite_time_consensus` | `controller_finite_time_consensus` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
-| `config_bench_8nodos` | `config_bench_8nodos` | `54fafa87411bbca16a51cdeb6f0b45827511a93b3ce3b09d0e91e5ddd8b12805` |
-| `harness_v2` | `harness_v2` | `04d31402d999c910b2c9158780dc1918ff21b0f3dad2be7cfe029f96f38bb781` |
-| `baselines_v2` | `baselines_v2` | `83a5f1e08750538418d69e6b6bbfaf7386ec375d7dfc01d82550ce17b9a9d713` |
-| `metrics_v2` | `metrics_v2` | `30d6852ebfa61857f13fd07fcce2f419005d17ed14166cfca1caa039619e6ecf` |
+| `controller_fixed_time_consensus` | `Agents/fixed_time_consensus.py` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
+| `shim_finite_time_consensus` | `Agents/finite_time_consensus.py` | `56c96ac4e5065177921abaa447878e4f4c39d027778b448df9c1045e431e6c36` |
+| `config_bench_8nodos` | `configs/bench_8nodos.yaml` | `c43361fcee83e5dc63b7d5264922a83361e7e472282dcf4d5d6c336c4cfd5c9c` |
+| `harness_v2` | `src/harness.py` | `82c3edab6e13dac23e04349a87c5047c0a836f703d514580e8f8b6eff807cece` |
+| `baselines_v2` | `src/baselines_v2.py` | `1de02a79355f92f73b50993da4d4f97c7aba23ad7807465757bfb7f1cbfd1373` |
+| `metrics_v2` | `src/metrics_v2.py` | `ff689bcacd77e2fa5b8db18bddce3b03bfe48b26d9e295a19c0ca9aef88f73a9` |
+| `run_benchmark` | `src/run_benchmark.py` | `506e5a835bf58aa4422b91760641435bacac170df2a6cf7c59d9d9bc088e3fed` |
+| `solar_hold_nodal_benchmark` | `src/experiments/solar_hold_nodal_benchmark.py` | `53e532678b01f9af603da5d6216f14a3db885003508833e3bf80f70a8d7b31fd` |
 
 ---
 
@@ -44,7 +47,7 @@
    - Conforme a D-18 (Opción C), $\tau_{crit}$ se calcula analíticamente desde la estabilidad numérica de capa límite: $\tau_{crit} = \frac{2.0}{\lambda_{\max}(\mathcal{H}) \cdot g_{\text{ef}}} - \Delta t$ con $\lambda_{\max}(\mathcal{H}) = 3.247$.
    - **FxTS alcanza $\tau_{crit} = 96.3$ ms**, superando el umbral normativo de 50.0 ms con un factor de seguridad de 1.93×.
    - FTS alcanza 118.9 ms y DAPI 2579.8 ms. Droop y PI centralizado registran N/A al carecer de capa de consenso distribuido.
-   - **Criterio CFL Nodal vs Condición Espectral Gobernante (D-22):** G7 evalúa la cota suficiente de soporte nodal $\Delta t \cdot d_{\max}(c_1+c_2) = 0.4000 < 1.0$ (margen de seguridad del 60.0%). Sin embargo, la condición de estabilidad numérica gobernante demostrada en el manuscrito (`TEORIA.tex:218`) es el radio espectral de capa límite continua: $\Delta t \cdot \lambda_{\max}(\mathcal{H}) g_{\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×). Ambos criterios confirman la estabilidad incondicional de la simulación.
+   - **Condición Espectral Gobernante vs Cota Nodal de Soporte (D-22):** G7 evalúa la condición espectral gobernante de estabilidad numérica demostrada en el manuscrito (`TEORIA.tex:218`): $\Delta t \cdot \lambda_{\max}(\mathcal{H}) g_{\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×), y la cota de soporte nodal $\Delta t \cdot d_{\max}(c_1+c_2) = 0.4000 < 1.0$ como soporte suficiente no gobernante. Ambos criterios confirman la estabilidad condicional con margen espectral del 16.2% de la simulación.
 4. **Contraste con FTS (Tiempo Finito Simple) y DAPI (Asintótico):**
    - FTS exhibe dependencia del estado inicial; FxTS garantiza cota previa independiente de las condiciones de perturbación.
    - DAPI (con su factoría corregida post-S20) restablece frecuencia y reparte potencias asintóticamente, pero sin cota temporal analítica.
@@ -52,4 +55,4 @@
    - Droop puro es incapaz de eliminar el error de frecuencia y tensión estacionarios.
    - PI centralizado logra respuesta rápida pero introduce un punto único de fallo (SPoF) y vulnerabilidad cibernética.
 
-**Dictamen de Validez Científica:** Los valores anteriores son reproducibles bit a bit utilizando la semilla 42 y los hashes fijados en el manifiesto.
+**Dictamen de Validez Científica:** Las series se reproducen con la semilla 42 y los hashes del manifiesto; el manifiesto registra versión de Python y plataforma, y los artefactos con marca de tiempo no tienen hash estable.

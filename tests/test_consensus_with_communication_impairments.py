@@ -5,7 +5,7 @@ from typing import Dict, List, Any
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from Agents.finite_time_consensus import FiniteTimeConsensusAgent
+from Agents.fixed_time_consensus import FixedTimeConsensusAgent, FiniteTimeConsensusAgent
 from Agents.network_impairment_proxy import NetworkImpairmentProxy
 
 def simulate_mas_consensus(

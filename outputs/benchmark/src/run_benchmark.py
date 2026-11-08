@@ -55,11 +55,14 @@ def load_config() -> Dict[str, Any]:
 
 
 def build_system_manifest(config_path: str) -> Dict[str, Any]:
-    """Genera el manifiesto del entorno y hashes para reproducibilidad bit a bit."""
-    controller_path = os.path.join(PROJECT_ROOT, "Agents", "finite_time_consensus.py")
+    """Genera el manifiesto del entorno y hashes para reproducibilidad determinista."""
+    controller_path = os.path.join(PROJECT_ROOT, "Agents", "fixed_time_consensus.py")
+    shim_path = os.path.join(PROJECT_ROOT, "Agents", "finite_time_consensus.py")
     harness_path = os.path.join(os.path.dirname(__file__), "harness.py")
     baselines_path = os.path.join(os.path.dirname(__file__), "baselines_v2.py")
     metrics_path = os.path.join(os.path.dirname(__file__), "metrics_v2.py")
+    run_benchmark_path = os.path.abspath(__file__)
+    solar_hold_path = os.path.join(os.path.dirname(__file__), "experiments", "solar_hold_nodal_benchmark.py")
 
     return {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -69,11 +72,14 @@ def build_system_manifest(config_path: str) -> Dict[str, Any]:
         "plant_model": "algebraic-kinematic (D-13)",
         "boundary_hold_applied": False,
         "file_hashes_sha256": {
-            "controller_finite_time_consensus": calculate_sha256(controller_path),
+            "controller_fixed_time_consensus": calculate_sha256(controller_path),
+            "shim_finite_time_consensus": calculate_sha256(shim_path),
             "config_bench_8nodos": calculate_sha256(config_path),
             "harness_v2": calculate_sha256(harness_path),
             "baselines_v2": calculate_sha256(baselines_path),
-            "metrics_v2": calculate_sha256(metrics_path)
+            "metrics_v2": calculate_sha256(metrics_path),
+            "run_benchmark": calculate_sha256(run_benchmark_path),
+            "solar_hold_nodal_benchmark": calculate_sha256(solar_hold_path)
         }
     }
 
@@ -430,7 +436,7 @@ def run_phase_e(cfg: Dict[str, Any], seed: int = 42) -> str:
     with open(os.path.join(results_dir, "gates.md"), "w", encoding="utf-8") as f:
         f.write(gates_md_content)
 
-    # Escribir CURRENT.json declarando la corrida canónica activa vigente (D-19, S-23)
+    # Escribir CURRENT.json declarando la corrida canónica activa vigente (D-19, S-23, S-28)
     manifest_sha = calculate_sha256(os.path.join(results_dir, "manifest.json"))
     current_meta = {
         "run_id": run_id,
@@ -440,6 +446,8 @@ def run_phase_e(cfg: Dict[str, Any], seed: int = 42) -> str:
         "seed": manifest.get("seed", 42),
         "scenario": manifest.get("scenario", "E1"),
         "manifest_sha256": manifest_sha,
+        "plant_model": manifest.get("plant_model", "algebraic-kinematic (D-13)"),
+        "boundary_hold_applied": manifest.get("boundary_hold_applied", False),
         "supersedes": previous_run_id,
         "canonical": True,
         "all_gates_passed_fxts": any(s["all_gates"] for s in summary_records if "fxts" in s["key"])
@@ -447,10 +455,12 @@ def run_phase_e(cfg: Dict[str, Any], seed: int = 42) -> str:
     with open(current_json_path, "w", encoding="utf-8") as f:
         json.dump(current_meta, f, indent=2)
 
-    # Generar reporte canónico reports/reference-values.md
+    # Generar reporte canónico reports/reference-values.md e inmutable en results_dir
     ref_md_content = generate_reference_values_markdown(summary_records, manifest)
     ref_report_path = os.path.join(os.path.dirname(__file__), "..", "reports", "reference-values.md")
     with open(ref_report_path, "w", encoding="utf-8") as f:
+        f.write(ref_md_content)
+    with open(os.path.join(results_dir, "reference-values.md"), "w", encoding="utf-8") as f:
         f.write(ref_md_content)
 
     print(f"\n[+] Resultados archivados en: {results_dir}")
@@ -522,8 +532,19 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         "| Componente | Archivo Fuente | Hash SHA-256 |",
         "|---|---|---|"
     ]
+    file_display_names = {
+        "controller_fixed_time_consensus": "Agents/fixed_time_consensus.py",
+        "shim_finite_time_consensus": "Agents/finite_time_consensus.py",
+        "config_bench_8nodos": "configs/bench_8nodos.yaml",
+        "harness_v2": "src/harness.py",
+        "baselines_v2": "src/baselines_v2.py",
+        "metrics_v2": "src/metrics_v2.py",
+        "run_benchmark": "src/run_benchmark.py",
+        "solar_hold_nodal_benchmark": "src/experiments/solar_hold_nodal_benchmark.py"
+    }
     for k, v in manifest["file_hashes_sha256"].items():
-        lines.append(f"| `{k}` | `{os.path.basename(k)}` | `{v}` |")
+        fname = file_display_names.get(k, os.path.basename(k))
+        lines.append(f"| `{k}` | `{fname}` | `{v}` |")
 
     lines.extend([
         "",
@@ -570,7 +591,7 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         f"   - Conforme a D-18 (Opción C), $\\tau_{{crit}}$ se calcula analíticamente desde la estabilidad numérica de capa límite: $\\tau_{{crit}} = \\frac{{2.0}}{{\\lambda_{{\\max}}(\\mathcal{{H}}) \\cdot g_{{\\text{{ef}}}}}} - \\Delta t$ con $\\lambda_{{\\max}}(\\mathcal{{H}}) = 3.247$.",
         f"   - **FxTS alcanza $\\tau_{{crit}} = {fxts_tau:.1f}$ ms**, superando el umbral normativo de 50.0 ms con un factor de seguridad de 1.93×.",
         "   - FTS alcanza 118.9 ms y DAPI 2579.8 ms. Droop y PI centralizado registran N/A al carecer de capa de consenso distribuido.",
-        "   - **Criterio CFL Nodal vs Condición Espectral Gobernante (D-22):** G7 evalúa la cota suficiente de soporte nodal $\\Delta t \\cdot d_{\\max}(c_1+c_2) = 0.4000 < 1.0$ (margen de seguridad del 60.0%). Sin embargo, la condición de estabilidad numérica gobernante demostrada en el manuscrito (`TEORIA.tex:218`) es el radio espectral de capa límite continua: $\\Delta t \\cdot \\lambda_{\\max}(\\mathcal{H}) g_{\\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×). Ambos criterios confirman la estabilidad incondicional de la simulación.",
+        "   - **Condición Espectral Gobernante vs Cota Nodal de Soporte (D-22):** G7 evalúa la condición espectral gobernante de estabilidad numérica demostrada en el manuscrito (`TEORIA.tex:218`): $\\Delta t \\cdot \\lambda_{\\max}(\\mathcal{H}) g_{\\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×), y la cota de soporte nodal $\\Delta t \\cdot d_{\\max}(c_1+c_2) = 0.4000 < 1.0$ como soporte suficiente no gobernante. Ambos criterios confirman la estabilidad condicional con margen espectral del 16.2% de la simulación.",
         "4. **Contraste con FTS (Tiempo Finito Simple) y DAPI (Asintótico):**",
         "   - FTS exhibe dependencia del estado inicial; FxTS garantiza cota previa independiente de las condiciones de perturbación.",
         "   - DAPI (con su factoría corregida post-S20) restablece frecuencia y reparte potencias asintóticamente, pero sin cota temporal analítica.",
@@ -578,7 +599,7 @@ def generate_reference_values_markdown(summary: List[Dict[str, Any]], manifest: 
         "   - Droop puro es incapaz de eliminar el error de frecuencia y tensión estacionarios.",
         "   - PI centralizado logra respuesta rápida pero introduce un punto único de fallo (SPoF) y vulnerabilidad cibernética.",
         "",
-        "**Dictamen de Validez Científica:** Los valores anteriores son reproducibles bit a bit utilizando la semilla 42 y los hashes fijados en el manifiesto."
+        "**Dictamen de Validez Científica:** Las series se reproducen con la semilla 42 y los hashes del manifiesto; el manifiesto registra versión de Python y plataforma, y los artefactos con marca de tiempo no tienen hash estable."
     ])
     return "\n".join(lines)
 

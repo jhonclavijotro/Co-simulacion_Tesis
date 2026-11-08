@@ -1,0 +1,57 @@
+# Valores Canónicos de Referencia — Benchmark v2 (Fase E)
+
+**Run ID:** `20261107T161041_bench-v2_seed42` · **Sustituye a:** `20261104T163357_bench-v2_seed42`
+**Fecha:** 2026-11-07T16:10:41.047374+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
+**Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0)
+
+### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
+
+| Componente | Archivo Fuente | Hash SHA-256 |
+|---|---|---|
+| `controller_finite_time_consensus` | `Agents/finite_time_consensus.py` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
+| `config_bench_8nodos` | `configs/bench_8nodos.yaml` | `c43361fcee83e5dc63b7d5264922a83361e7e472282dcf4d5d6c336c4cfd5c9c` |
+| `harness_v2` | `src/harness.py` | `04d31402d999c910b2c9158780dc1918ff21b0f3dad2be7cfe029f96f38bb781` |
+| `baselines_v2` | `src/baselines_v2.py` | `83a5f1e08750538418d69e6b6bbfaf7386ec375d7dfc01d82550ce17b9a9d713` |
+| `metrics_v2` | `src/metrics_v2.py` | `ff689bcacd77e2fa5b8db18bddce3b03bfe48b26d9e295a19c0ca9aef88f73a9` |
+| `run_benchmark` | `src/run_benchmark.py` | `1a9aa369a1fad5d9e6b0c1e251782ea2a09f4569dc86db7dad724e103c0c418b` |
+| `solar_hold_nodal_benchmark` | `src/experiments/solar_hold_nodal_benchmark.py` | `53e532678b01f9af603da5d6216f14a3db885003508833e3bf80f70a8d7b31fd` |
+
+---
+
+## 1. Tabla Comparativa de Desempeño Multicriterio
+
+| Controlador / Línea Base | Sintonización | $t_{s, \text{norm}}$ [s] | $t_s(10\%)$ [s] | $t_s(5\%)$ [s] | $t_s(2\%)$ [s] | $\Delta f_{p\text{-}p}$ [Hz] | $\Delta \eta_Q$ | $\Delta \eta_P$ | $e_V$ [p.u.] | $e_\omega$ [Hz] | CFL (Espectral) | $\tau_{\text{crit}}$ | Gates |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Droop Puro (Guerrero 2011)** | `published` | ∞ | ∞ | ∞ | ∞ | 0.0000 | 0.0800 | 0.1867 | 0.2000 | 0.4667 | `0.00 (OK)` | `N/A` | REPROBADO |
+| **Droop Puro (Optimizado)** | `optimized` | ∞ | ∞ | ∞ | ∞ | 0.0000 | 0.0800 | 0.1867 | 0.2000 | 0.4667 | `0.00 (OK)` | `N/A` | REPROBADO |
+| **PI Centralizado (Canónico)** | `published` | 8.50 | 11.00 | 13.50 | 16.00 | 0.0000 | 0.0800 | 0.1867 | 0.0001 | 0.0000 | `0.25 (OK)` | `N/A` | REPROBADO |
+| **PI Centralizado (Optimizado)** | `optimized` | 7.00 | 11.50 | 12.50 | 17.50 | 0.0000 | 0.0800 | 0.1867 | 0.0000 | 0.0000 | `0.25 (OK)` | `N/A` | REPROBADO |
+| **DAPI (Simpson-Porco 2015)** | `published` | 26.00 | 45.50 | 70.00 | ∞ | 0.0120 | 0.0000 | 0.0000 | 0.0088 | 0.0236 | `0.16 (OK)` | `2579.8 ms` | REPROBADO |
+| **DAPI (Optimizado)** | `optimized` | 23.50 | 41.50 | 63.50 | ∞ | 0.0107 | 0.0000 | 0.0000 | 0.0067 | 0.0198 | `0.18 (OK)` | `2299.8 ms` | REPROBADO |
+| **FTS Tiempo Finito (Wang 2021)** | `published` | 21.50 | 33.00 | 45.50 | 62.50 | 0.0075 | 0.0000 | 0.0000 | 0.0000 | 0.0063 | `0.81 (OK)` | `118.9 ms` | **APROBADO** |
+| **FTS Tiempo Finito (Optimizado)** | `optimized` | 15.50 | 23.00 | 31.00 | 41.50 | 0.0017 | 0.0047 | 0.0047 | 0.0017 | 0.0009 | `1.60 (VIOL)` | `-187.0 ms` | REPROBADO |
+| **FxTS Tiempo Fijo (La Tesis - Certificado)** | `published` | 13.00 | 21.50 | 31.50 | 46.00 | 0.0029 | 0.0000 | 0.0000 | 0.0000 | 0.0018 | `0.84 (OK)` | `96.3 ms` | **APROBADO** |
+
+---
+
+## 2. Hallazgos Científicos y Conclusiones del Capítulo 5
+
+1. **Cota de Lyapunov Certificada vs Desempeño Medido (D-12):**
+   - La cota teórica estricta de tiempo de asentamiento de Lyapunov para el grafo en línea ($N=3, \lambda_2=1.0$) es $T_f \le 52.54$ s.
+   - El controlador **FxTS de la tesis converge en $t_{s, \text{norm}} = 13.0$ s** ($|e_f| \le 0.100$ Hz, Energies 2023 eq. 11), asentándose holgadamente antes de la cota analítica (margen de 4.0×).
+2. **Activación Rigurosa de Reparto de Potencias (D-14, K6):**
+   - Con capacidades dispersas ($P_{\max} = [50, 40, 30]$ kW, $Q_{\max} = [50, 40, 30]$ kvar), Droop puro deja un desbalance estacionario severo ($\Delta\eta_Q = 0.0800$, $\Delta\eta_P = 0.1867$), reprobando G3 y G4.
+   - Los controladores secundarios distribuidos (FxTS, DAPI, FTS) restauran el balance igualando los ratios a $\Delta\eta < 0.020$, superando ambos gates.
+3. **Tolerancia a Retardo de Red y Estabilidad Numérica (D-18, D-22):**
+   - Conforme a D-18 (Opción C), $\tau_{crit}$ se calcula analíticamente desde la estabilidad numérica de capa límite: $\tau_{crit} = \frac{2.0}{\lambda_{\max}(\mathcal{H}) \cdot g_{\text{ef}}} - \Delta t$ con $\lambda_{\max}(\mathcal{H}) = 3.247$.
+   - **FxTS alcanza $\tau_{crit} = 96.3$ ms**, superando el umbral normativo de 50.0 ms con un factor de seguridad de 1.93×.
+   - FTS alcanza 118.9 ms y DAPI 2579.8 ms. Droop y PI centralizado registran N/A al carecer de capa de consenso distribuido.
+   - **Condición Espectral Gobernante vs Cota Nodal de Soporte (D-22):** G7 evalúa la condición espectral gobernante de estabilidad numérica demostrada en el manuscrito (`TEORIA.tex:218`): $\Delta t \cdot \lambda_{\max}(\mathcal{H}) g_{\text{ef}} = 1.677 < 2.0$, con un **margen espectral gobernante del 16.2%** (factor de seguridad 1.19×), y la cota de soporte nodal $\Delta t \cdot d_{\max}(c_1+c_2) = 0.4000 < 1.0$ como soporte suficiente no gobernante. Ambos criterios confirman la estabilidad condicional con margen espectral del 16.2% de la simulación.
+4. **Contraste con FTS (Tiempo Finito Simple) y DAPI (Asintótico):**
+   - FTS exhibe dependencia del estado inicial; FxTS garantiza cota previa independiente de las condiciones de perturbación.
+   - DAPI (con su factoría corregida post-S20) restablece frecuencia y reparte potencias asintóticamente, pero sin cota temporal analítica.
+5. **Límites de Droop y PI Centralizado:**
+   - Droop puro es incapaz de eliminar el error de frecuencia y tensión estacionarios.
+   - PI centralizado logra respuesta rápida pero introduce un punto único de fallo (SPoF) y vulnerabilidad cibernética.
+
+**Dictamen de Validez Científica:** Las series se reproducen con la semilla 42 y los hashes del manifiesto; el manifiesto registra versión de Python y plataforma, y los artefactos con marca de tiempo no tienen hash estable.

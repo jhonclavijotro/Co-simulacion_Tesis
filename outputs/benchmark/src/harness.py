@@ -4,7 +4,7 @@ Tesis de Grado: Control Secundario Distribuido en Tiempo Fijo (FxTS).
 
 REGLA FUNDAMENTAL:
   El harness importa directamente el controlador bajo prueba desde
-  Agents.finite_time_consensus. No duplica ni reimplementa la lógica de control.
+  Agents.fixed_time_consensus. No duplica ni reimplementa la lógica de control.
 
 Actualizaciones post-auditoría S-18:
   - D-12: Bandas normativas obligatorias (+-0.10 Hz y +-0.005 pu).
