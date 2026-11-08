@@ -31,6 +31,7 @@ __pycache__/
 !Forms/*.csv
 !Forms/**/*.csv
 !outputs/benchmark/results/**/*.csv
+!outputs/resilience/results/**/*.csv
 *.xlsx
 *.log
 resultados_solar.csv
@@ -41,6 +42,9 @@ share/
 
 # Excluir documentación de tesis (LaTeX)
 Thesis_LaTeX/
+
+# Backups temporales de generador de escenarios
+Forms/_respaldo/
 
 # Excluir bóveda de notas de Obsidian
 obsidian_vault/
@@ -53,3 +57,4 @@ obsidian_vault/
 !README.md
 !outputs/benchmark/reports/*.md
 !outputs/benchmark/results/**/*.md
+!outputs/resilience/**/*.md

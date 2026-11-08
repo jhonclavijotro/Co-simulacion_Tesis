@@ -1,0 +1,81 @@
+id: ESC-HIL-007
+slug: excedente_referencia
+familia: hil_corto
+descripcion: Ensayo HIL de 5 minutos (ventana 06:30) con la misma demanda, topologia
+  y ventana que ESC-HIL-006, pero con POA de 350 W/m2 durante toda la ventana. La
+  generacion disponible (8.6 kW del diesel + 0.586 kW solar) no alcanza a la carga
+  (9.365-9.952 kW), de modo que la holgura es negativa y no hay excedente. Perfil
+  de contraste de la familia (2) de D-24.
+trazabilidad:
+  deriva_de: ESC-HIL-003_consolidado_rev5
+  esquema_datos: consolidado_rev5
+  cambios_respecto_al_origen: ventana 06:30, POA de 350 W/m2 en toda la ventana, demanda
+    sin los tres escalones del origen y bloque declarativo regimen_excedente de tipo
+    referencia.
+  equivalencia: no aplica; es un ensayo fisico distinto y se entrega como escenario
+    nuevo. El delta se declara en el cuerpo de la nota y en reporte_capacidad.md.
+  fecha: '2026-11-08'
+regimen_excedente:
+  tipo: referencia
+  ventana_s:
+  - 120
+  - 240
+  poa_min_W_m2: 700.0
+  poa_ventana_W_m2: 351.793
+  p_min_diesel_W: 8600.0
+  p_solar_ventana_kW: 0.5861
+  p_charge_max_W: 3000.0
+  soc_inicial: 0.5
+  holgura_min_kW: -0.766
+  holgura_max_kW: -0.179
+  referencia: ESC-HIL-006_excedente_ventana_declarada
+contrato:
+  max_cambio_rel: 0.3
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 300
+  dt_s: 0.5
+  inicio_absoluto: '2026-11-12T06:30:00-05:00'
+  mapeo_perfil: ventana
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    nodo: 2
+    perfil: dia_claro.csv
+    POA_base_W_m2: 646.15
+    T_amb_C: 20.0
+    eventos: []
+  eolica:
+    activa: false
+    vel_base_m_s: 0.0
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 3.0
+      Q_base_kvar: 1.2
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 4.5
+      Q_base_kvar: 1.8
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 5.0
+      Q_base_kvar: 2.0
+    '7':
+      perfil: residencial.csv
+      P_base_kW: 2.5
+      Q_base_kvar: 1.0
+    '8':
+      perfil: residencial.csv
+      P_base_kW: 2.0
+      Q_base_kvar: 0.8
+  eventos: []
+  ruido:
+    amplitud_rel: 0.02
+contingencias: contingencias_telematicas.csv

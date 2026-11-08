@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from Agents.node_dynamic_process import NodeDynamicProcess
 from Agents.fixed_time_consensus import FixedTimeConsensusAgent
+from Agents.network_impairment_proxy import NetworkImpairmentProxy
 
 
 class DistributedNodeRunner:
@@ -42,7 +43,10 @@ class DistributedNodeRunner:
         p_init: float = 0.0,
         p_charge_max: float = 3000.0,
         p_min_diesel: float = 0.0,
-        operating_mode: str = "OFFLINE"
+        operating_mode: str = "OFFLINE",
+        network_profile: str = "IDEAL",
+        contingencies_file: Optional[str] = None,
+        network_seed: int = 42
     ):
         self.node_id = int(node_id)
         self.source_type = source_type.upper()
@@ -51,6 +55,9 @@ class DistributedNodeRunner:
         self.port_pub = port_pub
         self.p2p_port = p2p_port
         self.neighbors_targets = neighbors or []  # List of "ip:port"
+        self.network_profile = network_profile.upper()
+        self.contingencies_file = contingencies_file
+        self.network_seed = int(network_seed)
 
         # Cargar parámetros generales del escenario si se especifica archivo (S-24 S2)
         if scenario_file and os.path.exists(scenario_file):
@@ -64,8 +71,29 @@ class DistributedNodeRunner:
                     froh_lambda = float(pg["froh_lambda"])
                 elif "zfoh_lambda" in pg:
                     froh_lambda = float(pg["zfoh_lambda"])
+                ec = scen_data.get("emulador_canal", {})
+                if "escenario" in ec and self.network_profile == "IDEAL":
+                    self.network_profile = ec["escenario"].upper()
+                if not self.contingencies_file and "contingencias" in scen_data:
+                    c_path = os.path.join(os.path.dirname(scenario_file), scen_data["contingencias"])
+                    if os.path.exists(c_path):
+                        self.contingencies_file = c_path
             except Exception as e:
                 print(f"[AVISO] No se pudo leer {scenario_file}: {e}")
+
+        # Gestor de perturbaciones telemáticas D-25 / S-34
+        self.impairment_proxy = NetworkImpairmentProxy(
+            profile=self.network_profile,
+            seed=self.network_seed
+        )
+        if self.contingencies_file and os.path.exists(self.contingencies_file):
+            try:
+                self.impairment_proxy.load_contingencies_csv(self.contingencies_file, semilla_base=self.network_seed)
+            except Exception as e:
+                print(f"[AVISO] No se pudieron cargar contingencias telemáticas de {self.contingencies_file}: {e}")
+
+        self.neighbor_cache = {}
+        self.last_delivery_meta = {}
 
         h_mode = hold_mode.upper()
         self.hold_mode = "FROH" if h_mode == "ZFOH" else h_mode
@@ -229,6 +257,7 @@ class DistributedNodeRunner:
 
                 # 4. Consenso P2P: Recoger estados de los vecinos
                 time.sleep(0.01)  # Breve margen de 10ms para transito de paquetes en switch
+                raw_neighbors = {}
                 while True:
                     socks = dict(self.poller_p2p.poll(timeout=10))
                     if self.sub_p2p in socks and socks[self.sub_p2p] == zmq.POLLIN:
@@ -236,7 +265,7 @@ class DistributedNodeRunner:
                             msg_n = self.sub_p2p.recv_json()
                             s_id = msg_n.get("sender_id")
                             if s_id is not None:
-                                neighbor_cache[int(s_id)] = {
+                                raw_neighbors[int(s_id)] = {
                                     "V": msg_n.get("V", 1.0),
                                     "Q_ratio": msg_n.get("Q_ratio", 0.0),
                                     "omega": msg_n.get("omega", 376.99),
@@ -250,7 +279,16 @@ class DistributedNodeRunner:
                     else:
                         break
 
-                # 5. Actualizar ley de control FxTS
+                # Interceptar y perturbar canal mediante proxy de red (D-25 / S-34)
+                filtered_neighbors, delivery_meta = self.impairment_proxy.filter_neighbor_states(
+                    receiver_id=self.node_id,
+                    raw_neighbor_states=raw_neighbors,
+                    current_step=step_idx,
+                    current_time_s=time_s
+                )
+                self.last_delivery_meta = delivery_meta
+
+                # 5. Actualizar ley de control FxTS con vecinos filtrados (disparando retención ZOH si hay pérdidas)
                 omega_local = 2.0 * math.pi * f_sys
                 dV, dQ, dw, dP = self.agent.update_consensus(
                     V_i=v_pcc_pu,
@@ -258,10 +296,11 @@ class DistributedNodeRunner:
                     omega_i=omega_local,
                     P_i=P_w,
                     eta_i=self.eta_excess,
-                    neighbor_states=neighbor_cache,
+                    neighbor_states=filtered_neighbors,
                     dt=0.5,
                     return_all=True
                 )
+                self.neighbor_cache = {n_id: data["state"] for n_id, data in self.agent.neighbor_buffer.items()}
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
 
                 # Lazo de Control Secundario de Frecuencia y Reparto de Potencia Activa (Regimenes 1 y 2 / S-36)
@@ -310,7 +349,8 @@ class DistributedNodeRunner:
                     "P_w": round(P_w, 2),
                     "Q_var": round(Q_var, 2),
                     "eta_excess": round(self.eta_excess, 4),
-                    "curtail_ratio": round(self.curtail_ratio, 4)
+                    "curtail_ratio": round(self.curtail_ratio, 4),
+                    "delivery_meta": delivery_meta
                 }
                 if soc is not None:
                     inj_payload["SoC"] = round(float(soc), 4)
@@ -372,6 +412,9 @@ if __name__ == "__main__":
     parser.add_argument("--p-charge-max", type=float, default=3000.0, help="Capacidad maxima de absorcion/carga BESS [W]")
     parser.add_argument("--p-min-diesel", type=float, default=0.0, help="Potencia minima tecnica del generador diesel [W]")
     parser.add_argument("--mode", default="OFFLINE", choices=["ONLINE", "OFFLINE"], help="Modo de operacion")
+    parser.add_argument("--network-profile", default="IDEAL", choices=["IDEAL", "LAN_ETHERNET", "INDUSTRIAL_WIFI", "SEVERE_STRESS", "CRITICAL_PARTITION", "CUSTOM"], help="Perfil de perturbaciones telemáticas")
+    parser.add_argument("--contingencies-file", default=None, help="Ruta al archivo CSV de contingencias telemáticas D-25")
+    parser.add_argument("--network-seed", type=int, default=42, help="Semilla pseudoaleatoria base de red (D-25)")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
     args = parser.parse_args()
 
@@ -400,6 +443,9 @@ if __name__ == "__main__":
         p_init=args.p_init,
         p_charge_max=args.p_charge_max,
         p_min_diesel=args.p_min_diesel,
-        operating_mode=args.mode
+        operating_mode=args.mode,
+        network_profile=args.network_profile,
+        contingencies_file=args.contingencies_file,
+        network_seed=args.network_seed
     )
     runner.run(max_steps=args.steps)

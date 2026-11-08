@@ -1,0 +1,86 @@
+{
+  "run_id": "20261108T170925_resilience_seed42",
+  "tipo_ensayo": "campa\u00f1a_resiliencia_telemetrica_300s",
+  "timestamp_utc": "20261108T170925",
+  "semilla_base": 42,
+  "duracion_s": 300.0,
+  "filas_telemetria": 601,
+  "cadencia_hz": 2.0,
+  "topologia": "topologia_red_8nodos.csv",
+  "contrato_normativo": "D-25 v1 (Anexo O-10)",
+  "actividades_dise\u00f1o": [
+    "Actividad 3.3 (DISENO.tex:29)",
+    "Actividad 4.2 (DISENO.tex:36)"
+  ],
+  "artefactos": {
+    "telemetria_csv": {
+      "archivo": "telemetry_resilience_300s.csv",
+      "filas": 601,
+      "bytes": 127559,
+      "sha256": "ba21fe9b34ee0c8383788663eea492ae2d94d32ec4964bf5f7656a5bb5f9600a"
+    },
+    "contingencias_csv": {
+      "archivo": "contingencias_telematicas.csv",
+      "filas": 5,
+      "bytes": 589,
+      "sha256": "03ef3429c3db4600b46fcc6ed45c5bdb2ebe1b9b39ea0deab0b4f944e2d40392"
+    }
+  },
+  "metricas": {
+    "duracion_total_s": 300.0,
+    "muestras_totales": 601,
+    "cadencia_hz": 2.0,
+    "frecuencia_min_alcanzada_hz": 59.9894,
+    "e_Q_final": 0.0,
+    "e_P_final": 0.0561,
+    "e_V_final": 0.0053,
+    "tramo_1_nominal": {
+      "ventana_s": [
+        0.0,
+        100.0
+      ],
+      "e_Q_max": 0.0009,
+      "e_Q_avg": 0.0,
+      "latencia_ms": 0.0
+    },
+    "tramo_2_latencia": {
+      "ventana_s": [
+        100.0,
+        200.0
+      ],
+      "perfil": "50 -> 500 ms rampa estocastica",
+      "e_Q_max": 0.0,
+      "e_Q_avg": 0.0,
+      "consenso_preservado": true
+    },
+    "tramo_3_fallas_combinadas": {
+      "ventana_s": [
+        200.0,
+        300.0
+      ],
+      "desconexion_enlace_1_2_ventana_s": [
+        220.0,
+        250.0
+      ],
+      "perdida_bernoulli_2_3_pct": 20.0,
+      "e_Q_max_durante_corte": 0.0,
+      "tiempo_reconvergencia_post_reconexion_s": 0.0,
+      "e_Q_post_reconexion_avg": 0.0,
+      "estabilidad_tension_pu": [
+        0.95,
+        1.05
+      ]
+    },
+    "estadisticas_red": {
+      "paquetes_intentados": 3606,
+      "paquetes_entregados": 3412,
+      "paquetes_descartados": 194,
+      "tasa_global_perdida_pct": 5.38
+    }
+  },
+  "entorno": {
+    "python_version": "3.14.6",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+  }
+}
