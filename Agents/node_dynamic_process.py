@@ -58,7 +58,8 @@ class NodeDynamicProcess:
             raise ValueError(f"Tipo de fuente desconocido: {source_type}")
 
     def step_macro(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0,
-                   macro_dt=0.5, micro_dt=0.001, hold_mode=None, froh_lambda=None, zfoh_lambda=None):
+                   macro_dt=0.5, micro_dt=0.001, hold_mode=None, froh_lambda=None, zfoh_lambda=None,
+                   curtail_ratio=1.0, **kwargs):
         """
         Ejecuta un macro-paso de co-simulación (H = 500 ms) compuesto por 500 micro-pasos (h = 1 ms).
         
@@ -113,12 +114,14 @@ class NodeDynamicProcess:
 
         # 3. Ejecutar integración física por n_substeps (macro_dt / micro_dt) con reconstrucción de señal
         n_substeps = max(1, int(round(macro_dt / micro_dt)))
+        c_ratio = float(kwargs.get("curtail_ratio", curtail_ratio))
         setpoints = {
             "Q_ref_kvar": Q_ref / 1000.0,
             "P_ref": P_ref,
             "P_ref_w": P_ref,
             "delta_P": delta_P,
-            "delta_omega": delta_omega
+            "delta_omega": delta_omega,
+            "curtail_ratio": c_ratio,
         }
         ctx = None
 
@@ -175,7 +178,7 @@ class NodeDynamicProcess:
         
         P_ratio = (P_w / P_max) if P_max > 0 else 0.0
 
-        return {
+        res = {
             "node_id": self.node_id,
             "source_type": self.source_type,
             "step": self.step_index,
@@ -186,10 +189,26 @@ class NodeDynamicProcess:
             "P_max": round(P_max, 2),
             "P_ratio": round(P_ratio, 4)
         }
+        if ctx:
+            if "SoC" in ctx:
+                res["SoC"] = round(float(ctx["SoC"]), 4)
+            if "P_curtailed" in ctx:
+                res["P_curtailed"] = round(float(ctx["P_curtailed"]), 2)
+            if "P_mpp" in ctx:
+                res["P_mpp"] = round(float(ctx["P_mpp"]), 2)
+            if "curtail_ratio" in ctx:
+                res["curtail_ratio"] = round(float(ctx["curtail_ratio"]), 4)
+            if "P_charge_max" in ctx:
+                res["P_charge_max"] = round(float(ctx["P_charge_max"]), 2)
+            if "P_discharge_max" in ctx:
+                res["P_discharge_max"] = round(float(ctx["P_discharge_max"]), 2)
 
-    def step(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0):
+        return res
+
+    def step(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0, curtail_ratio=1.0, **kwargs):
         """Alias retrocompatible para ejecutar un macro-paso de co-simulación."""
-        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, P_ref=P_ref, delta_P=delta_P, delta_omega=delta_omega, macro_dt=0.5, micro_dt=0.001)
+        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, P_ref=P_ref, delta_P=delta_P, delta_omega=delta_omega,
+                               macro_dt=0.5, micro_dt=0.001, curtail_ratio=curtail_ratio, **kwargs)
 
 
 if __name__ == "__main__":

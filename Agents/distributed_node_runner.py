@@ -40,6 +40,8 @@ class DistributedNodeRunner:
         p_max: float = 20000.0,
         q_init: float = 0.0,
         p_init: float = 0.0,
+        p_charge_max: float = 3000.0,
+        p_min_diesel: float = 0.0,
         operating_mode: str = "OFFLINE"
     ):
         self.node_id = int(node_id)
@@ -75,6 +77,10 @@ class DistributedNodeRunner:
         self.p_max = float(p_max)
         self.q_init = float(q_init)
         self.p_init = float(p_init)
+        self.p_charge_max = float(p_charge_max)
+        self.p_min_diesel = float(p_min_diesel)
+        self.curtail_ratio = 1.0
+        self.eta_excess = 0.0
         self.operating_mode = operating_mode.upper()
 
         # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa (Amortiguado y Asintótico)
@@ -187,11 +193,23 @@ class DistributedNodeRunner:
                     Q_ref=self.Q_ref,
                     P_ref=self.P_ref,
                     delta_omega=self.omega_offset,
+                    curtail_ratio=self.curtail_ratio,
                     macro_dt=0.5,
                     micro_dt=0.001
                 )
                 P_w = phys_out["P_w"]
                 Q_var = phys_out["Q_var"]
+                soc = phys_out.get("SoC", None)
+                p_curtailed = phys_out.get("P_curtailed", 0.0)
+
+                # Actualizar índice de exceso local eta_excess in [0, 1] (S-36)
+                if self.source_type == "BESS":
+                    p_chg_cap = phys_out.get("P_charge_max", self.p_charge_max)
+                    self.eta_excess = max(0.0, min(1.0, (-P_w) / p_chg_cap)) if (p_chg_cap > 0 and P_w < 0) else 0.0
+                elif self.source_type == "SOLAR":
+                    self.eta_excess = max(0.0, min(1.0, 1.0 - self.curtail_ratio))
+                else:
+                    self.eta_excess = 0.0
 
                 # 3. Consenso P2P: Publicar estado local a los vecinos
                 q_ratio = Q_var / self.q_max if self.q_max > 0 else 0.0
@@ -201,8 +219,12 @@ class DistributedNodeRunner:
                     "V": v_pcc_pu,
                     "Q_ratio": q_ratio,
                     "omega": 2.0 * math.pi * f_sys,
-                    "P_ratio": P_w / self.p_max if self.p_max > 0 else 0.0
+                    "P_ratio": P_w / self.p_max if self.p_max > 0 else 0.0,
+                    "eta_excess": round(self.eta_excess, 4),
+                    "curtail_ratio": round(self.curtail_ratio, 4)
                 }
+                if soc is not None:
+                    p2p_payload["SoC"] = round(float(soc), 4)
                 self.pub_p2p.send_json(p2p_payload)
 
                 # 4. Consenso P2P: Recoger estados de los vecinos
@@ -218,7 +240,10 @@ class DistributedNodeRunner:
                                     "V": msg_n.get("V", 1.0),
                                     "Q_ratio": msg_n.get("Q_ratio", 0.0),
                                     "omega": msg_n.get("omega", 376.99),
-                                    "P_ratio": msg_n.get("P_ratio", 0.0)
+                                    "P_ratio": msg_n.get("P_ratio", 0.0),
+                                    "eta_excess": msg_n.get("eta_excess", 0.0),
+                                    "curtail_ratio": msg_n.get("curtail_ratio", 1.0),
+                                    "SoC": msg_n.get("SoC", None)
                                 }
                         except Exception:
                             break
@@ -232,27 +257,45 @@ class DistributedNodeRunner:
                     Q_i=Q_var,
                     omega_i=omega_local,
                     P_i=P_w,
+                    eta_i=self.eta_excess,
                     neighbor_states=neighbor_cache,
                     dt=0.5,
                     return_all=True
                 )
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
 
-                # Lazo Restaurativo Secundario de Frecuencia hacia Potencia Activa (Control Amortiguado)
-                # Acoplamiento de dP (consenso activo proporcional) y anti-windup ampliado a +/-75.0 rad
+                # Lazo de Control Secundario de Frecuencia y Reparto de Potencia Activa (Regimenes 1 y 2 / S-36)
+                err_w = (2.0 * math.pi * 60.0) - omega_local
                 if self.source_type == "DIESEL":
-                    err_w = (2.0 * math.pi * 60.0) - omega_local
                     # Anti-windup acotado a [-75.0, +75.0] rad (hasta +/- 6.0 kW de compensacion integral)
                     self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * 0.5))
                     delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
                     base_p = self.p_init if self.p_init > 0 else 4000.0
-                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_restore + dP))
+                    self.P_ref = max(self.p_min_diesel, min(self.p_max, base_p + delta_P_restore + dP))
                 elif self.source_type == "BESS":
-                    # BESS opera como soporte de inercia sintetica y reparto coordinado dP sin integrador lento
-                    err_w = (2.0 * math.pi * 60.0) - omega_local
+                    # BESS bidireccional (descarga > 0 ante deficit, absorcion/carga < 0 ante sobrefrecuencia)
                     delta_P_droop = 40.0 * err_w
-                    base_p = self.p_init if self.p_init > 0 else 750.0
-                    self.P_ref = max(0.0, min(self.p_max, base_p + delta_P_droop + dP))
+                    base_p = self.p_init if self.p_init != 0.0 else 0.0
+                    p_target = base_p + delta_P_droop + dP
+                    if err_w < -0.15:  # Sobrefrecuencia (f > 60.024 Hz, regimen excedentario)
+                        d_eta_bess = self.agent.delta_eta
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + d_eta_bess - 0.02 * err_w))
+                        p_charge_target = -self.eta_excess * self.p_charge_max
+                        p_target = min(p_target, p_charge_target)
+                    else:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + self.agent.delta_eta - 0.02))
+                    self.P_ref = max(-self.p_charge_max, min(self.p_max, p_target))
+                elif self.source_type == "SOLAR":
+                    # Solar: MPP nominal en equilibrio/deficit; curtailment coordinado ante sobrefrecuencia
+                    if err_w < -0.15:  # Sobrefrecuencia (f > 60.024 Hz, regimen excedentario)
+                        d_eta_pv = self.agent.delta_eta
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + d_eta_pv - 0.02 * err_w))
+                        self.curtail_ratio = max(0.0, min(1.0, 1.0 - self.eta_excess))
+                    else:
+                        d_eta_pv = self.agent.delta_eta
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + d_eta_pv - 0.02))
+                        self.curtail_ratio = max(0.0, min(1.0, 1.0 - self.eta_excess))
+                    self.P_ref = max(0.0, min(self.p_max, self.P_ref))
                 else:
                     self.P_ref = max(0.0, min(self.p_max, self.P_ref))
 
@@ -265,8 +308,12 @@ class DistributedNodeRunner:
                     "node_id": self.node_id,
                     "step": step_idx,
                     "P_w": round(P_w, 2),
-                    "Q_var": round(Q_var, 2)
+                    "Q_var": round(Q_var, 2),
+                    "eta_excess": round(self.eta_excess, 4),
+                    "curtail_ratio": round(self.curtail_ratio, 4)
                 }
+                if soc is not None:
+                    inj_payload["SoC"] = round(float(soc), 4)
                 try:
                     self.req_master.send_json(inj_payload)
                     ack = self.req_master.recv_json()
@@ -282,7 +329,8 @@ class DistributedNodeRunner:
 
                 # Resumen en consola cada 2 pasos (1 vez por segundo)
                 if step_idx % 2 == 0:
-                    print(f"[{self.source_type} N{self.node_id}] Paso {step_idx:04d} (t={time_s:5.1f}s) | V={v_pcc_pu:.4f}pu (\u03b4V={self.V_offset:+.4f}) | f={f_sys:.2f}Hz (\u03b4\u03c9={self.omega_offset:+.3f}) | P={P_w/1000:6.1f}kW | Q={Q_var/1000:5.1f}kvar | dQ={dQ:+.1f}")
+                    extra_info = f" | SoC={soc:.3f}" if soc is not None else (f" | curtail={(1.0-self.curtail_ratio)*100:.1f}%" if self.source_type == "SOLAR" else "")
+                    print(f"[{self.source_type} N{self.node_id}] Paso {step_idx:04d} (t={time_s:5.1f}s) | V={v_pcc_pu:.4f}pu (\u03b4V={self.V_offset:+.4f}) | f={f_sys:.2f}Hz (\u03b4\u03c9={self.omega_offset:+.3f}) | P={P_w/1000:6.1f}kW | Q={Q_var/1000:5.1f}kvar | dQ={dQ:+.1f}{extra_info}")
 
         except KeyboardInterrupt:
             print(f"\nDeteniendo nodo {self.node_id}...")
@@ -321,6 +369,8 @@ if __name__ == "__main__":
     parser.add_argument("--p-max", type=float, default=20000.0, help="Capacidad activa maxima [W]")
     parser.add_argument("--q-init", type=float, default=0.0, help="Consigna inicial de reactiva [var]")
     parser.add_argument("--p-init", type=float, default=0.0, help="Consigna inicial de activa [W]")
+    parser.add_argument("--p-charge-max", type=float, default=3000.0, help="Capacidad maxima de absorcion/carga BESS [W]")
+    parser.add_argument("--p-min-diesel", type=float, default=0.0, help="Potencia minima tecnica del generador diesel [W]")
     parser.add_argument("--mode", default="OFFLINE", choices=["ONLINE", "OFFLINE"], help="Modo de operacion")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
     args = parser.parse_args()
@@ -348,6 +398,8 @@ if __name__ == "__main__":
         p_max=args.p_max,
         q_init=args.q_init,
         p_init=args.p_init,
+        p_charge_max=args.p_charge_max,
+        p_min_diesel=args.p_min_diesel,
         operating_mode=args.mode
     )
     runner.run(max_steps=args.steps)

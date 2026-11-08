@@ -1,14 +1,14 @@
 # Valores Canónicos de Referencia — Benchmark v2 (Fase E)
 
-**Run ID:** `20261108T152458_bench-v2_seed42` · **Sustituye a:** `20261107T161041_bench-v2_seed42`
-**Fecha:** 2026-11-08T15:24:58.942190+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
+**Run ID:** `20261108T161211_bench-v2_seed42` · **Sustituye a:** `20261108T152458_bench-v2_seed42`
+**Fecha:** 2026-11-08T16:12:11.920317+00:00 · **Semilla:** 42 · **Escenario:** E1 (Paso de Carga +50 %)
 **Entorno:** Python 3.12.10 (Windows-11-10.0.26300-SP0)
 
 ### Hashes Criptográficos SHA-256 de Trazabilidad y Reproducibilidad
 
 | Componente | Archivo Fuente | Hash SHA-256 |
 |---|---|---|
-| `controller_fixed_time_consensus` | `Agents/fixed_time_consensus.py` | `7ffafca9957b7828dacffd4e438edfeeaf385a9fa13ddff52bcfe8d45019a6ed` |
+| `controller_fixed_time_consensus` | `Agents/fixed_time_consensus.py` | `e325258da1708ed12ce1a18ef54463f1770b3b42d371ae2e3a36faf6bd8808a1` |
 | `shim_finite_time_consensus` | `Agents/finite_time_consensus.py` | `56c96ac4e5065177921abaa447878e4f4c39d027778b448df9c1045e431e6c36` |
 | `config_bench_8nodos` | `configs/bench_8nodos.yaml` | `c43361fcee83e5dc63b7d5264922a83361e7e472282dcf4d5d6c336c4cfd5c9c` |
 | `harness_v2` | `src/harness.py` | `82c3edab6e13dac23e04349a87c5047c0a836f703d514580e8f8b6eff807cece` |

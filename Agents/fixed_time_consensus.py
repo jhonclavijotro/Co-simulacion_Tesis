@@ -118,6 +118,8 @@ class FixedTimeConsensusAgent:
         self.delta_Q = 0.0                      # Offset de potencia reactiva acumulado
         self.delta_omega = 0.0                  # Offset de frecuencia angular acumulado [rad/s]
         self.delta_P = 0.0                      # Offset de potencia activa acumulado [W]
+        self.delta_eta = 0.0                    # Offset de índice de excedente acumulado [0-1] (S-36)
+        self.max_delta_eta = 0.5                # Tasa máxima de cambio de eta por macro-paso
 
         # Buffer de estados de vecinos y edad del dato (en pasos)
         # {neighbor_id: {"state": {"V": ..., "Q_ratio": ..., "omega": ..., "P_ratio": ...}, "age": int}}
@@ -156,11 +158,13 @@ class FixedTimeConsensusAgent:
         dt: float = 0.5,
         omega_i: Optional[float] = None,
         P_i: Optional[float] = None,
-        return_all: Optional[bool] = None
+        return_all: Optional[bool] = None,
+        eta_i: Optional[float] = None,
+        return_excess: bool = False
     ) -> Any:
         """
         Ejecuta un paso del algoritmo de consenso en tiempo fijo para tensión, reactiva,
-        frecuencia y potencia activa con signo restaurativo.
+        frecuencia, potencia activa y coordinación de excedentes (Regimen 2 / S-36).
 
         Parámetros:
             V_i:             Tensión actual medida en la barra i [p.u.]
@@ -171,9 +175,11 @@ class FixedTimeConsensusAgent:
             P_i:             Potencia activa inyectada por la fuente i [W] (opcional)
             return_all:      Si True retorna (delta_V, delta_Q, delta_omega, delta_P).
                              Si None, infiere True si omega_i o P_i se suministran, o False para retrocompatibilidad (delta_V, delta_Q).
+            eta_i:           Índice de excedente local in [0, 1] (BESS carga o Solar curtailment)
+            return_excess:   Si True retorna (delta_V, delta_Q, delta_omega, delta_P, delta_eta)
 
         Retorna:
-            (delta_V, delta_Q) o (delta_V, delta_Q, delta_omega, delta_P)
+            (delta_V, delta_Q) o (delta_V, delta_Q, delta_omega, delta_P) o (delta_V, delta_Q, delta_omega, delta_P, delta_eta)
         """
         # Verificación estricta de estabilidad CFL discreta en tiempo de ejecución:
         # Condición: dt * d_max * (c1 + c2) < 1.0
@@ -217,6 +223,8 @@ class FixedTimeConsensusAgent:
         u_q = 0.0
         u_w = 0.0
         u_p = 0.0
+        u_eta = 0.0
+        eta_val = float(eta_i) if eta_i is not None else None
 
         # Iterar sobre los vecinos configurados en el vector de adyacencia
         for n_id, weight in self.adj_vector.items():
@@ -260,6 +268,13 @@ class FixedTimeConsensusAgent:
             else:
                 p_ratio_j = 0.0
 
+            # Índice de excedente del vecino (S-36)
+            eta_j = None
+            if "eta_excess" in state_j:
+                eta_j = float(state_j["eta_excess"])
+            elif "eta" in state_j:
+                eta_j = float(state_j["eta"])
+
             # Formulación matemática corregida: error restaurativo e = (vecino_j - local_i)
             e_v = v_j - V_i
             e_q = q_ratio_j - q_ratio_i
@@ -280,6 +295,12 @@ class FixedTimeConsensusAgent:
             u_w += effective_weight * term_w
             u_p += effective_weight * term_p
 
+            if eta_val is not None and eta_j is not None:
+                e_eta = eta_j - eta_val
+                term_eta = (self.c1 * sig_pow(e_eta, self.alpha, self.epsilon)
+                            + self.c2 * sig_pow(e_eta, self.beta, self.epsilon))
+                u_eta += effective_weight * term_eta
+
         # Modo OFFLINE (Isla) y este agente es el Diésel (Líder / Pinning de tensión y frecuencia)
         if self.mode == "OFFLINE" and self.agent_id == 1:
             e_leader_v = self.V_ref - V_i
@@ -290,22 +311,76 @@ class FixedTimeConsensusAgent:
             u_w += (self.c1 * sig_pow(e_leader_w, self.alpha, self.epsilon)
                     + self.c2 * sig_pow(e_leader_w, self.beta, self.epsilon))
 
-        # Cálculo de la corrección incremental (+dt * u) reescalada a unidades absolutas (V, var, rad/s, W)
+        # Cálculo de la corrección incremental (+dt * u) reescalada a unidades absolutas (V, var, rad/s, W, índice)
         raw_delta_V = dt * u_v
         raw_delta_Q = dt * u_q * self.Q_max
         raw_delta_omega = dt * u_w
         raw_delta_P = dt * u_p * self.P_max
+        raw_delta_eta = dt * u_eta
 
         # Saturación del incremento instantáneo (delta) según límites físicos y de tasa máxima
         self.delta_V = max(-self.max_delta_V, min(self.max_delta_V, raw_delta_V))
         self.delta_Q = max(-self.Q_max, min(self.Q_max, raw_delta_Q))
         self.delta_omega = max(-self.max_delta_omega, min(self.max_delta_omega, raw_delta_omega))
         self.delta_P = max(-self.P_max, min(self.P_max, raw_delta_P))
+        self.delta_eta = max(-self.max_delta_eta, min(self.max_delta_eta, raw_delta_eta))
+
+        if return_excess:
+            return self.delta_V, self.delta_Q, self.delta_omega, self.delta_P, self.delta_eta
 
         should_return_all = return_all if return_all is not None else (omega_i is not None or P_i is not None)
         if should_return_all:
             return self.delta_V, self.delta_Q, self.delta_omega, self.delta_P
         return self.delta_V, self.delta_Q
+
+    def update_excess_consensus(
+        self,
+        eta_i: float,
+        neighbor_states: Optional[Dict[int, Dict[str, Any]]] = None,
+        dt: float = 0.5
+    ) -> float:
+        """
+        Calcula la ley de control FxTS para el reparto coordinado de excedentes (Regimen 2 / S-36).
+
+        Garantiza la convergencia en tiempo fijo del índice de utilización de excedente:
+            eta_bess = P_charge / P_charge_max in [0, 1]
+            eta_pv = P_curtailed / P_mpp = 1 - gamma in [0, 1]
+
+        Retorna:
+            delta_eta: incremento correctivo para la sincronización de carga/recorte.
+        """
+        if neighbor_states is not None:
+            for n_id, state in neighbor_states.items():
+                self.receive_neighbor_update(n_id, state)
+
+        u_eta = 0.0
+        eta_val = float(eta_i)
+
+        for n_id, weight in self.adj_vector.items():
+            if weight <= 0 or n_id not in self.neighbor_buffer:
+                continue
+
+            buffered_data = self.neighbor_buffer[n_id]
+            stale_age = buffered_data["age"]
+            freshness_factor = max(0.2, 1.0 - (stale_age / (self.max_stale_steps + 1)))
+            effective_weight = weight * freshness_factor
+
+            state_j = buffered_data["state"]
+            eta_j = None
+            if "eta_excess" in state_j:
+                eta_j = float(state_j["eta_excess"])
+            elif "eta" in state_j:
+                eta_j = float(state_j["eta"])
+
+            if eta_j is not None:
+                e_eta = eta_j - eta_val
+                term_eta = (self.c1 * sig_pow(e_eta, self.alpha, self.epsilon)
+                            + self.c2 * sig_pow(e_eta, self.beta, self.epsilon))
+                u_eta += effective_weight * term_eta
+
+        raw_delta_eta = dt * u_eta
+        self.delta_eta = max(-self.max_delta_eta, min(self.max_delta_eta, raw_delta_eta))
+        return self.delta_eta
 
     @classmethod
     def for_network(

@@ -115,9 +115,32 @@ class SistemaSolar:
             ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["I_pv"], dt,
             Q_ref=q_ref_val,
             D=ctx["duty_cycle"])
-        ctx["Pw"] = Pw
+
+        # Recorte de inyección solar (curtailment) respecto al MPP disponible (S-36)
+        curtail_ratio = 1.0
+        if setpoints:
+            if "curtail_ratio" in setpoints:
+                curtail_ratio = float(setpoints["curtail_ratio"])
+            elif "injection_ratio" in setpoints:
+                curtail_ratio = float(setpoints["injection_ratio"])
+        curtail_ratio = max(0.0, min(1.0, curtail_ratio))
+
+        P_mpp = float(Pw)
+        if curtail_ratio < 1.0:
+            Pw_eff = P_mpp * curtail_ratio
+            P_curtailed = P_mpp - Pw_eff
+            Idi_eff = Idi * curtail_ratio
+        else:
+            Pw_eff = P_mpp
+            P_curtailed = 0.0
+            Idi_eff = Idi
+
+        ctx["Pw"] = Pw_eff
+        ctx["P_mpp"] = P_mpp
+        ctx["P_curtailed"] = P_curtailed
+        ctx["curtail_ratio"] = curtail_ratio
         ctx["Pq"] = Pq
-        ctx["Idi"] = Idi
+        ctx["Idi"] = Idi_eff
         ctx["Iqi"] = Iqi
         ctx["Idiref"] = Idiref
 

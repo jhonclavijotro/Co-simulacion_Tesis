@@ -1,14 +1,14 @@
 {
-  "run_id": "20261108T152458_bench-v2_seed42",
-  "path": "outputs/benchmark/results/20261108T152458_bench-v2_seed42",
-  "results_dir": "outputs/benchmark/results/20261108T152458_bench-v2_seed42",
-  "timestamp_utc": "2026-11-08T15:24:58.942190+00:00",
+  "run_id": "20261108T161211_bench-v2_seed42",
+  "path": "outputs/benchmark/results/20261108T161211_bench-v2_seed42",
+  "results_dir": "outputs/benchmark/results/20261108T161211_bench-v2_seed42",
+  "timestamp_utc": "2026-11-08T16:12:11.920317+00:00",
   "seed": 42,
   "scenario": "E1",
-  "manifest_sha256": "65feef548fbaff44d1a2dcc3adebba8433ae25b0d4d8e7c842d1b09e3e751d7b",
+  "manifest_sha256": "115a6eb92f72d87556c77e794a9eb75f4a8115b17eb0abe2665119412bcd2dd2",
   "plant_model": "algebraic-kinematic (D-13)",
   "boundary_hold_applied": false,
-  "supersedes": "20261107T161041_bench-v2_seed42",
+  "supersedes": "20261108T152458_bench-v2_seed42",
   "canonical": true,
   "all_gates_passed_fxts": true
 }
