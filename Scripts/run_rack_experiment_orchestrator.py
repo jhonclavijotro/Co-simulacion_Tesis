@@ -31,9 +31,24 @@ from Scripts.cluster_deployer import ClusterDeployer, get_local_ip
 from Central_PC.power_flow_clock_server import PowerFlowClockServer
 
 
-CANONICAL_BASELINE = "ESC-HIL-003_consolidado_rev5"
 FORMS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Forms", "escenarios_generados"))
 ACTIVO_FILE = os.path.join(FORMS_DIR, "ACTIVO.txt")
+
+
+def get_current_active_scenario() -> str:
+    """Lee el escenario activo actual desde ACTIVO.txt o devuelve el valor por defecto."""
+    if os.path.exists(ACTIVO_FILE):
+        try:
+            with open(ACTIVO_FILE, "r", encoding="utf-8") as f:
+                val = f.read().strip()
+                if val and os.path.exists(os.path.join(FORMS_DIR, val)):
+                    return val
+        except Exception:
+            pass
+    return "ESC-HIL-008_validacion_integrada"
+
+
+CANONICAL_BASELINE = get_current_active_scenario()
 
 
 def compute_sha256(filepath: str) -> str:
@@ -249,11 +264,11 @@ def main():
     parser = argparse.ArgumentParser(description="Orquestador de Ensayos HIL en Rack Raspberry Pi")
     parser.add_argument(
         "--campaign",
-        choices=["surplus-pair", "surplus-006", "surplus-007", "dynamic-005", "resilience-d25", "custom"],
-        default="surplus-pair",
-        help="Campaña o preset a ejecutar"
+        choices=["validation-008", "surplus-pair", "surplus-006", "surplus-007", "dynamic-005", "resilience-d25", "custom"],
+        default="validation-008",
+        help="Campaña o preset a ejecutar (default: validation-008 para S-40 / D-28)"
     )
-    parser.add_argument("--steps", type=int, default=600, help="Número de pasos (default: 600 @ 2 Hz = 300 s)")
+    parser.add_argument("--steps", type=int, default=960, help="Número de pasos (default: 960 @ 2 Hz = 480 s)")
     parser.add_argument("--dt", type=float, default=0.5, help="Paso de tiempo macro [s]")
     parser.add_argument("--engine", choices=["docker", "native"], default="docker", help="Motor de ejecución")
     parser.add_argument("--sync", action="store_true", help="Sincronizar código fuente antes del ensayo")
@@ -268,7 +283,22 @@ def main():
     args = parser.parse_args()
     orchestrator = RackExperimentOrchestrator(engine=args.engine, dry_run=args.dry_run)
 
-    if args.campaign == "surplus-pair":
+    if args.campaign == "validation-008":
+        print("\n>>> EJECUTANDO ESCENARIO ÚNICO DE VALIDACIÓN INTEGRADA (S-40 / D-28) <<<")
+        orchestrator.run_experiment(
+            scenario_name="ESC-HIL-008_validacion_integrada",
+            steps=args.steps if args.steps != 600 else 960,
+            dt_s=args.dt,
+            p_min_diesel=8600.0,
+            p_charge_max=3000.0,
+            network_profile="DYNAMIC_CONTINGENCY",
+            contingencies_file="contingencias_telematicas.csv",
+            network_seed=args.seed,
+            sync_code=args.sync,
+            output_subfolder="validation"
+        )
+
+    elif args.campaign == "surplus-pair":
         print("\n>>> EJECUTANDO PAR EXCEDENTARIO COMPLETO (S-O-18 / Familia 2 D-24) <<<")
         # 1. ESC-HIL-006 (Excedente con ventana declarada)
         orchestrator.run_experiment(

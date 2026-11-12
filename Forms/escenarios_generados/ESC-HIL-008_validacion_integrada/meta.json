@@ -1,0 +1,245 @@
+{
+  "id": "ESC-HIL-008",
+  "familia": "hil_corto",
+  "duracion_s": 480,
+  "dt_s": 0.5,
+  "inicio_absoluto": "2026-11-12T10:00:00.000-05:00",
+  "zona_horaria": "America/Bogota (UTC-05:00)",
+  "esquema_datos": "consolidado_rev5",
+  "semilla": 42,
+  "archivos": {
+    "meteorologico": "datos_meteorologicos.csv",
+    "demanda": "datos_demanda.csv",
+    "topologia": "topologia_red_8nodos.csv"
+  },
+  "recursos_no_instanciados": [
+    "eolica",
+    "hidrica"
+  ],
+  "capa1": "plantilla_configuracion_cosimulacion.json",
+  "contrato_contingencias": {
+    "version": "v1",
+    "archivo": "contingencias_telematicas.csv",
+    "filas": 4,
+    "sha256": "78df90f5aadc4e8edc995c808d77e4d58bb785fa051d1ee2b8a91f623192a382",
+    "ventanas": [
+      {
+        "id": "P_23",
+        "tipo": "perdida",
+        "alcance": "enlace",
+        "origen": "2",
+        "destino": "3",
+        "inicio_s": 360.0,
+        "fin_s": 410.0,
+        "unidad": "fraccion",
+        "param_min": 0.2,
+        "param_max": 0.2
+      },
+      {
+        "id": "P_32",
+        "tipo": "perdida",
+        "alcance": "enlace",
+        "origen": "3",
+        "destino": "2",
+        "inicio_s": 360.0,
+        "fin_s": 410.0,
+        "unidad": "fraccion",
+        "param_min": 0.2,
+        "param_max": 0.2
+      },
+      {
+        "id": "D_12",
+        "tipo": "desconexion",
+        "alcance": "enlace",
+        "origen": "1",
+        "destino": "2",
+        "inicio_s": 410.0,
+        "fin_s": 440.0,
+        "unidad": "",
+        "param_min": null,
+        "param_max": null
+      },
+      {
+        "id": "D_21",
+        "tipo": "desconexion",
+        "alcance": "enlace",
+        "origen": "2",
+        "destino": "1",
+        "inicio_s": 410.0,
+        "fin_s": 440.0,
+        "unidad": "",
+        "param_min": null,
+        "param_max": null
+      }
+    ]
+  },
+  "parametros_banco": {
+    "s_base_kVA": 10.0,
+    "tension_base_V": 400.0,
+    "paso_macro_reloj_s": 0.5,
+    "tipo_malla": "RADIAL",
+    "solucionador": "FBS",
+    "plantilla_base": "plantilla_base.json",
+    "slack_online": "RIGIDO",
+    "H_sys_s": 6.0,
+    "D_sys_pu": 12.0,
+    "topologia": "topologia_red_8nodos.csv",
+    "nodos_demanda": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "capacidades_der": {
+      "1": {
+        "p_max_W": 10000.0,
+        "q_max_var": 6000.0
+      },
+      "2": {
+        "p_max_W": 5000.0,
+        "q_max_var": 3000.0
+      },
+      "3": {
+        "p_max_W": 3000.0,
+        "q_max_var": 2000.0
+      }
+    }
+  },
+  "trazabilidad": {
+    "generado_utc": "2026-11-12T14:52:53+00:00",
+    "tesis_commit": "72b78661c0f2c7906058e0aef051a6f1db3ca7d2",
+    "tesis_rama": "dev",
+    "tesis_entradas_sin_commitear": 0
+  },
+  "regimen_excedente": {
+    "version": 2,
+    "p_min_diesel_W": 8600.0,
+    "p_charge_max_W": 3000.0,
+    "soc_inicial": 0.5,
+    "ventanas": [
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          150.5,
+          199.5
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 836.82,
+        "p_solar_ventana_kW": 3.2795,
+        "holgura_min_kW": 4.6854,
+        "holgura_max_kW": 5.0412,
+        "causa": "caida de carga (escalon negativo en t = 150 s, fuera de la ventana)",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 6.8383,
+          "max": 7.1941,
+          "media": 7.0224,
+          "muestras": 99
+        }
+      },
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          315.5,
+          359.5
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 765.53,
+        "p_solar_ventana_kW": 2.8699,
+        "holgura_min_kW": 1.1517,
+        "holgura_max_kW": 3.3216,
+        "causa": "recuperacion de irradiancia tras el sombreado",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 8.1483,
+          "max": 10.3182,
+          "media": 8.8761,
+          "muestras": 89
+        }
+      }
+    ]
+  },
+  "ventanas_validacion": [
+    {
+      "ventana_s": [
+        0,
+        40
+      ],
+      "evento": "acoplamiento y convergencia inicial",
+      "evidencia": "consenso inicial"
+    },
+    {
+      "ventana_s": [
+        40,
+        100
+      ],
+      "evento": "regimen isocrono sin eventos",
+      "evidencia": "linea base de f y V"
+    },
+    {
+      "ventana_s": [
+        100,
+        150
+      ],
+      "evento": "rampa positiva de carga",
+      "evidencia": "seguimiento lento"
+    },
+    {
+      "ventana_s": [
+        150,
+        200
+      ],
+      "evento": "escalon negativo de carga",
+      "evidencia": "excedente por caida de carga"
+    },
+    {
+      "ventana_s": [
+        200,
+        250
+      ],
+      "evento": "sombreado 800 a 550 W/m2",
+      "evidencia": "deficit moderado"
+    },
+    {
+      "ventana_s": [
+        250,
+        300
+      ],
+      "evento": "sombreado abrupto",
+      "evidencia": "deficit severo y nadir de f"
+    },
+    {
+      "ventana_s": [
+        300,
+        360
+      ],
+      "evento": "recuperacion solar y rampa negativa de carga",
+      "evidencia": "excedente con recorte"
+    },
+    {
+      "ventana_s": [
+        360,
+        410
+      ],
+      "evento": "perdida del 20 por ciento en 2-3",
+      "evidencia": "consenso bajo perdida"
+    },
+    {
+      "ventana_s": [
+        410,
+        440
+      ],
+      "evento": "desconexion total 1-2",
+      "evidencia": "reconvergencia"
+    },
+    {
+      "ventana_s": [
+        440,
+        480
+      ],
+      "evento": "cola limpia",
+      "evidencia": "restablecimiento"
+    }
+  ]
+}
