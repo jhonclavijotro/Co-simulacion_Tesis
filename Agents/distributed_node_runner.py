@@ -47,7 +47,11 @@ class DistributedNodeRunner:
         operating_mode: str = "OFFLINE",
         network_profile: str = "IDEAL",
         contingencies_file: Optional[str] = None,
-        network_seed: int = 42
+        network_seed: int = 42,
+        q_perturb_node: Optional[int] = None,
+        q_perturb_var: float = 0.0,
+        q_perturb_start: float = 40.0,
+        q_perturb_end: float = 120.0
     ):
         self.node_id = int(node_id)
         self.source_type = source_type.upper()
@@ -94,6 +98,14 @@ class DistributedNodeRunner:
                     c_path = os.path.join(os.path.dirname(scenario_file), scen_data["contingencias"])
                     if os.path.exists(c_path):
                         self.contingencies_file = c_path
+                # Soporte para perturbaciones directas en DERs (S-O-30 / D-31)
+                der_events = scen_data.get("eventos_der") or scen_data.get("perturbaciones_der") or []
+                for ev in der_events:
+                    if int(ev.get("nodo", 0)) == self.node_id:
+                        q_perturb_node = self.node_id
+                        q_perturb_var = float(ev.get("delta_Q_var", ev.get("delta_q_var", ev.get("valor_var", 0.0))))
+                        q_perturb_start = float(ev.get("inicio_s", ev.get("tiempo_s", 40.0)))
+                        q_perturb_end = float(ev.get("fin_s", 120.0))
             except Exception as e:
                 print(f"[AVISO] No se pudo leer {scenario_file}: {e}")
 
@@ -150,6 +162,10 @@ class DistributedNodeRunner:
         self.curtail_ratio = 1.0
         self.eta_excess = 0.0
         self.operating_mode = operating_mode.upper()
+        self.q_perturb_node = int(q_perturb_node) if q_perturb_node is not None else None
+        self.q_perturb_var = float(q_perturb_var)
+        self.q_perturb_start = float(q_perturb_start)
+        self.q_perturb_end = float(q_perturb_end)
 
         # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa (Amortiguado y Asintótico)
         self.int_freq_error = 0.0
@@ -280,9 +296,15 @@ class DistributedNodeRunner:
                 # 2. Paso de Dinamica Fisica (1 kHz integrado a 500 ms)
                 # Aplicar offset de tensión acumulado del consenso a la referencia del inversor
                 v_pcc_corrected = v_pcc_volts + self.V_offset * self.v_base
+                # Perturbación reactiva local directa en DER (S-O-30 / D-31)
+                delta_q_inj = 0.0
+                if self.q_perturb_node == self.node_id and self.q_perturb_start <= time_s < self.q_perturb_end:
+                    delta_q_inj = self.q_perturb_var
+                effective_q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + delta_q_inj))
+
                 phys_out = self.dynamic_proc.step_macro(
                     V_pcc=v_pcc_corrected,
-                    Q_ref=self.Q_ref,
+                    Q_ref=effective_q_ref,
                     P_ref=self.P_ref,
                     delta_omega=self.omega_offset,
                     curtail_ratio=self.curtail_ratio,
@@ -529,6 +551,10 @@ if __name__ == "__main__":
     parser.add_argument("--contingencies-file", default=None, help="Ruta al archivo CSV de contingencias telemáticas D-25")
     parser.add_argument("--network-seed", type=int, default=42, help="Semilla pseudoaleatoria base de red (D-25)")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
+    parser.add_argument("--q-perturb-node", type=int, default=None, help="Nodo DER para perturbacion reactiva (S-O-30)")
+    parser.add_argument("--q-perturb-var", type=float, default=0.0, help="Magnitud de perturbacion reactiva [var]")
+    parser.add_argument("--q-perturb-start", type=float, default=40.0, help="Inicio de perturbacion reactiva [s]")
+    parser.add_argument("--q-perturb-end", type=float, default=120.0, help="Fin de perturbacion reactiva [s]")
     args = parser.parse_args()
 
     # Resolver alias de lambda
@@ -560,6 +586,10 @@ if __name__ == "__main__":
         operating_mode=args.mode,
         network_profile=args.network_profile,
         contingencies_file=args.contingencies_file,
-        network_seed=args.network_seed
+        network_seed=args.network_seed,
+        q_perturb_node=args.q_perturb_node,
+        q_perturb_var=args.q_perturb_var,
+        q_perturb_start=args.q_perturb_start,
+        q_perturb_end=args.q_perturb_end
     )
     runner.run(max_steps=args.steps)

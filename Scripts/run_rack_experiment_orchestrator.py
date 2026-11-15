@@ -122,7 +122,11 @@ class RackExperimentOrchestrator:
         contingencies_file: Optional[str] = None,
         network_seed: int = 42,
         sync_code: bool = False,
-        output_subfolder: str = "ensayos_rack"
+        output_subfolder: str = "ensayos_rack",
+        q_perturb_node: Optional[int] = None,
+        q_perturb_var: float = 0.0,
+        q_perturb_start: float = 40.0,
+        q_perturb_end: float = 120.0
     ) -> Dict[str, Any]:
         """
         Ejecuta un ciclo formal de ensayo HIL con salvaguarda integral.
@@ -246,6 +250,17 @@ class RackExperimentOrchestrator:
                     cmd_n3.extend(["--network-seed", str(network_seed)])
                 if os.path.exists(scenario_file):
                     cmd_n3.extend(["--scenario-file", scenario_file])
+
+                if q_perturb_node is not None:
+                    q_flags = [
+                        "--q-perturb-node", str(q_perturb_node),
+                        "--q-perturb-var", str(q_perturb_var),
+                        "--q-perturb-start", str(q_perturb_start),
+                        "--q-perturb-end", str(q_perturb_end)
+                    ]
+                    cmd_n1.extend(q_flags)
+                    cmd_n2.extend(q_flags)
+                    cmd_n3.extend(q_flags)
 
                 cmd_loads = [
                     python_bin, "-u", "-B", "Agents/multi_load_process.py",
@@ -849,6 +864,10 @@ def main():
     parser.add_argument("--seed", type=int, default=42, help="Semilla determinística")
     parser.add_argument("--local-sil", action="store_true", help="Ejecutar en modo emulación SIL local multiproceso (sin Raspberry Pi)")
     parser.add_argument("--fast", action="store_true", help="Modo acelerado para simulación SIL local sin pausas de tiempo real")
+    parser.add_argument("--q-perturb-node", type=int, default=None, help="Nodo DER para perturbacion reactiva (S-O-30)")
+    parser.add_argument("--q-perturb-var", type=float, default=0.0, help="Magnitud de perturbacion reactiva [var]")
+    parser.add_argument("--q-perturb-start", type=float, default=40.0, help="Inicio de perturbacion reactiva [s]")
+    parser.add_argument("--q-perturb-end", type=float, default=120.0, help="Fin de perturbacion reactiva [s]")
 
     args = parser.parse_args()
     orchestrator = RackExperimentOrchestrator(
@@ -1031,7 +1050,11 @@ def main():
             contingencies_file=args.contingencies_file,
             network_seed=args.seed,
             sync_code=args.sync,
-            output_subfolder="custom"
+            output_subfolder="custom",
+            q_perturb_node=args.q_perturb_node,
+            q_perturb_var=args.q_perturb_var,
+            q_perturb_start=args.q_perturb_start,
+            q_perturb_end=args.q_perturb_end
         )
 
 

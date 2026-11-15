@@ -60,7 +60,7 @@ class NodeDynamicProcess:
 
         # Inicialización del modelo dinámico con capacidades para microrred de baja potencia
         if self.source_type == "SOLAR":
-            self.model = SistemaSolar(N_inv=2)
+            self.model = SistemaSolar(N_inv=1)
         elif self.source_type == "EOLICA":
             self.model = SistemaEolico()
         elif self.source_type == "HIDRICA":
