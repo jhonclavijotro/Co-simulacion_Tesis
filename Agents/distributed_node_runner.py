@@ -406,7 +406,10 @@ class DistributedNodeRunner:
                     bess_deadband = 0.010
                     if abs(df_hz) > bess_deadband:
                         df_eff = df_hz - math.copysign(bess_deadband, df_hz)
-                        p_target = -4000.0 * df_eff
+                        # IMPLEMENTACION.tex: kappa_BESS = 40.0 W/(rad/s)
+                        # delta_omega = 2 * pi * df_eff  ==>  p_target = - kappa_BESS * (2 * pi * df_eff)
+                        kappa_bess = 40.0  # W/(rad/s)
+                        p_target = -kappa_bess * (2.0 * math.pi * df_eff)
                     else:
                         p_target = 0.0
                     self.P_ref = max(-p_chg_lim, min(p_dis_lim, p_target))

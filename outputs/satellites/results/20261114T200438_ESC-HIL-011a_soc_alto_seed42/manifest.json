@@ -1,0 +1,47 @@
+{
+  "run_id": "20261114T200438_ESC-HIL-011a_soc_alto_seed42",
+  "scenario": "ESC-HIL-011a_soc_alto",
+  "steps": 361,
+  "dt_s": 0.5,
+  "start_time": "2026-11-14T20:04:38.946156",
+  "parameters": {
+    "p_min_diesel": 3500.0,
+    "p_charge_max": 3000.0,
+    "network_profile": null,
+    "contingencies_file": null,
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\satellites\\results\\20261114T200438_ESC-HIL-011a_soc_alto_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 108340,
+    "sha256": "6ebd394cbb60ac95e05f01c2b586f221ec17d83eb8de1c0ad0dd4adf58612a8a"
+  },
+  "audit_011": {
+    "n_samples": 361,
+    "time_range_s": [
+      0.0,
+      180.0
+    ],
+    "max_step_elapsed_ms": 12.376,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_361_samples": true,
+      "zero_rt_overruns": true,
+      "bess_derating_active": true
+    },
+    "p3_range_kW": [
+      -0.1894,
+      0.0512
+    ],
+    "all_criteria_passed": true,
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\satellites\\results\\20261114T200438_ESC-HIL-011a_soc_alto_seed42\\reporte_satelite.md"
+  },
+  "end_time": "2026-11-14T20:04:44.885849",
+  "elapsed_seconds": 4.373,
+  "hashes": {
+    "telemetry_rack_csv": "6ebd394cbb60ac95e05f01c2b586f221ec17d83eb8de1c0ad0dd4adf58612a8a",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "d3e3cc856534c22aeb96937071d5805cc81920486d1efabf36bd29efed045444"
+  }
+}

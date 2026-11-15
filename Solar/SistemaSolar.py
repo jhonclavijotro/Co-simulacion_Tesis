@@ -109,13 +109,6 @@ class SistemaSolar:
         # Feedforward: D = 1 - Vref/Vdc (relacion algebraica exacta)
         ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_array"], ctx["V_dc"])
 
-        # Ejecutar un paso del inversor conectado a red con seguimiento de reactiva
-        q_ref_val = ctx.get("Pq", 0.0)
-        Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
-            ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], ctx["I_pv"], dt,
-            Q_ref=q_ref_val,
-            D=ctx["duty_cycle"])
-
         # Recorte de inyección solar (curtailment) respecto al MPP disponible (S-36)
         curtail_ratio = 1.0
         if setpoints:
@@ -125,7 +118,23 @@ class SistemaSolar:
                 curtail_ratio = float(setpoints["injection_ratio"])
         curtail_ratio = max(0.0, min(1.0, curtail_ratio))
 
-        P_mpp = float(Pw)
+        # En modo de recorte, la corriente del panel inyectada al bus DC se reduce proporcionalmente
+        # para emular el desplazamiento del punto de operación (off-MPPT) y evitar sobretensión ficticia en Vdc
+        I_pv_eff = ctx["I_pv"] * curtail_ratio if curtail_ratio < 1.0 else ctx["I_pv"]
+
+        # Ejecutar un paso del inversor conectado a red con seguimiento de reactiva
+        q_ref_val = ctx.get("Pq", 0.0)
+        Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
+            ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], I_pv_eff, dt,
+            Q_ref=q_ref_val,
+            D=ctx["duty_cycle"])
+
+        # Potencia MPP nominal disponible del arreglo fotovoltaico a Vdc_ref (400V)
+        # P_mpp es invariante a la modulación de curtail_ratio y depende únicamente del recurso solar (POA, T)
+        P_mpp = max(self.inversor.Vdcref, 10.0) * max(0.0, ctx["I_pv"]) * self.N_inv
+        if P_mpp <= 0.0:
+            P_mpp = float(Pw)
+
         if curtail_ratio < 1.0:
             Pw_eff = P_mpp * curtail_ratio
             P_curtailed = P_mpp - Pw_eff
@@ -148,7 +157,7 @@ class SistemaSolar:
         # NOTA: Idi es ahora la corriente equivalente DC que demanda el inversor (Iinv_dc)
         # Esta corriente ya incluye la relacion de transformacion Vdi/Vdc
         _, Vdc_new = self.boost.update_state(
-            ctx["duty_cycle"], ctx["I_pv"], ctx["V_array"], ctx["Idi"], dt)
+            ctx["duty_cycle"], I_pv_eff, ctx["V_array"], ctx["Idi"], dt)
         ctx["V_dc"] = Vdc_new
 
         # Obtener la tension trifasica de la red o usar el valor externo del PCC

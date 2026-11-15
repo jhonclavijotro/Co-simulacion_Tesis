@@ -1,0 +1,119 @@
+id: ESC-HIL-012
+slug: diesel_nominal_isla
+familia: hil_corto
+descripcion: 'Regulacion isocrona del diesel sin interaccion con otras fuentes: PV
+  a 0 W/m2 y BESS inerte.'
+trazabilidad:
+  deriva_de: ESC-HIL-008_validacion_integrada
+  esquema_datos: consolidado_rev5
+  cambios_respecto_al_origen: 120 s / 241 muestras, una sola perturbacion, condicion
+    inicial declarada (D-31).
+  equivalencia: no comparable con la macro-corrida; escenario independiente de D-31.
+  fecha: '2026-11-14'
+regimen_excedente:
+  version: 2
+  p_min_diesel_W: 3500.0
+  p_charge_max_W: 0.0
+  soc_inicial: 0.2
+  ventanas:
+  - ventana_s:
+    - 40.0
+    - 120.0
+    tipo: referencia
+    causa: regimen posterior a la unica perturbacion de t=40 s
+    poa_min_W_m2: 0.0
+    poa_ventana_W_m2: 0.0
+    p_solar_ventana_kW: 0.0
+    holgura_min_kW: -3.8697
+    holgura_max_kW: -3.4991
+ventanas_validacion:
+- ventana_s:
+  - 0
+  - 40
+  evento: nominal 6,0 kW
+  evidencia: linea base
+- ventana_s:
+  - 40
+  - 100
+  evento: escalon de carga +20 %
+  evidencia: regulacion isocrona
+- ventana_s:
+  - 100
+  - 120
+  evento: cola
+  evidencia: asentamiento
+contrato:
+  max_cambio_rel: 0.3
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 120
+  dt_s: 0.5
+  inicio_absoluto: '2026-11-12T10:00:00-05:00'
+  mapeo_perfil: ventana
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    nodo: 2
+    perfil: dia_claro.csv
+    POA_base_W_m2: 0.0
+    T_amb_C: 20.0
+    eventos: []
+  eolica:
+    activa: false
+    vel_base_m_s: 0.0
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 2.1176
+      Q_base_kvar: 0.8471
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 3.1765
+      Q_base_kvar: 1.2706
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 3.5294
+      Q_base_kvar: 1.4118
+    '7':
+      perfil: residencial.csv
+      P_base_kW: 1.7647
+      Q_base_kvar: 0.7059
+    '8':
+      perfil: residencial.csv
+      P_base_kW: 1.4118
+      Q_base_kvar: 0.5647
+  eventos:
+  - t_s: 40
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: 0.21176
+    delta_Q_kvar: 0.0
+  - t_s: 40
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: 0.31765
+    delta_Q_kvar: 0.0
+  - t_s: 40
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: 0.35294
+    delta_Q_kvar: 0.0
+  - t_s: 40
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: 0.17647
+    delta_Q_kvar: 0.0
+  - t_s: 40
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: 0.14118
+    delta_Q_kvar: 0.0
+  ruido:
+    amplitud_rel: 0.02
+contingencias: contingencias_telematicas.csv
