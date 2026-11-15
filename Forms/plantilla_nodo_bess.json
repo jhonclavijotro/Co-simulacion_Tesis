@@ -2,7 +2,8 @@
     "nodo_id": 3,
     "tipo": "ALMACENAMIENTO",
     "tecnologia": "BESS_LITIO_ION",
-    "descripcion": "Sistema de Almacenamiento con Baterias (BESS) y Convertidor Bidireccional",
+    "descripcion": "Sistema de Almacenamiento con Baterias (BESS) y Convertidor Bidireccional. Placa del banco de 8 nodos: 3.0 kWh a 0.5C (1.5 kW), SoC inicial 50%.",
+    "nota_potencia": "La Capa 1 declara p_nominal_W = 1500 y q_nominal_var = 1000 (placa). El runner local de verificacion usa p_max_W = 3000 y q_max_var = 2000; ver checklist C2.",
     "despliegue": {
         "dispositivo": "PC_CENTRAL",
         "ip": "127.0.0.1",
@@ -10,16 +11,16 @@
         "contenedor_docker": "mas_node_bess"
     },
     "parametros_bateria": {
-        "capacidad_nominal_kWh": 50.0,
+        "capacidad_nominal_kWh": 3.0,
         "tension_nominal_dc_V": 400.0,
-        "soc_inicial": 0.70,
+        "soc_inicial": 0.50,
         "soc_minimo": 0.20,
         "soc_maximo": 0.95,
-        "resistencia_interna_R_ohm": 0.025,
-        "capacitancia_equivalente_C_F": 12000.0,
-        "corriente_maxima_carga_A": 65.0,
-        "corriente_maxima_descarga_A": 75.0,
-        "c_rate_maximo": 1.0
+        "resistencia_interna_R_ohm": 0.05,
+        "capacitancia_equivalente_C_F": 135.0,
+        "corriente_maxima_carga_A": 5.0,
+        "corriente_maxima_descarga_A": 5.0,
+        "c_rate_maximo": 0.5
     },
     "convertidor_buck_boost": {
         "inductancia_L_H": 0.004,
@@ -27,7 +28,7 @@
         "tension_bus_dc_regulada_V": 750.0
     },
     "inversor_red": {
-        "potencia_aparente_nominal_kVA": 35.0,
+        "potencia_aparente_nominal_kVA": 1.8,
         "tension_ac_nominal_V": 400.0,
         "frecuencia_nominal_Hz": 60.0,
         "modo_lvrt_habilitado": true,

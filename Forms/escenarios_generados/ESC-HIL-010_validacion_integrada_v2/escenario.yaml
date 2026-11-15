@@ -1,0 +1,457 @@
+id: ESC-HIL-010
+slug: validacion_integrada_v2
+familia: hil_corto
+descripcion: 'Escenario unico de 660 s (1321 muestras a 2 Hz) que absorbe S-O-21 bajo
+  D-29/D-30: consenso inicial, seguimiento de carga, dos sombreados 833-560-347 W/m2,
+  excitacion reactiva distribuida bajo perdida de paquetes, desconexion total 1-2
+  y cola limpia.'
+trazabilidad:
+  deriva_de: ESC-HIL-008_validacion_integrada
+  esquema_datos: consolidado_rev5
+  cambios_respecto_al_origen: duracion 660 s (D-29), demanda escalada a 5.0 kW base,
+    excitacion reactiva de 1.16 kvar distribuida en 5 nodos dentro de P_23 (D-30),
+    dos sombreados con recuperacion, sin escalones de Q fuera de falla.
+  equivalencia: no aplica; escenario unificado que absorbe S-O-21 y sustituye la emision
+    separada de ESC-HIL-009.
+  fecha: '2026-11-14'
+regimen_excedente:
+  version: 2
+  p_min_diesel_W: 3500.0
+  p_charge_max_W: 3000.0
+  soc_inicial: 0.5
+  ventanas:
+  - ventana_s:
+    - 40.0
+    - 70.0
+    tipo: excedente
+    causa: rampa positiva de carga
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 834.26
+    p_solar_ventana_kW: 3.27
+    holgura_min_kW: 0.3374
+    holgura_max_kW: 1.7785
+    perturbacion: recurso
+  - ventana_s:
+    - 130.0
+    - 159.5
+    tipo: excedente
+    causa: carga reducida sostenida
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 836.34
+    p_solar_ventana_kW: 3.2782
+    holgura_min_kW: 2.9819
+    holgura_max_kW: 3.1771
+    perturbacion: recurso
+  - ventana_s:
+    - 240.0
+    - 270.0
+    tipo: excedente
+    causa: POA sostenida en 560 W/m2
+    poa_min_W_m2: 500.0
+    poa_ventana_W_m2: 563.73
+    p_solar_ventana_kW: 2.2097
+    holgura_min_kW: 0.4317
+    holgura_max_kW: 0.6852
+    perturbacion: recurso
+  - ventana_s:
+    - 400.0
+    - 430.0
+    tipo: excedente
+    causa: nominal con PV a MPP
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 856.84
+    p_solar_ventana_kW: 3.3586
+    holgura_min_kW: 1.6358
+    holgura_max_kW: 1.8675
+    perturbacion: recurso
+  - ventana_s:
+    - 430.0
+    - 480.0
+    tipo: excedente
+    causa: excitacion reactiva bajo perdida 2-3
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 858.51
+    p_solar_ventana_kW: 3.3651
+    holgura_min_kW: 1.672
+    holgura_max_kW: 1.8991
+    perturbacion: mixta
+    eventos_demanda:
+    - 440.0
+    - 440.0
+    - 440.0
+    - 440.0
+    - 440.0
+    - 455.0
+    - 455.0
+    - 455.0
+    - 455.0
+    - 455.0
+ventanas_validacion:
+- ventana_s:
+  - 0
+  - 40
+  evento: acoplamiento y convergencia inicial
+  evidencia: consenso inicial
+- ventana_s:
+  - 40
+  - 70
+  evento: rampa positiva de carga +30 por ciento
+  evidencia: seguimiento lento
+- ventana_s:
+  - 70
+  - 100
+  evento: carga sostenida al +30 por ciento
+  evidencia: holgura minima
+- ventana_s:
+  - 100
+  - 130
+  evento: escalon negativo de carga
+  evidencia: excedente por caida de carga
+- ventana_s:
+  - 130
+  - 160
+  evento: carga reducida sostenida
+  evidencia: excedente y absorcion
+- ventana_s:
+  - 160
+  - 180
+  evento: retorno a carga nominal
+  evidencia: seguimiento
+- ventana_s:
+  - 180
+  - 210
+  evento: nominal con PV a MPP
+  evidencia: linea base
+- ventana_s:
+  - 210
+  - 240
+  evento: sombreado suave 833 a 560 W/m2
+  evidencia: deficit moderado
+- ventana_s:
+  - 240
+  - 270
+  evento: POA sostenida en 560 W/m2
+  evidencia: excedente con holgura positiva
+- ventana_s:
+  - 270
+  - 290
+  evento: recuperacion suave 560 a 833 W/m2
+  evidencia: seguimiento
+- ventana_s:
+  - 290
+  - 320
+  evento: nominal con PV a MPP
+  evidencia: linea base
+- ventana_s:
+  - 320
+  - 370
+  evento: sombreado abrupto 833 a 347 W/m2
+  evidencia: deficit severo y nadir de f
+- ventana_s:
+  - 370
+  - 400
+  evento: recuperacion abrupta 347 a 833 W/m2
+  evidencia: respuesta del diesel
+- ventana_s:
+  - 400
+  - 430
+  evento: nominal con PV a MPP
+  evidencia: linea base
+- ventana_s:
+  - 430
+  - 480
+  evento: perdida 20 por ciento 2-3 y excitacion reactiva +1.16/-1.16 kvar
+  evidencia: reparto de Q y reconvergencia bajo falla
+- ventana_s:
+  - 480
+  - 510
+  evento: cola tras la perdida
+  evidencia: restablecimiento
+- ventana_s:
+  - 510
+  - 540
+  evento: desconexion total 1-2
+  evidencia: excursion bajo corte
+- ventana_s:
+  - 540
+  - 570
+  evento: reconexion 1-2
+  evidencia: reconvergencia tras reconexion
+- ventana_s:
+  - 570
+  - 600
+  evento: escalon de carga +25 por ciento
+  evidencia: respuesta del diesel
+- ventana_s:
+  - 600
+  - 660
+  evento: cola limpia
+  evidencia: restablecimiento
+contrato:
+  max_cambio_rel: 0.3
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 660
+  dt_s: 0.5
+  inicio_absoluto: '2026-11-12T10:00:00-05:00'
+  mapeo_perfil: ventana
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    nodo: 2
+    perfil: dia_claro.csv
+    POA_base_W_m2: 1000.0
+    T_amb_C: 20.0
+    eventos:
+    - t_s: 210
+      tipo: rampa
+      factor: 0.7
+      duracion_s: 5
+    - t_s: 215
+      tipo: rampa
+      factor: 0.96
+      duracion_s: 5
+    - t_s: 270
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+    - t_s: 275
+      tipo: rampa
+      factor: 1.145
+      duracion_s: 5
+    - t_s: 320
+      tipo: escalon
+      delta_W_m2: -300.0
+    - t_s: 320.5
+      tipo: escalon
+      delta_W_m2: -186.0
+    - t_s: 370
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+    - t_s: 375
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+    - t_s: 380
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+    - t_s: 385
+      tipo: rampa
+      factor: 1.093
+      duracion_s: 5
+  eolica:
+    activa: false
+    vel_base_m_s: 0.0
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 1.7647
+      Q_base_kvar: 0.7059
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 2.6471
+      Q_base_kvar: 1.0588
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 2.9412
+      Q_base_kvar: 1.1765
+    '7':
+      perfil: residencial.csv
+      P_base_kW: 1.4706
+      Q_base_kvar: 0.5882
+    '8':
+      perfil: residencial.csv
+      P_base_kW: 1.1765
+      Q_base_kvar: 0.4706
+  eventos:
+  - t_s: 40
+    tipo: rampa
+    nodo: '4'
+    delta_P_kW: 0.25588
+    delta_Q_kvar: 0.0
+    duracion_s: 30
+  - t_s: 40
+    tipo: rampa
+    nodo: '5'
+    delta_P_kW: 0.38382
+    delta_Q_kvar: 0.0
+    duracion_s: 30
+  - t_s: 40
+    tipo: rampa
+    nodo: '6'
+    delta_P_kW: 0.42647
+    delta_Q_kvar: 0.0
+    duracion_s: 30
+  - t_s: 40
+    tipo: rampa
+    nodo: '7'
+    delta_P_kW: 0.21324
+    delta_Q_kvar: 0.0
+    duracion_s: 30
+  - t_s: 40
+    tipo: rampa
+    nodo: '8'
+    delta_P_kW: 0.17059
+    delta_Q_kvar: 0.0
+    duracion_s: 30
+  - t_s: 100
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: -0.47647
+    delta_Q_kvar: 0.0
+  - t_s: 100
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: -0.71471
+    delta_Q_kvar: 0.0
+  - t_s: 100
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: -0.79412
+    delta_Q_kvar: 0.0
+  - t_s: 100
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: -0.39706
+    delta_Q_kvar: 0.0
+  - t_s: 100
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: -0.31765
+    delta_Q_kvar: 0.0
+  - t_s: 160
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: 0.25588
+    delta_Q_kvar: 0.0
+  - t_s: 160
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: 0.38382
+    delta_Q_kvar: 0.0
+  - t_s: 160
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: 0.42647
+    delta_Q_kvar: 0.0
+  - t_s: 160
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: 0.21324
+    delta_Q_kvar: 0.0
+  - t_s: 160
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: 0.17059
+    delta_Q_kvar: 0.0
+  - t_s: 440
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: 0.0
+    delta_Q_kvar: 0.20471
+  - t_s: 440
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: 0.0
+    delta_Q_kvar: 0.30706
+  - t_s: 440
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: 0.0
+    delta_Q_kvar: 0.34118
+  - t_s: 440
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: 0.0
+    delta_Q_kvar: 0.17059
+  - t_s: 440
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: 0.0
+    delta_Q_kvar: 0.13647
+  - t_s: 455
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: 0.0
+    delta_Q_kvar: -0.20471
+  - t_s: 455
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: 0.0
+    delta_Q_kvar: -0.30706
+  - t_s: 455
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: 0.0
+    delta_Q_kvar: -0.34118
+  - t_s: 455
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: 0.0
+    delta_Q_kvar: -0.17059
+  - t_s: 455
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: 0.0
+    delta_Q_kvar: -0.13647
+  - t_s: 570
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: 0.22059
+    delta_Q_kvar: 0.0
+  - t_s: 570
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: 0.33088
+    delta_Q_kvar: 0.0
+  - t_s: 570
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: 0.36765
+    delta_Q_kvar: 0.0
+  - t_s: 570
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: 0.18382
+    delta_Q_kvar: 0.0
+  - t_s: 570
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: 0.14706
+    delta_Q_kvar: 0.0
+  - t_s: 600
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: -0.22059
+    delta_Q_kvar: 0.0
+  - t_s: 600
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: -0.33088
+    delta_Q_kvar: 0.0
+  - t_s: 600
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: -0.36765
+    delta_Q_kvar: 0.0
+  - t_s: 600
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: -0.18382
+    delta_Q_kvar: 0.0
+  - t_s: 600
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: -0.14706
+    delta_Q_kvar: 0.0
+  ruido:
+    amplitud_rel: 0.02
+contingencias: contingencias_telematicas.csv

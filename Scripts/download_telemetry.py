@@ -6,7 +6,7 @@ from Scripts.cluster_deployer import ClusterDeployer
 d = ClusterDeployer()
 node = next(n for n in d.nodes if n['ip'] == '10.0.0.155')
 remote_path = f"{d.get_remote_dir(node)}/output_data/telemetry_monitor.csv"
-local_path = os.path.abspath("output_data/telemetry_monitor_cluster_rpi.csv")
+local_path = os.path.abspath("output_data/telemetry_monitor_cluster_rpi_v2.csv")
 
 print(f"Descargando {remote_path} -> {local_path}...")
 ssh = d._get_ssh_client(node)

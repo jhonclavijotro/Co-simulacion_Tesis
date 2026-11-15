@@ -88,5 +88,28 @@ class TestHoldReconstruction(unittest.TestCase):
         self.assertEqual(out2["step"], 2)
 
 
+    def test_froh_nomenclature_and_aliases(self):
+        """Verifica la nomenclatura FROH (Fractional-Order Hold) y la retrocompatibilidad con ZFOH (S-24 S5)."""
+        proc_froh = NodeDynamicProcess(node_id=2, source_type="SOLAR", hold_mode="FROH", froh_lambda=0.7)
+        self.assertEqual(proc_froh.hold_mode, "FROH")
+        self.assertEqual(proc_froh.froh_lambda, 0.7)
+        self.assertEqual(proc_froh.zfoh_lambda, 0.7)
+
+        # Alias ZFOH se mapea a FROH manteniendo propiedades
+        proc_zfoh = NodeDynamicProcess(node_id=2, source_type="SOLAR", hold_mode="ZFOH", zfoh_lambda=0.8)
+        self.assertEqual(proc_zfoh.hold_mode, "FROH")
+        self.assertEqual(proc_zfoh.froh_lambda, 0.8)
+        self.assertEqual(proc_zfoh.zfoh_lambda, 0.8)
+
+        # Sobrescritura en step_macro con FROH
+        res = proc_froh.step_macro(V_pcc=400.0, hold_mode="FROH", froh_lambda=0.6)
+        self.assertEqual(res["step"], 1)
+
+    def test_default_hold_mode_is_zoh(self):
+        """Verifica que el modo por defecto unificado en toda la base de código sea ZOH (S-24 S4)."""
+        proc_default = NodeDynamicProcess(node_id=1, source_type="DIESEL")
+        self.assertEqual(proc_default.hold_mode, "ZOH")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,3942 @@
+[
+  {
+    "step": 1,
+    "t_sec": 0.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3016.73,
+        "Q_var": 1177.2
+      },
+      "5": {
+        "P_w": 4459.51,
+        "Q_var": 1780.07
+      },
+      "6": {
+        "P_w": 5047.29,
+        "Q_var": 2014.14
+      },
+      "7": {
+        "P_w": 2539.22,
+        "Q_var": 983.48
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 2,
+    "t_sec": 0.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2990.63,
+        "Q_var": 1177.43
+      },
+      "5": {
+        "P_w": 4449.35,
+        "Q_var": 1800.39
+      },
+      "6": {
+        "P_w": 4905.31,
+        "Q_var": 1975.91
+      },
+      "7": {
+        "P_w": 2514.99,
+        "Q_var": 1001.8
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 3,
+    "t_sec": 1.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2966.45,
+        "Q_var": 1204.28
+      },
+      "5": {
+        "P_w": 4555.7,
+        "Q_var": 1764.47
+      },
+      "6": {
+        "P_w": 5061.16,
+        "Q_var": 2015.85
+      },
+      "7": {
+        "P_w": 2484.03,
+        "Q_var": 986.22
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 4,
+    "t_sec": 1.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3054.87,
+        "Q_var": 1192.16
+      },
+      "5": {
+        "P_w": 4426.69,
+        "Q_var": 1770.96
+      },
+      "6": {
+        "P_w": 5069.5,
+        "Q_var": 2008.3
+      },
+      "7": {
+        "P_w": 2530.71,
+        "Q_var": 1009.19
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 5,
+    "t_sec": 2.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3004.35,
+        "Q_var": 1222.71
+      },
+      "5": {
+        "P_w": 4478.14,
+        "Q_var": 1803.75
+      },
+      "6": {
+        "P_w": 5065.88,
+        "Q_var": 2009.48
+      },
+      "7": {
+        "P_w": 2536.17,
+        "Q_var": 1003.09
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 6,
+    "t_sec": 2.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3024.55,
+        "Q_var": 1178.2
+      },
+      "5": {
+        "P_w": 4451.02,
+        "Q_var": 1784.84
+      },
+      "6": {
+        "P_w": 4915.96,
+        "Q_var": 1978.62
+      },
+      "7": {
+        "P_w": 2460.1,
+        "Q_var": 991.12
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 7,
+    "t_sec": 3.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3016.28,
+        "Q_var": 1193.51
+      },
+      "5": {
+        "P_w": 4476.63,
+        "Q_var": 1779.08
+      },
+      "6": {
+        "P_w": 4953.4,
+        "Q_var": 2034.93
+      },
+      "7": {
+        "P_w": 2514.8,
+        "Q_var": 1004.37
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 8,
+    "t_sec": 3.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2960.54,
+        "Q_var": 1211.0
+      },
+      "5": {
+        "P_w": 4439.41,
+        "Q_var": 1791.32
+      },
+      "6": {
+        "P_w": 5097.9,
+        "Q_var": 2011.2
+      },
+      "7": {
+        "P_w": 2505.69,
+        "Q_var": 1007.38
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 9,
+    "t_sec": 4.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3041.14,
+        "Q_var": 1213.25
+      },
+      "5": {
+        "P_w": 4451.23,
+        "Q_var": 1766.31
+      },
+      "6": {
+        "P_w": 4963.09,
+        "Q_var": 1981.42
+      },
+      "7": {
+        "P_w": 2471.1,
+        "Q_var": 1017.72
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 10,
+    "t_sec": 4.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3045.16,
+        "Q_var": 1191.1
+      },
+      "5": {
+        "P_w": 4527.98,
+        "Q_var": 1792.49
+      },
+      "6": {
+        "P_w": 5082.91,
+        "Q_var": 1996.71
+      },
+      "7": {
+        "P_w": 2476.49,
+        "Q_var": 989.87
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 11,
+    "t_sec": 5.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3007.36,
+        "Q_var": 1188.61
+      },
+      "5": {
+        "P_w": 4515.23,
+        "Q_var": 1828.64
+      },
+      "6": {
+        "P_w": 4979.88,
+        "Q_var": 1977.55
+      },
+      "7": {
+        "P_w": 2549.75,
+        "Q_var": 1000.38
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 12,
+    "t_sec": 5.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2950.91,
+        "Q_var": 1178.26
+      },
+      "5": {
+        "P_w": 4429.74,
+        "Q_var": 1809.18
+      },
+      "6": {
+        "P_w": 5058.42,
+        "Q_var": 1993.77
+      },
+      "7": {
+        "P_w": 2456.35,
+        "Q_var": 995.26
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 13,
+    "t_sec": 6.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3059.53,
+        "Q_var": 1201.4
+      },
+      "5": {
+        "P_w": 4584.79,
+        "Q_var": 1825.98
+      },
+      "6": {
+        "P_w": 4902.3,
+        "Q_var": 2017.66
+      },
+      "7": {
+        "P_w": 2518.17,
+        "Q_var": 1001.48
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 14,
+    "t_sec": 6.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2972.02,
+        "Q_var": 1206.77
+      },
+      "5": {
+        "P_w": 4430.08,
+        "Q_var": 1795.3
+      },
+      "6": {
+        "P_w": 4990.74,
+        "Q_var": 2036.31
+      },
+      "7": {
+        "P_w": 2537.59,
+        "Q_var": 990.54
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 15,
+    "t_sec": 7.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3000.07,
+        "Q_var": 1184.58
+      },
+      "5": {
+        "P_w": 4574.27,
+        "Q_var": 1826.68
+      },
+      "6": {
+        "P_w": 4959.69,
+        "Q_var": 2011.12
+      },
+      "7": {
+        "P_w": 2510.9,
+        "Q_var": 986.11
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 16,
+    "t_sec": 7.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3031.5,
+        "Q_var": 1201.89
+      },
+      "5": {
+        "P_w": 4550.15,
+        "Q_var": 1802.19
+      },
+      "6": {
+        "P_w": 4900.11,
+        "Q_var": 1985.93
+      },
+      "7": {
+        "P_w": 2451.95,
+        "Q_var": 1017.16
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 17,
+    "t_sec": 8.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3045.45,
+        "Q_var": 1215.92
+      },
+      "5": {
+        "P_w": 4465.35,
+        "Q_var": 1768.17
+      },
+      "6": {
+        "P_w": 5075.6,
+        "Q_var": 2035.76
+      },
+      "7": {
+        "P_w": 2458.57,
+        "Q_var": 999.44
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 18,
+    "t_sec": 8.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2948.31,
+        "Q_var": 1212.51
+      },
+      "5": {
+        "P_w": 4547.85,
+        "Q_var": 1773.24
+      },
+      "6": {
+        "P_w": 4995.06,
+        "Q_var": 2003.98
+      },
+      "7": {
+        "P_w": 2476.51,
+        "Q_var": 1014.9
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 19,
+    "t_sec": 9.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2990.78,
+        "Q_var": 1186.17
+      },
+      "5": {
+        "P_w": 4507.07,
+        "Q_var": 1816.56
+      },
+      "6": {
+        "P_w": 4940.23,
+        "Q_var": 1984.94
+      },
+      "7": {
+        "P_w": 2549.51,
+        "Q_var": 1006.0
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 20,
+    "t_sec": 9.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2992.57,
+        "Q_var": 1200.84
+      },
+      "5": {
+        "P_w": 4431.78,
+        "Q_var": 1780.18
+      },
+      "6": {
+        "P_w": 4967.62,
+        "Q_var": 2007.06
+      },
+      "7": {
+        "P_w": 2473.01,
+        "Q_var": 988.81
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 21,
+    "t_sec": 10.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2948.52,
+        "Q_var": 1206.29
+      },
+      "5": {
+        "P_w": 4451.21,
+        "Q_var": 1829.19
+      },
+      "6": {
+        "P_w": 5071.93,
+        "Q_var": 1965.67
+      },
+      "7": {
+        "P_w": 2473.8,
+        "Q_var": 1006.76
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 22,
+    "t_sec": 10.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2965.71,
+        "Q_var": 1182.35
+      },
+      "5": {
+        "P_w": 4578.39,
+        "Q_var": 1805.12
+      },
+      "6": {
+        "P_w": 4994.53,
+        "Q_var": 2022.77
+      },
+      "7": {
+        "P_w": 2530.75,
+        "Q_var": 987.62
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 23,
+    "t_sec": 11.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2951.63,
+        "Q_var": 1196.69
+      },
+      "5": {
+        "P_w": 4486.24,
+        "Q_var": 1797.63
+      },
+      "6": {
+        "P_w": 5045.82,
+        "Q_var": 2013.87
+      },
+      "7": {
+        "P_w": 2548.42,
+        "Q_var": 983.94
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 24,
+    "t_sec": 11.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2988.31,
+        "Q_var": 1192.29
+      },
+      "5": {
+        "P_w": 4565.1,
+        "Q_var": 1781.9
+      },
+      "6": {
+        "P_w": 4938.04,
+        "Q_var": 1995.89
+      },
+      "7": {
+        "P_w": 2492.19,
+        "Q_var": 991.14
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 25,
+    "t_sec": 12.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2969.98,
+        "Q_var": 1220.32
+      },
+      "5": {
+        "P_w": 4489.76,
+        "Q_var": 1826.02
+      },
+      "6": {
+        "P_w": 5010.07,
+        "Q_var": 1964.05
+      },
+      "7": {
+        "P_w": 2549.93,
+        "Q_var": 1013.44
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 26,
+    "t_sec": 12.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3056.28,
+        "Q_var": 1220.47
+      },
+      "5": {
+        "P_w": 4562.77,
+        "Q_var": 1775.97
+      },
+      "6": {
+        "P_w": 4997.13,
+        "Q_var": 1977.1
+      },
+      "7": {
+        "P_w": 2490.1,
+        "Q_var": 982.35
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 27,
+    "t_sec": 13.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2985.48,
+        "Q_var": 1223.29
+      },
+      "5": {
+        "P_w": 4457.74,
+        "Q_var": 1820.45
+      },
+      "6": {
+        "P_w": 4991.0,
+        "Q_var": 1993.84
+      },
+      "7": {
+        "P_w": 2545.73,
+        "Q_var": 1019.82
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 28,
+    "t_sec": 13.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3006.69,
+        "Q_var": 1210.48
+      },
+      "5": {
+        "P_w": 4437.86,
+        "Q_var": 1785.36
+      },
+      "6": {
+        "P_w": 5093.74,
+        "Q_var": 2006.33
+      },
+      "7": {
+        "P_w": 2504.22,
+        "Q_var": 1009.92
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 29,
+    "t_sec": 14.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 2946.86,
+        "Q_var": 1204.04
+      },
+      "5": {
+        "P_w": 4500.51,
+        "Q_var": 1825.4
+      },
+      "6": {
+        "P_w": 4931.49,
+        "Q_var": 2036.86
+      },
+      "7": {
+        "P_w": 2458.01,
+        "Q_var": 987.43
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 30,
+    "t_sec": 14.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 3011.4,
+        "Q_var": 1208.41
+      },
+      "5": {
+        "P_w": 4452.34,
+        "Q_var": 1772.63
+      },
+      "6": {
+        "P_w": 5078.06,
+        "Q_var": 1979.7
+      },
+      "7": {
+        "P_w": 2509.45,
+        "Q_var": 1004.78
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 31,
+    "t_sec": 15.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4983.84,
+        "Q_var": 2006.69
+      },
+      "5": {
+        "P_w": 4504.1,
+        "Q_var": 1831.3
+      },
+      "6": {
+        "P_w": 7905.36,
+        "Q_var": 3227.67
+      },
+      "7": {
+        "P_w": 2473.87,
+        "Q_var": 995.83
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 32,
+    "t_sec": 15.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5034.34,
+        "Q_var": 1984.0
+      },
+      "5": {
+        "P_w": 4466.91,
+        "Q_var": 1818.13
+      },
+      "6": {
+        "P_w": 7863.21,
+        "Q_var": 3194.66
+      },
+      "7": {
+        "P_w": 2549.85,
+        "Q_var": 1019.84
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 33,
+    "t_sec": 16.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4914.65,
+        "Q_var": 1977.05
+      },
+      "5": {
+        "P_w": 4457.74,
+        "Q_var": 1831.19
+      },
+      "6": {
+        "P_w": 8121.88,
+        "Q_var": 3248.55
+      },
+      "7": {
+        "P_w": 2486.95,
+        "Q_var": 986.31
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 34,
+    "t_sec": 16.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5066.75,
+        "Q_var": 2016.28
+      },
+      "5": {
+        "P_w": 4520.1,
+        "Q_var": 1835.08
+      },
+      "6": {
+        "P_w": 8049.27,
+        "Q_var": 3137.0
+      },
+      "7": {
+        "P_w": 2531.71,
+        "Q_var": 991.98
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 35,
+    "t_sec": 17.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5032.68,
+        "Q_var": 2035.11
+      },
+      "5": {
+        "P_w": 4434.17,
+        "Q_var": 1772.31
+      },
+      "6": {
+        "P_w": 7874.25,
+        "Q_var": 3206.81
+      },
+      "7": {
+        "P_w": 2477.23,
+        "Q_var": 1004.19
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 36,
+    "t_sec": 17.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5043.52,
+        "Q_var": 1976.29
+      },
+      "5": {
+        "P_w": 4524.16,
+        "Q_var": 1783.01
+      },
+      "6": {
+        "P_w": 7996.33,
+        "Q_var": 3251.88
+      },
+      "7": {
+        "P_w": 2534.61,
+        "Q_var": 983.69
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 37,
+    "t_sec": 18.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4984.72,
+        "Q_var": 1982.13
+      },
+      "5": {
+        "P_w": 4410.64,
+        "Q_var": 1819.52
+      },
+      "6": {
+        "P_w": 8043.88,
+        "Q_var": 3169.53
+      },
+      "7": {
+        "P_w": 2524.12,
+        "Q_var": 1002.07
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 38,
+    "t_sec": 18.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4985.54,
+        "Q_var": 1960.77
+      },
+      "5": {
+        "P_w": 4423.54,
+        "Q_var": 1827.58
+      },
+      "6": {
+        "P_w": 8129.26,
+        "Q_var": 3205.84
+      },
+      "7": {
+        "P_w": 2533.46,
+        "Q_var": 1003.3
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 39,
+    "t_sec": 19.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4929.62,
+        "Q_var": 1970.2
+      },
+      "5": {
+        "P_w": 4465.49,
+        "Q_var": 1828.73
+      },
+      "6": {
+        "P_w": 8094.76,
+        "Q_var": 3246.17
+      },
+      "7": {
+        "P_w": 2539.89,
+        "Q_var": 988.4
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 40,
+    "t_sec": 19.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4949.91,
+        "Q_var": 1968.22
+      },
+      "5": {
+        "P_w": 4550.42,
+        "Q_var": 1827.66
+      },
+      "6": {
+        "P_w": 7970.04,
+        "Q_var": 3215.44
+      },
+      "7": {
+        "P_w": 2465.46,
+        "Q_var": 1017.2
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 41,
+    "t_sec": 20.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5072.92,
+        "Q_var": 2038.1
+      },
+      "5": {
+        "P_w": 4555.94,
+        "Q_var": 1827.46
+      },
+      "6": {
+        "P_w": 7847.93,
+        "Q_var": 3230.28
+      },
+      "7": {
+        "P_w": 2483.22,
+        "Q_var": 1017.23
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 42,
+    "t_sec": 20.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5060.45,
+        "Q_var": 2029.13
+      },
+      "5": {
+        "P_w": 4555.93,
+        "Q_var": 1783.21
+      },
+      "6": {
+        "P_w": 8091.96,
+        "Q_var": 3149.84
+      },
+      "7": {
+        "P_w": 2537.22,
+        "Q_var": 1014.34
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 43,
+    "t_sec": 21.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4944.49,
+        "Q_var": 2025.33
+      },
+      "5": {
+        "P_w": 4492.85,
+        "Q_var": 1785.97
+      },
+      "6": {
+        "P_w": 8094.51,
+        "Q_var": 3165.13
+      },
+      "7": {
+        "P_w": 2452.37,
+        "Q_var": 987.73
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 44,
+    "t_sec": 21.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4965.65,
+        "Q_var": 2029.15
+      },
+      "5": {
+        "P_w": 4584.04,
+        "Q_var": 1784.1
+      },
+      "6": {
+        "P_w": 8045.27,
+        "Q_var": 3187.16
+      },
+      "7": {
+        "P_w": 2548.11,
+        "Q_var": 1001.45
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 45,
+    "t_sec": 22.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5087.85,
+        "Q_var": 1969.23
+      },
+      "5": {
+        "P_w": 4584.67,
+        "Q_var": 1776.86
+      },
+      "6": {
+        "P_w": 8148.01,
+        "Q_var": 3169.98
+      },
+      "7": {
+        "P_w": 2460.84,
+        "Q_var": 997.38
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 46,
+    "t_sec": 22.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5045.71,
+        "Q_var": 1985.09
+      },
+      "5": {
+        "P_w": 4519.12,
+        "Q_var": 1800.82
+      },
+      "6": {
+        "P_w": 7963.26,
+        "Q_var": 3209.8
+      },
+      "7": {
+        "P_w": 2475.47,
+        "Q_var": 1008.35
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 47,
+    "t_sec": 23.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4900.34,
+        "Q_var": 2034.05
+      },
+      "5": {
+        "P_w": 4506.92,
+        "Q_var": 1815.8
+      },
+      "6": {
+        "P_w": 8077.42,
+        "Q_var": 3221.84
+      },
+      "7": {
+        "P_w": 2486.42,
+        "Q_var": 982.8
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 48,
+    "t_sec": 23.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5032.85,
+        "Q_var": 1986.42
+      },
+      "5": {
+        "P_w": 4466.5,
+        "Q_var": 1825.06
+      },
+      "6": {
+        "P_w": 8070.32,
+        "Q_var": 3174.44
+      },
+      "7": {
+        "P_w": 2480.93,
+        "Q_var": 996.34
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 49,
+    "t_sec": 24.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4980.48,
+        "Q_var": 1983.65
+      },
+      "5": {
+        "P_w": 4432.91,
+        "Q_var": 1794.27
+      },
+      "6": {
+        "P_w": 8140.92,
+        "Q_var": 3222.7
+      },
+      "7": {
+        "P_w": 2540.28,
+        "Q_var": 1004.62
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 50,
+    "t_sec": 24.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4960.19,
+        "Q_var": 2003.83
+      },
+      "5": {
+        "P_w": 4410.07,
+        "Q_var": 1784.66
+      },
+      "6": {
+        "P_w": 7977.56,
+        "Q_var": 3210.24
+      },
+      "7": {
+        "P_w": 2515.47,
+        "Q_var": 998.6
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 51,
+    "t_sec": 25.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4988.43,
+        "Q_var": 1977.1
+      },
+      "5": {
+        "P_w": 4495.17,
+        "Q_var": 1828.89
+      },
+      "6": {
+        "P_w": 8094.73,
+        "Q_var": 3157.72
+      },
+      "7": {
+        "P_w": 2458.48,
+        "Q_var": 1000.62
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 52,
+    "t_sec": 25.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5026.59,
+        "Q_var": 1986.82
+      },
+      "5": {
+        "P_w": 4557.32,
+        "Q_var": 1818.08
+      },
+      "6": {
+        "P_w": 8055.29,
+        "Q_var": 3164.75
+      },
+      "7": {
+        "P_w": 2469.91,
+        "Q_var": 980.98
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 53,
+    "t_sec": 26.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4948.97,
+        "Q_var": 1998.01
+      },
+      "5": {
+        "P_w": 4562.95,
+        "Q_var": 1769.24
+      },
+      "6": {
+        "P_w": 7972.62,
+        "Q_var": 3216.61
+      },
+      "7": {
+        "P_w": 2469.44,
+        "Q_var": 1007.85
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 54,
+    "t_sec": 26.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4998.88,
+        "Q_var": 1979.52
+      },
+      "5": {
+        "P_w": 4528.09,
+        "Q_var": 1764.4
+      },
+      "6": {
+        "P_w": 8080.31,
+        "Q_var": 3234.57
+      },
+      "7": {
+        "P_w": 2460.66,
+        "Q_var": 997.01
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 55,
+    "t_sec": 27.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4935.18,
+        "Q_var": 2036.64
+      },
+      "5": {
+        "P_w": 4503.23,
+        "Q_var": 1767.62
+      },
+      "6": {
+        "P_w": 7919.74,
+        "Q_var": 3244.59
+      },
+      "7": {
+        "P_w": 2495.65,
+        "Q_var": 1012.06
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 56,
+    "t_sec": 27.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5033.52,
+        "Q_var": 2039.03
+      },
+      "5": {
+        "P_w": 4517.18,
+        "Q_var": 1832.4
+      },
+      "6": {
+        "P_w": 8125.26,
+        "Q_var": 3214.42
+      },
+      "7": {
+        "P_w": 2521.93,
+        "Q_var": 1000.19
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 57,
+    "t_sec": 28.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5066.11,
+        "Q_var": 2003.83
+      },
+      "5": {
+        "P_w": 4571.5,
+        "Q_var": 1817.54
+      },
+      "6": {
+        "P_w": 7991.9,
+        "Q_var": 3169.18
+      },
+      "7": {
+        "P_w": 2474.72,
+        "Q_var": 1005.51
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 58,
+    "t_sec": 28.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5053.16,
+        "Q_var": 2001.7
+      },
+      "5": {
+        "P_w": 4522.81,
+        "Q_var": 1783.77
+      },
+      "6": {
+        "P_w": 7864.79,
+        "Q_var": 3172.57
+      },
+      "7": {
+        "P_w": 2477.17,
+        "Q_var": 992.79
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 59,
+    "t_sec": 29.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5008.03,
+        "Q_var": 1971.07
+      },
+      "5": {
+        "P_w": 4451.63,
+        "Q_var": 1813.96
+      },
+      "6": {
+        "P_w": 8066.05,
+        "Q_var": 3144.22
+      },
+      "7": {
+        "P_w": 2490.76,
+        "Q_var": 1001.7
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 60,
+    "t_sec": 29.5,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4983.15,
+        "Q_var": 1976.55
+      },
+      "5": {
+        "P_w": 4485.63,
+        "Q_var": 1829.15
+      },
+      "6": {
+        "P_w": 8026.91,
+        "Q_var": 3225.03
+      },
+      "7": {
+        "P_w": 2535.67,
+        "Q_var": 1010.62
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 61,
+    "t_sec": 30.0,
+    "solar_node_3": {
+      "POA": 1000.0,
+      "T_amb": 298.15,
+      "P_available_w": 10000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4976.08,
+        "Q_var": 1960.47
+      },
+      "5": {
+        "P_w": 4473.32,
+        "Q_var": 1818.25
+      },
+      "6": {
+        "P_w": 8113.1,
+        "Q_var": 3258.04
+      },
+      "7": {
+        "P_w": 2491.9,
+        "Q_var": 1009.9
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 62,
+    "t_sec": 30.5,
+    "solar_node_3": {
+      "POA": 930.0,
+      "T_amb": 298.15,
+      "P_available_w": 9300.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5009.23,
+        "Q_var": 2008.26
+      },
+      "5": {
+        "P_w": 4449.7,
+        "Q_var": 1779.8
+      },
+      "6": {
+        "P_w": 7979.47,
+        "Q_var": 3139.72
+      },
+      "7": {
+        "P_w": 2483.61,
+        "Q_var": 1007.17
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 63,
+    "t_sec": 31.0,
+    "solar_node_3": {
+      "POA": 860.0,
+      "T_amb": 298.15,
+      "P_available_w": 8600.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4980.86,
+        "Q_var": 1973.2
+      },
+      "5": {
+        "P_w": 4494.13,
+        "Q_var": 1773.19
+      },
+      "6": {
+        "P_w": 8039.12,
+        "Q_var": 3139.45
+      },
+      "7": {
+        "P_w": 2489.4,
+        "Q_var": 1002.58
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 64,
+    "t_sec": 31.5,
+    "solar_node_3": {
+      "POA": 790.0,
+      "T_amb": 298.15,
+      "P_available_w": 7900.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4905.42,
+        "Q_var": 2011.42
+      },
+      "5": {
+        "P_w": 4434.43,
+        "Q_var": 1797.24
+      },
+      "6": {
+        "P_w": 7856.09,
+        "Q_var": 3184.53
+      },
+      "7": {
+        "P_w": 2471.17,
+        "Q_var": 993.07
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 65,
+    "t_sec": 32.0,
+    "solar_node_3": {
+      "POA": 720.0,
+      "T_amb": 298.15,
+      "P_available_w": 7200.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5052.25,
+        "Q_var": 1990.33
+      },
+      "5": {
+        "P_w": 4545.36,
+        "Q_var": 1823.9
+      },
+      "6": {
+        "P_w": 7920.73,
+        "Q_var": 3146.48
+      },
+      "7": {
+        "P_w": 2451.94,
+        "Q_var": 1001.58
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 66,
+    "t_sec": 32.5,
+    "solar_node_3": {
+      "POA": 650.0,
+      "T_amb": 298.15,
+      "P_available_w": 6500.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5099.98,
+        "Q_var": 1988.0
+      },
+      "5": {
+        "P_w": 4527.03,
+        "Q_var": 1820.25
+      },
+      "6": {
+        "P_w": 8048.56,
+        "Q_var": 3232.54
+      },
+      "7": {
+        "P_w": 2544.96,
+        "Q_var": 987.97
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 67,
+    "t_sec": 33.0,
+    "solar_node_3": {
+      "POA": 580.0,
+      "T_amb": 298.15,
+      "P_available_w": 5800.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4904.08,
+        "Q_var": 1972.19
+      },
+      "5": {
+        "P_w": 4432.72,
+        "Q_var": 1812.2
+      },
+      "6": {
+        "P_w": 8020.47,
+        "Q_var": 3163.9
+      },
+      "7": {
+        "P_w": 2519.95,
+        "Q_var": 1010.68
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 68,
+    "t_sec": 33.5,
+    "solar_node_3": {
+      "POA": 510.0,
+      "T_amb": 298.15,
+      "P_available_w": 5100.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4933.56,
+        "Q_var": 2008.58
+      },
+      "5": {
+        "P_w": 4544.63,
+        "Q_var": 1772.25
+      },
+      "6": {
+        "P_w": 8102.18,
+        "Q_var": 3259.48
+      },
+      "7": {
+        "P_w": 2460.81,
+        "Q_var": 981.03
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 69,
+    "t_sec": 34.0,
+    "solar_node_3": {
+      "POA": 440.0,
+      "T_amb": 298.15,
+      "P_available_w": 4400.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4962.39,
+        "Q_var": 2014.19
+      },
+      "5": {
+        "P_w": 4582.47,
+        "Q_var": 1792.56
+      },
+      "6": {
+        "P_w": 8068.8,
+        "Q_var": 3145.73
+      },
+      "7": {
+        "P_w": 2519.06,
+        "Q_var": 1005.09
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 70,
+    "t_sec": 34.5,
+    "solar_node_3": {
+      "POA": 370.0,
+      "T_amb": 298.15,
+      "P_available_w": 3700.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4920.38,
+        "Q_var": 2021.8
+      },
+      "5": {
+        "P_w": 4563.05,
+        "Q_var": 1807.23
+      },
+      "6": {
+        "P_w": 7878.74,
+        "Q_var": 3261.93
+      },
+      "7": {
+        "P_w": 2528.26,
+        "Q_var": 993.89
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 71,
+    "t_sec": 35.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4985.68,
+        "Q_var": 1989.65
+      },
+      "5": {
+        "P_w": 4501.07,
+        "Q_var": 1788.57
+      },
+      "6": {
+        "P_w": 8111.86,
+        "Q_var": 3241.26
+      },
+      "7": {
+        "P_w": 2460.55,
+        "Q_var": 1018.43
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 72,
+    "t_sec": 35.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5027.12,
+        "Q_var": 2026.3
+      },
+      "5": {
+        "P_w": 4537.32,
+        "Q_var": 1795.36
+      },
+      "6": {
+        "P_w": 8074.81,
+        "Q_var": 3259.58
+      },
+      "7": {
+        "P_w": 2477.01,
+        "Q_var": 1012.33
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 73,
+    "t_sec": 36.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5007.63,
+        "Q_var": 1998.68
+      },
+      "5": {
+        "P_w": 4488.4,
+        "Q_var": 1816.63
+      },
+      "6": {
+        "P_w": 7925.89,
+        "Q_var": 3245.02
+      },
+      "7": {
+        "P_w": 2533.07,
+        "Q_var": 983.47
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 74,
+    "t_sec": 36.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5076.33,
+        "Q_var": 1979.51
+      },
+      "5": {
+        "P_w": 4493.65,
+        "Q_var": 1807.94
+      },
+      "6": {
+        "P_w": 7961.28,
+        "Q_var": 3139.67
+      },
+      "7": {
+        "P_w": 2535.1,
+        "Q_var": 987.27
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 75,
+    "t_sec": 37.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4942.42,
+        "Q_var": 2023.83
+      },
+      "5": {
+        "P_w": 4471.26,
+        "Q_var": 1827.38
+      },
+      "6": {
+        "P_w": 8064.38,
+        "Q_var": 3171.36
+      },
+      "7": {
+        "P_w": 2451.02,
+        "Q_var": 1017.92
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 76,
+    "t_sec": 37.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4917.12,
+        "Q_var": 2017.61
+      },
+      "5": {
+        "P_w": 4497.94,
+        "Q_var": 1818.59
+      },
+      "6": {
+        "P_w": 8060.99,
+        "Q_var": 3218.68
+      },
+      "7": {
+        "P_w": 2499.08,
+        "Q_var": 1011.72
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 77,
+    "t_sec": 38.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4918.61,
+        "Q_var": 1977.73
+      },
+      "5": {
+        "P_w": 4534.52,
+        "Q_var": 1786.05
+      },
+      "6": {
+        "P_w": 8026.1,
+        "Q_var": 3196.58
+      },
+      "7": {
+        "P_w": 2503.09,
+        "Q_var": 997.02
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 78,
+    "t_sec": 38.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5049.19,
+        "Q_var": 1986.46
+      },
+      "5": {
+        "P_w": 4536.51,
+        "Q_var": 1783.51
+      },
+      "6": {
+        "P_w": 7920.45,
+        "Q_var": 3151.44
+      },
+      "7": {
+        "P_w": 2469.26,
+        "Q_var": 984.78
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 79,
+    "t_sec": 39.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5007.17,
+        "Q_var": 2020.98
+      },
+      "5": {
+        "P_w": 4443.33,
+        "Q_var": 1779.58
+      },
+      "6": {
+        "P_w": 7994.94,
+        "Q_var": 3228.75
+      },
+      "7": {
+        "P_w": 2547.66,
+        "Q_var": 1000.99
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 80,
+    "t_sec": 39.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4956.6,
+        "Q_var": 1968.04
+      },
+      "5": {
+        "P_w": 4444.94,
+        "Q_var": 1780.38
+      },
+      "6": {
+        "P_w": 7897.42,
+        "Q_var": 3137.81
+      },
+      "7": {
+        "P_w": 2503.41,
+        "Q_var": 990.97
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 81,
+    "t_sec": 40.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5094.86,
+        "Q_var": 2004.27
+      },
+      "5": {
+        "P_w": 2015.79,
+        "Q_var": 788.04
+      },
+      "6": {
+        "P_w": 8117.91,
+        "Q_var": 3198.83
+      },
+      "7": {
+        "P_w": 2537.27,
+        "Q_var": 1002.96
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 82,
+    "t_sec": 40.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4993.88,
+        "Q_var": 1995.24
+      },
+      "5": {
+        "P_w": 1974.75,
+        "Q_var": 785.64
+      },
+      "6": {
+        "P_w": 8141.14,
+        "Q_var": 3197.15
+      },
+      "7": {
+        "P_w": 2532.21,
+        "Q_var": 996.03
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 83,
+    "t_sec": 41.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4914.82,
+        "Q_var": 2010.36
+      },
+      "5": {
+        "P_w": 1964.29,
+        "Q_var": 788.77
+      },
+      "6": {
+        "P_w": 8020.11,
+        "Q_var": 3174.89
+      },
+      "7": {
+        "P_w": 2549.39,
+        "Q_var": 984.74
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 84,
+    "t_sec": 41.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5052.89,
+        "Q_var": 2008.51
+      },
+      "5": {
+        "P_w": 2023.26,
+        "Q_var": 791.22
+      },
+      "6": {
+        "P_w": 8007.22,
+        "Q_var": 3193.67
+      },
+      "7": {
+        "P_w": 2494.27,
+        "Q_var": 1014.41
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 85,
+    "t_sec": 42.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5098.01,
+        "Q_var": 1984.43
+      },
+      "5": {
+        "P_w": 2009.68,
+        "Q_var": 803.51
+      },
+      "6": {
+        "P_w": 8076.83,
+        "Q_var": 3257.29
+      },
+      "7": {
+        "P_w": 2470.78,
+        "Q_var": 988.44
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 86,
+    "t_sec": 42.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5032.09,
+        "Q_var": 1972.56
+      },
+      "5": {
+        "P_w": 1973.91,
+        "Q_var": 786.4
+      },
+      "6": {
+        "P_w": 7840.86,
+        "Q_var": 3193.66
+      },
+      "7": {
+        "P_w": 2509.38,
+        "Q_var": 991.65
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 87,
+    "t_sec": 43.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4946.3,
+        "Q_var": 2016.56
+      },
+      "5": {
+        "P_w": 2016.24,
+        "Q_var": 798.53
+      },
+      "6": {
+        "P_w": 8059.96,
+        "Q_var": 3254.26
+      },
+      "7": {
+        "P_w": 2528.78,
+        "Q_var": 1005.0
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 88,
+    "t_sec": 43.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5032.24,
+        "Q_var": 2034.69
+      },
+      "5": {
+        "P_w": 1994.01,
+        "Q_var": 801.43
+      },
+      "6": {
+        "P_w": 8047.24,
+        "Q_var": 3252.28
+      },
+      "7": {
+        "P_w": 2532.66,
+        "Q_var": 982.86
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 89,
+    "t_sec": 44.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4933.18,
+        "Q_var": 1984.61
+      },
+      "5": {
+        "P_w": 2019.92,
+        "Q_var": 802.21
+      },
+      "6": {
+        "P_w": 7932.36,
+        "Q_var": 3151.92
+      },
+      "7": {
+        "P_w": 2518.87,
+        "Q_var": 1007.99
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 90,
+    "t_sec": 44.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5088.54,
+        "Q_var": 2000.04
+      },
+      "5": {
+        "P_w": 1999.5,
+        "Q_var": 786.57
+      },
+      "6": {
+        "P_w": 7852.76,
+        "Q_var": 3191.3
+      },
+      "7": {
+        "P_w": 2482.23,
+        "Q_var": 990.01
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.0,
+      "latency_ms": 10.0,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 91,
+    "t_sec": 45.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4918.27,
+        "Q_var": 2036.95
+      },
+      "5": {
+        "P_w": 2026.88,
+        "Q_var": 802.41
+      },
+      "6": {
+        "P_w": 8144.25,
+        "Q_var": 3263.95
+      },
+      "7": {
+        "P_w": 2517.23,
+        "Q_var": 990.78
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 108.05,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 92,
+    "t_sec": 45.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5051.25,
+        "Q_var": 1997.64
+      },
+      "5": {
+        "P_w": 2012.12,
+        "Q_var": 813.31
+      },
+      "6": {
+        "P_w": 7898.08,
+        "Q_var": 3210.92
+      },
+      "7": {
+        "P_w": 2513.48,
+        "Q_var": 999.67
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 118.25,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 93,
+    "t_sec": 46.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4969.59,
+        "Q_var": 1986.66
+      },
+      "5": {
+        "P_w": 2013.61,
+        "Q_var": 811.45
+      },
+      "6": {
+        "P_w": 7945.54,
+        "Q_var": 3224.79
+      },
+      "7": {
+        "P_w": 2478.82,
+        "Q_var": 1017.81
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 262.71,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 94,
+    "t_sec": 46.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5010.02,
+        "Q_var": 1996.39
+      },
+      "5": {
+        "P_w": 1985.16,
+        "Q_var": 794.34
+      },
+      "6": {
+        "P_w": 8150.46,
+        "Q_var": 3187.73
+      },
+      "7": {
+        "P_w": 2501.46,
+        "Q_var": 1019.52
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 231.53,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 95,
+    "t_sec": 47.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5008.52,
+        "Q_var": 1993.06
+      },
+      "5": {
+        "P_w": 1975.01,
+        "Q_var": 795.58
+      },
+      "6": {
+        "P_w": 8082.06,
+        "Q_var": 3216.05
+      },
+      "7": {
+        "P_w": 2526.0,
+        "Q_var": 988.14
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 209.84,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 96,
+    "t_sec": 47.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5085.53,
+        "Q_var": 1995.05
+      },
+      "5": {
+        "P_w": 2015.86,
+        "Q_var": 787.89
+      },
+      "6": {
+        "P_w": 8151.41,
+        "Q_var": 3213.94
+      },
+      "7": {
+        "P_w": 2473.93,
+        "Q_var": 986.34
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 210.17,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 97,
+    "t_sec": 48.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5010.45,
+        "Q_var": 1967.46
+      },
+      "5": {
+        "P_w": 2039.38,
+        "Q_var": 813.21
+      },
+      "6": {
+        "P_w": 7987.66,
+        "Q_var": 3151.04
+      },
+      "7": {
+        "P_w": 2533.21,
+        "Q_var": 999.94
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 243.32,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 98,
+    "t_sec": 48.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5001.77,
+        "Q_var": 1981.87
+      },
+      "5": {
+        "P_w": 2026.78,
+        "Q_var": 815.37
+      },
+      "6": {
+        "P_w": 7917.99,
+        "Q_var": 3206.56
+      },
+      "7": {
+        "P_w": 2488.36,
+        "Q_var": 1016.87
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 201.65,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 99,
+    "t_sec": 49.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5075.87,
+        "Q_var": 2029.12
+      },
+      "5": {
+        "P_w": 1982.1,
+        "Q_var": 809.28
+      },
+      "6": {
+        "P_w": 7972.78,
+        "Q_var": 3255.58
+      },
+      "7": {
+        "P_w": 2500.77,
+        "Q_var": 1012.82
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 156.57,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 100,
+    "t_sec": 49.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4959.71,
+        "Q_var": 2006.96
+      },
+      "5": {
+        "P_w": 2039.91,
+        "Q_var": 799.67
+      },
+      "6": {
+        "P_w": 7887.55,
+        "Q_var": 3204.94
+      },
+      "7": {
+        "P_w": 2484.51,
+        "Q_var": 1002.08
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 208.69,
+      "disconnected_links": []
+    }
+  },
+  {
+    "step": 101,
+    "t_sec": 50.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4991.07,
+        "Q_var": 1985.74
+      },
+      "5": {
+        "P_w": 1975.09,
+        "Q_var": 806.32
+      },
+      "6": {
+        "P_w": 8022.98,
+        "Q_var": 3165.9
+      },
+      "7": {
+        "P_w": 2527.55,
+        "Q_var": 981.75
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 248.94,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 102,
+    "t_sec": 50.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5041.05,
+        "Q_var": 2024.91
+      },
+      "5": {
+        "P_w": 1990.89,
+        "Q_var": 805.24
+      },
+      "6": {
+        "P_w": 8102.64,
+        "Q_var": 3261.54
+      },
+      "7": {
+        "P_w": 2499.53,
+        "Q_var": 981.48
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 200.46,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 103,
+    "t_sec": 51.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5018.04,
+        "Q_var": 2029.58
+      },
+      "5": {
+        "P_w": 2029.94,
+        "Q_var": 798.09
+      },
+      "6": {
+        "P_w": 8008.3,
+        "Q_var": 3194.49
+      },
+      "7": {
+        "P_w": 2522.24,
+        "Q_var": 996.4
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 230.96,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 104,
+    "t_sec": 51.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4930.87,
+        "Q_var": 1997.56
+      },
+      "5": {
+        "P_w": 2037.54,
+        "Q_var": 794.83
+      },
+      "6": {
+        "P_w": 8061.67,
+        "Q_var": 3219.18
+      },
+      "7": {
+        "P_w": 2535.18,
+        "Q_var": 1014.09
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 271.87,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 105,
+    "t_sec": 52.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4976.0,
+        "Q_var": 1985.33
+      },
+      "5": {
+        "P_w": 2017.5,
+        "Q_var": 808.3
+      },
+      "6": {
+        "P_w": 8119.16,
+        "Q_var": 3140.6
+      },
+      "7": {
+        "P_w": 2456.84,
+        "Q_var": 1005.25
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 284.19,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 106,
+    "t_sec": 52.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5099.49,
+        "Q_var": 2019.74
+      },
+      "5": {
+        "P_w": 1994.72,
+        "Q_var": 787.15
+      },
+      "6": {
+        "P_w": 8042.8,
+        "Q_var": 3247.69
+      },
+      "7": {
+        "P_w": 2494.37,
+        "Q_var": 1007.76
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 280.68,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 107,
+    "t_sec": 53.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4909.2,
+        "Q_var": 2023.69
+      },
+      "5": {
+        "P_w": 1983.47,
+        "Q_var": 795.99
+      },
+      "6": {
+        "P_w": 7886.58,
+        "Q_var": 3203.99
+      },
+      "7": {
+        "P_w": 2506.59,
+        "Q_var": 1011.7
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 134.0,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 108,
+    "t_sec": 53.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4915.79,
+        "Q_var": 2029.67
+      },
+      "5": {
+        "P_w": 2009.58,
+        "Q_var": 791.71
+      },
+      "6": {
+        "P_w": 8132.11,
+        "Q_var": 3154.32
+      },
+      "7": {
+        "P_w": 2496.11,
+        "Q_var": 990.16
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 151.07,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 109,
+    "t_sec": 54.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4901.88,
+        "Q_var": 2024.37
+      },
+      "5": {
+        "P_w": 2032.1,
+        "Q_var": 805.68
+      },
+      "6": {
+        "P_w": 7890.55,
+        "Q_var": 3192.54
+      },
+      "7": {
+        "P_w": 2484.56,
+        "Q_var": 1003.5
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 227.79,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 110,
+    "t_sec": 54.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4984.86,
+        "Q_var": 1980.01
+      },
+      "5": {
+        "P_w": 2027.62,
+        "Q_var": 790.37
+      },
+      "6": {
+        "P_w": 7963.1,
+        "Q_var": 3197.85
+      },
+      "7": {
+        "P_w": 2473.72,
+        "Q_var": 1002.88
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 214.96,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 111,
+    "t_sec": 55.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5098.54,
+        "Q_var": 1983.62
+      },
+      "5": {
+        "P_w": 2038.24,
+        "Q_var": 805.06
+      },
+      "6": {
+        "P_w": 7927.83,
+        "Q_var": 3208.44
+      },
+      "7": {
+        "P_w": 2518.58,
+        "Q_var": 1009.79
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 109.81,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 112,
+    "t_sec": 55.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5021.28,
+        "Q_var": 1999.74
+      },
+      "5": {
+        "P_w": 2032.33,
+        "Q_var": 793.16
+      },
+      "6": {
+        "P_w": 8095.64,
+        "Q_var": 3213.7
+      },
+      "7": {
+        "P_w": 2485.23,
+        "Q_var": 1005.46
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 224.18,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 113,
+    "t_sec": 56.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5035.55,
+        "Q_var": 2017.67
+      },
+      "5": {
+        "P_w": 2012.73,
+        "Q_var": 810.83
+      },
+      "6": {
+        "P_w": 8041.04,
+        "Q_var": 3251.64
+      },
+      "7": {
+        "P_w": 2514.63,
+        "Q_var": 992.36
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 188.16,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 114,
+    "t_sec": 56.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5015.91,
+        "Q_var": 2018.59
+      },
+      "5": {
+        "P_w": 1967.21,
+        "Q_var": 793.44
+      },
+      "6": {
+        "P_w": 8079.19,
+        "Q_var": 3158.48
+      },
+      "7": {
+        "P_w": 2463.22,
+        "Q_var": 1001.58
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 294.3,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 115,
+    "t_sec": 57.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5006.17,
+        "Q_var": 2033.08
+      },
+      "5": {
+        "P_w": 2026.44,
+        "Q_var": 792.22
+      },
+      "6": {
+        "P_w": 8103.9,
+        "Q_var": 3197.68
+      },
+      "7": {
+        "P_w": 2530.65,
+        "Q_var": 1009.86
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 167.74,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 116,
+    "t_sec": 57.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4923.03,
+        "Q_var": 2037.03
+      },
+      "5": {
+        "P_w": 1971.26,
+        "Q_var": 814.93
+      },
+      "6": {
+        "P_w": 8115.24,
+        "Q_var": 3228.7
+      },
+      "7": {
+        "P_w": 2547.99,
+        "Q_var": 1018.69
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 260.92,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 117,
+    "t_sec": 58.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 4973.16,
+        "Q_var": 2023.25
+      },
+      "5": {
+        "P_w": 1961.11,
+        "Q_var": 801.17
+      },
+      "6": {
+        "P_w": 7985.53,
+        "Q_var": 3222.12
+      },
+      "7": {
+        "P_w": 2517.23,
+        "Q_var": 1003.38
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 264.48,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 118,
+    "t_sec": 58.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5088.06,
+        "Q_var": 1968.67
+      },
+      "5": {
+        "P_w": 1978.71,
+        "Q_var": 784.8
+      },
+      "6": {
+        "P_w": 8122.96,
+        "Q_var": 3207.86
+      },
+      "7": {
+        "P_w": 2541.53,
+        "Q_var": 988.85
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 112.64,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 119,
+    "t_sec": 59.0,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5064.77,
+        "Q_var": 2032.75
+      },
+      "5": {
+        "P_w": 1984.18,
+        "Q_var": 797.07
+      },
+      "6": {
+        "P_w": 7884.73,
+        "Q_var": 3257.12
+      },
+      "7": {
+        "P_w": 2480.44,
+        "Q_var": 999.7
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 119.44,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  },
+  {
+    "step": 120,
+    "t_sec": 59.5,
+    "solar_node_3": {
+      "POA": 500.0,
+      "T_amb": 298.15,
+      "P_available_w": 5000.0
+    },
+    "loads": {
+      "4": {
+        "P_w": 5077.45,
+        "Q_var": 1970.85
+      },
+      "5": {
+        "P_w": 1996.29,
+        "Q_var": 805.46
+      },
+      "6": {
+        "P_w": 8077.8,
+        "Q_var": 3257.08
+      },
+      "7": {
+        "P_w": 2491.91,
+        "Q_var": 1009.69
+      }
+    },
+    "comms_impairment": {
+      "packet_loss_rate": 0.2,
+      "latency_ms": 130.9,
+      "disconnected_links": [
+        [
+          "2",
+          "3"
+        ]
+      ]
+    }
+  }
+]

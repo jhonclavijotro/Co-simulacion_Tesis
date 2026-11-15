@@ -1,0 +1,1616 @@
+{
+ "10.1109/TIE.2015.2436879": {
+  "paperId": "251f7112f083a3072611eb2cedfa769166b3b759",
+  "externalIds": {
+   "MAG": "3101412365",
+   "DBLP": "journals/tie/Simpson-PorcoSD15",
+   "ArXiv": "1504.06784",
+   "DOI": "10.1109/TIE.2015.2436879",
+   "CorpusId": 15044516
+  },
+  "title": "Secondary Frequency and Voltage Control of Islanded Microgrids via Distributed Averaging",
+  "venue": "IEEE transactions on industrial electronics (1982. Print)",
+  "year": 2015,
+  "citationCount": 963,
+  "openAccessPdf": {
+   "url": "https://arxiv.org/pdf/1504.06784",
+   "status": "GREEN",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/1504.06784, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "1388407931",
+    "name": "J. Simpson-Porco"
+   },
+   {
+    "authorId": "2474018",
+    "name": "Q. Shafiee"
+   },
+   {
+    "authorId": "47806072",
+    "name": "Florian Dorfler"
+   },
+   {
+    "authorId": "2241541473",
+    "name": "J. Vasquez"
+   },
+   {
+    "authorId": "2255353261",
+    "name": "J. Guerrero"
+   },
+   {
+    "authorId": "1793883",
+    "name": "F. Bullo"
+   }
+  ],
+  "abstract": "In this paper, we present new distributed controllers for secondary frequency and voltage control in islanded microgrids. Inspired by techniques from cooperative control, the proposed controllers use localized information and nearest-neighbor communication to collectively perform secondary control actions. The frequency controller rapidly regulates the microgrid frequency to its nominal value while maintaining active power sharing among the distributed generators. Tuning of the voltage controller provides a simple and intuitive tradeoff between the conflicting goals of voltage regulation and reactive power sharing. Our designs require no knowledge of the microgrid topology, impedances, or loads. The distributed architecture allows for flexibility and redundancy, eliminating the need for a central microgrid controller. We provide a voltage stability analysis and present extensive experimental results validating our designs, verifying robust performance under communication failure and during plug-and-play operation."
+ },
+ "10.1109/TPEL.2019.2951694": {
+  "paperId": "756a7d7f18454931a94e0eae1480dd215dae4b49",
+  "externalIds": {
+   "MAG": "2983436474",
+   "DOI": "10.1109/TPEL.2019.2951694",
+   "CorpusId": 209797195
+  },
+  "title": "On the Secondary Control Architectures of AC Microgrids: An Overview",
+  "venue": "IEEE transactions on power electronics",
+  "year": 2020,
+  "citationCount": 313,
+  "openAccessPdf": {
+   "url": "https://vbn.aau.dk/da/publications/0c144b73-93aa-4ac2-a4a0-628dd6d44eb2",
+   "status": "GREEN",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TPEL.2019.2951694?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TPEL.2019.2951694, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "30830020",
+    "name": "Yousef Khayat"
+   },
+   {
+    "authorId": "2255353261",
+    "name": "J. Guerrero"
+   },
+   {
+    "authorId": "1739200",
+    "name": "H. Bevrani"
+   },
+   {
+    "authorId": "2474018",
+    "name": "Q. Shafiee"
+   },
+   {
+    "authorId": "152549966",
+    "name": "R. Heydari"
+   },
+   {
+    "authorId": "35941011",
+    "name": "Mobin Naderi"
+   },
+   {
+    "authorId": "1954241",
+    "name": "T. Dragicevic"
+   },
+   {
+    "authorId": "1388407931",
+    "name": "J. Simpson-Porco"
+   },
+   {
+    "authorId": "2121967",
+    "name": "F. Dörfler"
+   },
+   {
+    "authorId": "48770794",
+    "name": "M. Fathi"
+   },
+   {
+    "authorId": "144595648",
+    "name": "F. Blaabjerg"
+   }
+  ],
+  "abstract": "Communication infrastructure (CI) in microgrids (MGs) allows for the application of different control architectures for the secondary control (SC) layer. The use of new SC architectures involving CI is motivated by the need to increase MG resilience and handle the intermittent nature of distributed generation units. The structure of SC is classified into three main categories, including centralized SC (CSC) with a CI, distributed SC (DISC) generally with a low-data-rate CI, and decentralized SC (DESC) with communication-free infrastructure. To meet the MGs’ operational constraints and optimize performance, control and communication must be utilized simultaneously in different control layers. In this survey, we review and classify all types of SC policies from CI-based methods to communication-free policies, including CSC, averaging-based DISC, consensus-based DISC methods, containment pinning consensus, event-triggered DISC, washout-filter-based DESC, and state-estimation-based DESC. Each structure is scrutinized from the viewpoint of the relevant literature. Challenges such as clock drifts, cyber-security threats, and the advantage of event-triggered approaches are presented. Fully decentralized approaches based on state-estimation and observation methods are also addressed. Although these approaches eliminate the need of any CI for the voltage and frequency restoration, during black start process or other functionalities related to the tertiary layer, a CI is required. Power hardware-in-the-loop experimental tests are carried out to compare the merits and applicability of different SC structures."
+ },
+ "10.1109/TPWRS.2020.3012026": {
+  "paperId": "3ec5990454a8edd19e4bd053048aeff416067b48",
+  "externalIds": {
+   "ArXiv": "2007.11494",
+   "MAG": "3043899856",
+   "DBLP": "journals/corr/abs-2007-11494",
+   "DOI": "10.1109/TPWRS.2020.3012026",
+   "CorpusId": 220686373
+  },
+  "title": "Resilient Secondary Voltage Control of Islanded Microgrids: An ESKBF-Based Distributed Fast Terminal Sliding Mode Control Approach",
+  "venue": "IEEE Transactions on Power Systems",
+  "year": 2020,
+  "citationCount": 73,
+  "openAccessPdf": {
+   "url": "https://arxiv.org/pdf/2007.11494",
+   "status": "GREEN",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2007.11494, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "144510694",
+    "name": "Pu-Dong Ge"
+   },
+   {
+    "authorId": "1596815254",
+    "name": "Yue Zhu"
+   },
+   {
+    "authorId": "143762389",
+    "name": "T. Green"
+   },
+   {
+    "authorId": "50572758",
+    "name": "Fei Teng"
+   }
+  ],
+  "abstract": "This paper proposes a distributed secondary voltage control method based on extended state Kalman-Bucy filter (ESKBF) and fast terminal sliding mode (FTSM) control for the resilient operation of an islanded microgrid (MG) with inverter-based distributed generations (DGs). To tackle the co-existence of multiple uncertainties, a unified modelling framework is proposed to represent the set of different types of disturbances, including parameter perturbation, measurement noise, and immeasurably external variables, by an extended state method. Kalman-Bucy filter is then applied to accurately estimate the state information of the extended DG model. In addition, based on the accurate estimation, a fast terminal sliding mode (FTSM) surface with terminal attractors is designed to maintain the system stability and accelerate the convergence of consensus tracking, which significantly improves the performance of secondary voltage control under both normal and plug-and-play operation. Finally, case studies are conducted in both MATLAB/Simulink and an experimental testbed to demonstrate the effectiveness of the proposed method."
+ },
+ "10.1109/TSG.2018.2834951": {
+  "paperId": "efad9615a2ae16f704f4f14e0522e5f6b0541c48",
+  "externalIds": {
+   "MAG": "2802621841",
+   "DBLP": "journals/tsg/DehkordiBSG19",
+   "DOI": "10.1109/TSG.2018.2834951",
+   "CorpusId": 116422069
+  },
+  "title": "Distributed Noise-Resilient Secondary Voltage and Frequency Control for Islanded Microgrids",
+  "venue": "IEEE Transactions on Smart Grid",
+  "year": 2019,
+  "citationCount": 178,
+  "openAccessPdf": {
+   "url": "https://vbn.aau.dk/files/293131074/Distributed_Noise_resilient_Secondary_Voltage_and_Frequency_Control_for_Islanded_Microgrids.pdf",
+   "status": "GREEN",
+   "license": "other-oa",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TSG.2018.2834951?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TSG.2018.2834951, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "30717399",
+    "name": "N. M. Dehkordi"
+   },
+   {
+    "authorId": "35086252",
+    "name": "H. Baghaee"
+   },
+   {
+    "authorId": "1682047",
+    "name": "N. Sadati"
+   },
+   {
+    "authorId": "2255353261",
+    "name": "J. Guerrero"
+   }
+  ],
+  "abstract": "This paper proposes a novel distributed noise-resilient secondary control for voltage and frequency restoration of islanded microgrid inverter-based distributed generations (DGs) with an additive type of noise. The existing distributed methods commonly are designed as secondary control system systems that operate on the assumption of ideal communication networks among DGs. However, the channels are prone to stochastic noise, whereas each DG obtains noisy measurements of the states of its neighbors via environmental noises. The existing distributed noise-resilient methods, ignore a complete model of the system. In contrast, this paper proposes consensus protocols that take into account both the noisy measurements and a complete nonlinear model of the system, examines the mean-square average consensus for voltage and frequency restoration of islanded ac microgrids in an uncertain environment, and provides accurate proportional real power sharing. Our proposed consensus protocol contains two parts: the state feedback of the agent and the relative states of the DG and its neighboring DGs. Finally, simulation studies are carried out in MATLAB/SimPowerSystems to evaluate the performance of the control laws. Simulation results and comparison with previous work reveals the effectiveness of the proposed method in regulating microgrid voltage and frequency and providing accurate proportional real power sharing."
+ },
+ "10.1109/TPWRS.2019.2950629": {
+  "paperId": "aa6435ad539324832c91c1afedf8df746ef63b53",
+  "externalIds": {
+   "MAG": "2984823998",
+   "DOI": "10.1109/TPWRS.2019.2950629",
+   "CorpusId": 209786306
+  },
+  "title": "PI-Consensus Based Distributed Control of AC Microgrids",
+  "venue": "IEEE Transactions on Power Systems",
+  "year": 2020,
+  "citationCount": 54,
+  "openAccessPdf": {
+   "url": "https://digitalcommons.uri.edu/ele_facpubs/302",
+   "status": "GREEN",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TPWRS.2019.2950629?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TPWRS.2019.2950629, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "11446763",
+    "name": "Mengxuan Shi"
+   },
+   {
+    "authorId": "2109479999",
+    "name": "Xia Chen"
+   },
+   {
+    "authorId": "48128595",
+    "name": "Jian-Yu Zhou"
+   },
+   {
+    "authorId": "2109156653",
+    "name": "Yin Chen"
+   },
+   {
+    "authorId": "7798003",
+    "name": "Jinyu Wen"
+   },
+   {
+    "authorId": "2198278",
+    "name": "Hai-Bo He"
+   }
+  ],
+  "abstract": "The conventional voltage observer based distributed control can make a tradeoff between voltage restoration and reactive power sharing. However, it suffers from estimation error when there exist input disturbances, such as initial values and communication delays. To address this problem, this paper proposes a novel distributed secondary control based on PI consensus algorithm. A voltage controller and a frequency controller are designed separately to realize the restoration of voltage/frequency and also accurate reactive/active power allocation. Moreover, a detailed small-signal model with PI consensus algorithm is established to show the impact of the proposed control strategy on the system stability. Compared with the conventional distributed control, the proposed control scheme is simpler with higher control accuracy under input disturbances. Simulations are conducted to verify the effectiveness of the proposed control strategy in an isolated ac microgrid."
+ },
+ "10.1109/TCYB.2020.3003690": {
+  "paperId": "81a05f52a310169e8700762fe674825972462bc6",
+  "externalIds": {
+   "MAG": "3042217423",
+   "DBLP": "journals/tcyb/NingHD21",
+   "DOI": "10.1109/TCYB.2020.3003690",
+   "CorpusId": 220609405,
+   "PubMed": "32673200"
+  },
+  "title": "Distributed Finite-Time Secondary Frequency and Voltage Control for Islanded Microgrids With Communication Delays and Switching Topologies",
+  "venue": "IEEE Transactions on Cybernetics",
+  "year": 2020,
+  "citationCount": 129,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TCYB.2020.3003690?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TCYB.2020.3003690, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "3008852",
+    "name": "Bo-Da Ning"
+   },
+   {
+    "authorId": "145192086",
+    "name": "Q. Han"
+   },
+   {
+    "authorId": "144719528",
+    "name": "Lei Ding"
+   }
+  ],
+  "abstract": "This article is concerned with the distributed secondary frequency and voltage control for islanded microgrids. First, the distributed secondary control problem is formulated by taking both communication delays and switching topologies into account. Second, by using an Artstein model reduction method, a novel delay-compensated distributed control scheme is proposed to restore frequencies of each distributed generator (DG) to a reference level in finite time, while achieving active power sharing in prescribed finite-time regardless of initial deviations generated from primary control. Third, a distributed finite-time controller is developed to regulate voltages of all DGs to a reference level. Fourth, the proposed idea is also applied to deal with the finite-time consensus for first-order multiagent systems. Finally, case studies are carried out, demonstrating the effectiveness, the robustness against load changes, and the plug-and-play capability of the proposed controllers."
+ },
+ "10.1109/TPWRS.2022.3209981": {
+  "paperId": "3c5bf7a95109db9cada91f5dcefb47b5a3abe4de",
+  "externalIds": {
+   "DOI": "10.1109/TPWRS.2022.3209981",
+   "CorpusId": 252578065
+  },
+  "title": "Distributed Predefined-Time Secondary Frequency and Average Voltage Control for Islanded AC Microgrids",
+  "venue": "IEEE Transactions on Power Systems",
+  "year": 2023,
+  "citationCount": 30,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TPWRS.2022.3209981?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TPWRS.2022.3209981, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "102045927",
+    "name": "Sunhua Huang"
+   },
+   {
+    "authorId": "40964738",
+    "name": "Lin-Yun Xiong"
+   },
+   {
+    "authorId": "2145499384",
+    "name": "Yang Zhou"
+   },
+   {
+    "authorId": "2000255826",
+    "name": "Jiayan Liu"
+   },
+   {
+    "authorId": "1854364279",
+    "name": "Qiangang Jia"
+   },
+   {
+    "authorId": "73206639",
+    "name": "Peng-Han Li"
+   },
+   {
+    "authorId": "2146041650",
+    "name": "Jie Wang"
+   },
+   {
+    "authorId": "2064612250",
+    "name": "Gang Yao"
+   }
+  ],
+  "abstract": "The frequency and voltage restoration along with power sharing is imperative for the safe, reliable and stable operation of the islanded AC microgrids (MGs). In this paper, a novel distributed fractional-order predefined-time sliding mode controller (DFOPTSMC) is proposed as a secondary controller for the islanded AC MGs. The proposed DFOPTSMC can ensure that frequency and estimated average voltage (EAV) converge to reference value along with accurate power sharing within a setting predefined time. The fractional calculus algorithm is implemented to design the DFOPTSMC, which increases the degree of freedom of parameter adjustment and greatly enhances the flexibility of the DFOPTSMC. In addition, a distributed predefined-time observer is presented to achieve the EAV within a setting predefined time. The upper bound convergence time of the islanded AC MGs under the proposed DFOPTSMC is directly equal to a tunable parameter, thus overcoming the disadvantages of finite-time control and fixed-time control. The Lyapunov function is applied to present rigorous proof to analyze the stability of the islanded AC MGs under the proposed DFOPTSMC. An islanded AC MG is taken into simulation on the Matlab/Simulink 2021a platform and the experimental platform to test and verify the effectiveness and superior performance of the proposed DFOPTSMC. The results indicate that the proposed DFOPTSMC can significantly enhance the dynamic performances of the islanded AC MGs."
+ },
+ "10.1109/TIA.2025.3585857": {
+  "paperId": "ebd718bf37c1c3960cddcc490a722b8797aa212c",
+  "externalIds": {
+   "DOI": "10.1109/TIA.2025.3585857",
+   "CorpusId": 279940742
+  },
+  "title": "Exact Time Convergent Distributed Secondary Frequency and Voltage Control for AC Microgrid",
+  "venue": "IEEE transactions on industry applications",
+  "year": 2026,
+  "citationCount": 8,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TIA.2025.3585857?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TIA.2025.3585857, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "31303165",
+    "name": "Syed Muhammad Amrr"
+   },
+   {
+    "authorId": null,
+    "name": "Mohamed Zaery"
+   },
+   {
+    "authorId": "37083434",
+    "name": "S. M. Suhail Hussain"
+   },
+   {
+    "authorId": "2266902378",
+    "name": "M. Abido"
+   }
+  ],
+  "abstract": "This paper focuses on the exact time (ExT) convergent secondary voltage and frequency control for an autonomous AC microgrid (MG). The proposed approach ensures that the output states (i.e., voltage and frequency) of distributed generators (DGs) reach their desired value within a user-specified ExT. In addition to restoring the MG’s states, the ExT controller economically distributes the active power demand among all DGs and proportionally allocates the reactive power demand. Moreover, a new distributed predefined-time sliding mode observer is developed to estimate the average voltage of all DGs within a user-defined time, set by a single observer parameter. The proposed observer exhibits significant improvements compared to finite-time and fixed-time observers. A rigorous convergence and robustness analysis, based on the Lyapunov stability theory, guarantees the ExT convergence of both tracking and consensus errors. Extensive simulation results validate the superiority of the proposed control method over state-of-the-art techniques."
+ },
+ "10.1109/TII.2026.3693673": {
+  "paperId": "a9759eac94da55e3aa5be5dd763a41d28b1fb584",
+  "externalIds": {
+   "DOI": "10.1109/TII.2026.3693673",
+   "CorpusId": 288783568
+  },
+  "title": "Distributed Predefined-Time Control for Islanded AC Microgrid Under FDI Attacks",
+  "venue": "IEEE Transactions on Industrial Informatics",
+  "year": 2026,
+  "citationCount": 1,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TII.2026.3693673?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TII.2026.3693673, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2157489",
+    "name": "Hou-Jun Liang"
+   },
+   {
+    "authorId": "2202768790",
+    "name": "Bo Li"
+   },
+   {
+    "authorId": "144355020",
+    "name": "Xiao-Wei Jiang"
+   },
+   {
+    "authorId": "48922789",
+    "name": "Shun Xu"
+   }
+  ],
+  "abstract": "The emergence of false data injection (FDI) attacks seriously threatens the stable operation of the microgrid cyber-physical system (CPS). To tackle such a problem, a distributed extended state observer (ESO) is constructed by taking into account both attack signals and unmodeled dynamics, so as to suppress FDI attacks imposed on distributed generation units in AC microgrids. However, in consideration of the response speed and bandwidth requirements in the design of the state observer, there are certain observation errors for high-frequency attack signals. Given the strong robustness of sliding mode control to external disturbances and various attack signals, a predefined-time nonsingular fast terminal sliding mode control scheme is developed on the basis of consensus theory to compensate for the estimation errors of the observer. The proposed approach cannot only mitigate the adverse effects generated by FDI attacks and alleviate the chattering phenomenon inherent in conventional sliding mode control, but also realize the consensus convergence of frequency and voltage in a predefined time. Finally, a simulation platform with four distributed generators (DGs) is established in MATLAB/Simulink for validation. The outcomes demonstrate the efficacy of the presented distributed predefined-time sliding mode control strategy."
+ },
+ "10.35833/MPCE.2025.000738": {
+  "paperId": "bc204afd588fd6f2500321d718fbf6813b79712d",
+  "externalIds": {
+   "DOI": "10.35833/mpce.2025.000738",
+   "CorpusId": 288689411
+  },
+  "title": "Predefined-time Distributed Secondary Control with Average-voltage Observer for Frequency and Voltage Recovery and Power Sharing in AC Microgrids",
+  "venue": "Journal of Modern Power Systems and Clean Energy",
+  "year": 2026,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.35833/mpce.2025.000738",
+   "status": "GOLD",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.35833/mpce.2025.000738?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.35833/mpce.2025.000738, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2342920395",
+    "name": "Minglin Xu"
+   },
+   {
+    "authorId": "2238053007",
+    "name": "Gang-Quan Si"
+   },
+   {
+    "authorId": "2373795877",
+    "name": "De-Tao Fan"
+   },
+   {
+    "authorId": "2390720226",
+    "name": "Wenhan Tong"
+   },
+   {
+    "authorId": "2373810230",
+    "name": "Xin Wang"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1063/5.0310143": {
+  "paperId": "739fb39a52a45ec513f2ab72f5afd3df2a9e92e8",
+  "externalIds": {
+   "DOI": "10.1063/5.0310143",
+   "CorpusId": 284573133
+  },
+  "title": "Distributed fixed-time stability criteria for time-delayed microgrid voltage consensus",
+  "venue": "Journal of Renewable and Sustainable Energy",
+  "year": 2026,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1063/5.0310143?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1063/5.0310143, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2109454900",
+    "name": "Chan-Juan Zhao"
+   },
+   {
+    "authorId": "2256305115",
+    "name": "Yue Li"
+   },
+   {
+    "authorId": "2162498808",
+    "name": "Jiahui Liu"
+   },
+   {
+    "authorId": "2403313363",
+    "name": "An-Jing Yang"
+   }
+  ],
+  "abstract": "The settling time is an important performance index for microgrid control systems. In this paper, a distributed secondary voltage control protocol with delay compensation is designed using a fixed-time consensus algorithm and Artstein model reduction method. Besides, by using extreme value theory and reduction to absurdity, a new theorem of fixed-time stability is established, and a more accurate and less conservative time bound settling of estimation is first derived. Some valuable conclusions considering the delay compensation and switching communication topologies' effects are also provided. Finally, the correctness of our derived theoretical results has been verified in MATLAB/Simulink."
+ },
+ "10.1109/JIOT.2026.3682341": {
+  "paperId": "5ab5cd8d4c46aab37d4c55fa5842c03bf96895db",
+  "externalIds": {
+   "DBLP": "journals/iotj/HaridyCPA26",
+   "DOI": "10.1109/JIOT.2026.3682341",
+   "CorpusId": 287407054
+  },
+  "title": "Distributed Prescribed-Time Secondary Control for Islanded AC Microgrids Under Communication Delays",
+  "venue": "IEEE Internet of Things Journal",
+  "year": 2026,
+  "citationCount": 2,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/JIOT.2026.3682341?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/JIOT.2026.3682341, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "73771999",
+    "name": "A. L. Haridy"
+   },
+   {
+    "authorId": "2375054900",
+    "name": "Yong Chen"
+   },
+   {
+    "authorId": "2084643230",
+    "name": "Cheng-Wei Pan"
+   },
+   {
+    "authorId": "68975356",
+    "name": "Esam H. Abdelhameed"
+   }
+  ],
+  "abstract": "Internet of Things (IoT)-enabled microgrids (MGs) connect distributed generators (DGs), storage units, and loads through sensor-based communication networks for real-time monitoring. Motivated by the need for fast and reliable frequency–voltage restoration in islanded alternating current MGs (ACMGs) affected by communication delays, this article proposes a prescribed-time distributed secondary control (DSC) strategy for coordinated voltage, frequency, and active power sharing to enhance the operational stability of ACMGs. First, the DSC problem is formulated with careful consideration of different communication delays. The proposed prescribed-time consensus control, designed to be independent of initial conditions, provides a precise estimation of the settling time, ensuring efficient and predictable system performance. The proposed controller utilizes the measurements of local power and frequency, and information shared with neighboring DGs through the communications network in order to estimate the nominal operational point in the primary control stage. Second, by using the control input’s past data, a state-transformation-based approach can manage time delays and completely reduce the negative consequences of different communication delays. Then, the prescribed-time reactive power sharing control approach is developed. Furthermore, a distributed secondary controller stability is analyzed using the Lyapunov function. Finally, the results validate the efficiency of the suggested control schemes under various test scenarios."
+ },
+ "10.1016/j.epsr.2026.112848": {
+  "paperId": "533560c28d85211976f76a187b08e10e09c9edd9",
+  "externalIds": {
+   "DOI": "10.1016/j.epsr.2026.112848",
+   "CorpusId": 285860233
+  },
+  "title": "Predefined-Time sliding mode-Based distributed secondary control for AC islanded microgrids with directed and variable communication topologies",
+  "venue": "Electric power systems research",
+  "year": 2026,
+  "citationCount": 1,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.epsr.2026.112848?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.epsr.2026.112848, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2342920395",
+    "name": "Minglin Xu"
+   },
+   {
+    "authorId": "2238053007",
+    "name": "Gang-Quan Si"
+   },
+   {
+    "authorId": "2373795877",
+    "name": "De-Tao Fan"
+   },
+   {
+    "authorId": "2357857034",
+    "name": "Chen-Hao Li"
+   },
+   {
+    "authorId": "2382829722",
+    "name": "Hao-Jie Li"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1049/rpg2.70055": {
+  "paperId": "0d9bbff6d36be278a687270bfcce6b2a48ebdf95",
+  "externalIds": {
+   "DOI": "10.1049/rpg2.70055",
+   "CorpusId": 278947541
+  },
+  "title": "Resilient Distributed Predefined Time Secondary Control for Cyber‐Physical Microgrids",
+  "venue": "IET Renewable Power Generation",
+  "year": 2025,
+  "citationCount": 4,
+  "openAccessPdf": {
+   "url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1049/rpg2.70055",
+   "status": "GOLD",
+   "license": "CCBYNCND",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1049/rpg2.70055?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1049/rpg2.70055, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2333204754",
+    "name": "Junfeng Tan"
+   },
+   {
+    "authorId": "2332806032",
+    "name": "Fan Zhang"
+   },
+   {
+    "authorId": "2332923353",
+    "name": "Yan-Lu Huang"
+   },
+   {
+    "authorId": "2145075303",
+    "name": "Shuai Zhao"
+   },
+   {
+    "authorId": "2356386313",
+    "name": "Hongyu Su"
+   }
+  ],
+  "abstract": "This paper proposed a resilient distributed predefined‐time sliding mode control for islanded AC microgrids with external disturbances caused by noisy circumstances or cyber‐attacks. By utilizing the predefined‐time convergence theory, the voltage regulation and frequency restoration as well as active power sharing can be achieved within a predefined time, which is directly equal to an adjustable parameter. Furthermore, based on the integral sliding mode control approach, the proposed method can completely compensate the external disturbance. Different from some voltage control methods based on complex second‐order consensus, a novel secondary controller is designed by adopting the virtual control technique, such that the voltage regulation can be achieved under a first‐order consensus with a corresponding tracking controller. In addition, the direct Lyapunov method is utilized to prove the stability of islanded AC microgrids under the proposed controller, and the analysis of predefined‐time convergence is also given. Finally, case studies on a microgrid test system with four distributed generator is built in the MATLAB/SimPowerSystems software environment are conducted to demonstrate the effectiveness and superior performance of the proposed control scheme."
+ },
+ "10.1109/TIE.2026.3651283": {
+  "paperId": "55092d94baf4484b074bff5522acc0cfdd357fb6",
+  "externalIds": {
+   "DBLP": "journals/tie/YeWGW26",
+   "DOI": "10.1109/TIE.2026.3651283",
+   "CorpusId": 285634460
+  },
+  "title": "Privacy-Preserving Predefined-Time Secondary Control for Networked Microgrid With CPLs: An Auxiliary Variable Encryption Approach",
+  "venue": "IEEE transactions on industrial electronics (1982. Print)",
+  "year": 2026,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TIE.2026.3651283?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TIE.2026.3651283, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "50184029",
+    "name": "Xuan Ye"
+   },
+   {
+    "authorId": "2302717920",
+    "name": "Jinhui Wu"
+   },
+   {
+    "authorId": "2242553185",
+    "name": "Fanghong Guo"
+   },
+   {
+    "authorId": "2261214274",
+    "name": "Lei Wang"
+   }
+  ],
+  "abstract": "As networked microgrids (NMGs) expand in scale, they face growing challenges in privacy security and control performance, including demands for enhanced dynamic response, accuracy, and robustness. This is particularly critical in the DC NMG with high-penetration constant power loads (CPLs), as their negative impedance characteristics can trigger oscillations and instability. To address these issues, this study proposes a privacy-preserving predefined-time secondary control strategy by integrating auxiliary variable-based data encryption with a CPL stability compensation mechanism. An active damping mechanism based on decoupled voltage feedback is proposed to suppress CPL-induced instability with rigorous stability conditions. OPAL-RT experiments are set up to demonstrate the strategy’s effectiveness in privacy protection, fast convergence, low steady-state error, and CPL tolerance level."
+ },
+ "10.1109/TII.2023.3331303": {
+  "paperId": "a229b3d0cadb45d01dc5d4b92dc97e2dccd2e17a",
+  "externalIds": {
+   "DBLP": "journals/tii/ZhaiS24",
+   "DOI": "10.1109/TII.2023.3331303",
+   "CorpusId": 266409580
+  },
+  "title": "Distributed Critical Bus Voltage Regulation Control for Multimicrogrids With Positive Minimum Interevent Times",
+  "venue": "IEEE Transactions on Industrial Informatics",
+  "year": 2024,
+  "citationCount": 9,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TII.2023.3331303?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TII.2023.3331303, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2154223440",
+    "name": "Mei-Na Zhai"
+   },
+   {
+    "authorId": "48480261",
+    "name": "Jia-Yue Sun"
+   }
+  ],
+  "abstract": "This article proposes a distributed containment-based critical bus voltage coregulation strategy of submicrogrids (SMGs) with positive minimum interevent times (MIETs) in a multimicrogrid system (MMGS). First, the feedback linearization technique allows us to deal with nonlinear distributed generator (DG) dynamics. The critical bus voltage regulation problem of an ac microgrid (MG) is transformed into an output feedback tracking problem of a linear multiagent system (MAS) containing nonlinear dynamics. In addition, an event-triggered strategy based on containment control is proposed. The strategy limits each critical bus voltage within a reasonable range while having a voltage difference between SMGs to allow power flow. Furthermore, an innovative trigger mechanism has been designed based on multiple measurement errors. Based on this mechanism, the controllers are updated in an acyclic manner at the moment of event sampling, saving computational resources and transmission load. In addition, the proposed event-triggering mechanism guarantees the absence of Zeno behavior and a strictly positive MIET between each DG event. It is also more practical than the traditional event triggering because the hardware constraint always imposes a positive minimum time constraint between two consecutive event times. The protocol proposed in this article is fully distributed and scalable and does not depend on global information about the network graph. Finally, simulation results verify the effectiveness of the strategy."
+ },
+ "10.1109/TIE.2025.3610725": {
+  "paperId": "6de0460638e58bd78d7a857e8be38e444a293ab1",
+  "externalIds": {
+   "DBLP": "journals/tie/HuangSLLD26",
+   "DOI": "10.1109/TIE.2025.3610725",
+   "CorpusId": 282444372
+  },
+  "title": "Distributed Control for Multibus Voltage Regulation and Adaptive Reactive Power Sharing in Islanded Microgrids",
+  "venue": "IEEE transactions on industrial electronics (1982. Print)",
+  "year": 2026,
+  "citationCount": 2,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TIE.2025.3610725?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TIE.2025.3610725, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2294160185",
+    "name": "Lei Huang"
+   },
+   {
+    "authorId": "2294302069",
+    "name": "Wei Sun"
+   },
+   {
+    "authorId": "2128137801",
+    "name": "Wei-Tao Li"
+   },
+   {
+    "authorId": "2764166",
+    "name": "Qi-Yue Li"
+   },
+   {
+    "authorId": "2265470726",
+    "name": "Li-Jian Ding"
+   }
+  ],
+  "abstract": "In multibus islanded microgrids (IMGs), maintaining all bus voltages within limits while ensuring proper reactive power sharing (RPS) among distributed generators (DGs) presents a significant challenge. To address this challenge, this article presents a distributed control strategy for achieving multibus voltage regulation and adaptive RPS in IMGs. First, we propose a dynamic max/min-consensus algorithm to monitor the real-time voltage range across all buses in a distributed manner. Next, we design a distributed observer to calculate the ideal reactive power reference for each DG. Finally, based on the monitoring of the voltage range, the designed controller ensures that all bus voltages remain within acceptable limits while adjusting each DG’s output reactive power as close as possible to the reference values. To validate the proposed strategy, we set up IMG systems of different scales using both the hardware-in-the-loop (HIL) experimental platform and the MATLAB/Simulink simulation environment for comprehensive testing. The results show that the proposed strategy effectively regulates all bus voltages within the target range while achieving adaptive RPS, whereas existing methods cause some bus voltages to violate limits."
+ },
+ "10.1016/j.automatica.2026.113022": {
+  "paperId": "72b3ec7c4f7b92c32916d8352e540bcf78e18f82",
+  "externalIds": {
+   "DBLP": "journals/corr/abs-2405-13476",
+   "ArXiv": "2405.13476",
+   "DOI": "10.1016/j.automatica.2026.113022",
+   "CorpusId": 269982710
+  },
+  "title": "Restricting Voltage Deviation of DC Microgrids with Critical and Ordinary Nodes",
+  "venue": "Automatica",
+  "year": 2024,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "https://arxiv.org/pdf/2405.13476",
+   "status": "GREEN",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2405.13476, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2113244340",
+    "name": "Handong Bai"
+   },
+   {
+    "authorId": "2209967196",
+    "name": "Peng Li"
+   },
+   {
+    "authorId": "2278801337",
+    "name": "Hongwei Zhang"
+   }
+  ],
+  "abstract": "Restricting bus voltage deviation is crucial for normal operation of multi-bus DC microgrids, yet it has received insufficient attention due to the conflict between two main control objectives in DC microgrids, i.e., voltage regulation and current sharing. By revealing a necessary and sufficient condition for achieving these two objectives, this paper proposes a novel consensus-based current sharing control law that can achieve the compromised control objective, balancing both current sharing and voltage deviation restriction. Additionally, we examine the effectiveness of the proposed control scheme for DC Microgrids that include both critical nodes and ordinary nodes, where there is a simultaneous requirement for voltage deviation limits on critical nodes and accurate current sharing among ordinary nodes. Theoretical results are verified by simulations, and the effectiveness in handling plug-and-play operations of distributed generators is also illustrated."
+ },
+ "10.3390/en18205382": {
+  "paperId": "98f6b28d123b3d6dde3e3ae9670c91ef3f4c6d34",
+  "externalIds": {
+   "DOI": "10.3390/en18205382",
+   "CorpusId": 282178175
+  },
+  "title": "A Power Flow Sensitivity-Based Approach for Distributed Voltage Regulation and Power Sharing in Droop-Controlled DC Distribution Networks",
+  "venue": "Energies",
+  "year": 2025,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.3390/en18205382",
+   "status": "GOLD",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.3390/en18205382?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.3390/en18205382, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2205547726",
+    "name": "Nan Jiang"
+   },
+   {
+    "authorId": "2107187370",
+    "name": "He Gao"
+   },
+   {
+    "authorId": "2346678592",
+    "name": "Xingyu Zhang"
+   },
+   {
+    "authorId": "2382936915",
+    "name": "Zhe Zhang"
+   },
+   {
+    "authorId": "2156926071",
+    "name": "Yu-Fei Peng"
+   },
+   {
+    "authorId": "2361655478",
+    "name": "Dong Liang"
+   }
+  ],
+  "abstract": "Aiming at the challenges of design complexity and parameter adjustment difficulties in existing distributed controllers, a novel power flow sensitivity-based distributed cooperative control approach is proposed for voltage regulation and power sharing in droop-controlled DC distribution networks (DCDNs). Firstly, based on the power flow model of droop-controlled DCDNs, a comprehensive sensitivity model is established that correlates bus voltages, voltage source converter (VSC) loading rates, and VSC reference power adjustments. Leveraging the sensitivity model, a discrete-time linear state-space model is developed for DCDNs, using all VSC reference power as control variables, along with the weighted sum of the voltage deviation at the VSC connection point and the loading rate deviation of adjacent VSCs as state variables. A distributed consensus controller is then designed to alleviate the communication burden. The feedback gain design problem is formulated as an unconstrained multi-objective optimization model, which simultaneously enhances dynamic response speed, suppresses overshoot and oscillation, and ensures stability. The model can be efficiently solved by global optimization algorithms such as the genetic algorithm, and the feedback gains can be designed in a systematic and principled manner. The simulation results on a typical four-terminal DCDN under large power disturbances demonstrate that the proposed distributed control method achieves rapid voltage recovery and converter load sharing under a sparse communication network. The design complexity and parameter adjustment difficulties are greatly reduced without losing the control performance."
+ },
+ "10.1016/j.epsr.2023.110015": {
+  "paperId": "6d59bc8291b1d26ddfddb6dc0c414aa7398d7c73",
+  "externalIds": {
+   "DOI": "10.1016/j.epsr.2023.110015",
+   "CorpusId": 265286227
+  },
+  "title": "Analytical voltage sensitivity-based distributed Volt/Var control for mitigating voltage-violations in low-voltage distribution networks",
+  "venue": "Electric power systems research",
+  "year": 2024,
+  "citationCount": 25,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.epsr.2023.110015?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.epsr.2023.110015, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "34254031",
+    "name": "K. R. Babu"
+   },
+   {
+    "authorId": "9148164",
+    "name": "D. Khatod"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1016/j.apenergy.2024.122846": {
+  "paperId": "59f8a91e16668f2bd6c04066664f68e20755ec77",
+  "externalIds": {
+   "DOI": "10.1016/j.apenergy.2024.122846",
+   "CorpusId": 268391056
+  },
+  "title": "Network partition and distributed voltage coordination control strategy of active distribution network system considering photovoltaic uncertainty",
+  "venue": "Applied Energy",
+  "year": 2024,
+  "citationCount": 68,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.apenergy.2024.122846?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.apenergy.2024.122846, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2189241050",
+    "name": "Lingzhuochao Meng"
+   },
+   {
+    "authorId": "2398603809",
+    "name": "Xiyun Yang"
+   },
+   {
+    "authorId": "35349658",
+    "name": "Jiangsheng Zhu"
+   },
+   {
+    "authorId": "2048449605",
+    "name": "Xinzhe Wang"
+   },
+   {
+    "authorId": "2256474067",
+    "name": "Xin Meng"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1109/TSG.2025.3540416": {
+  "paperId": "44e00c71eb2a035aaaff13903d4c074200a6ab67",
+  "externalIds": {
+   "DBLP": "journals/tsg/ZhengYCSXD25",
+   "DOI": "10.1109/TSG.2025.3540416",
+   "CorpusId": 276261012
+  },
+  "title": "Sensitivity-Based Heterogeneous Ordered Multi-Agent Reinforcement Learning for Distributed Volt-Var Control in Active Distribution Network",
+  "venue": "IEEE Transactions on Smart Grid",
+  "year": 2025,
+  "citationCount": 13,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TSG.2025.3540416?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TSG.2025.3540416, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2345102966",
+    "name": "Xiao-Dong Zheng"
+   },
+   {
+    "authorId": "2344969292",
+    "name": "Shixuan Yu"
+   },
+   {
+    "authorId": "2244103079",
+    "name": "Hui Cao"
+   },
+   {
+    "authorId": "2344852813",
+    "name": "Tianzhuo Shi"
+   },
+   {
+    "authorId": "153829428",
+    "name": "Shuang-Si Xue"
+   },
+   {
+    "authorId": "2248492122",
+    "name": "Tao Ding"
+   }
+  ],
+  "abstract": "As power grids expand, maintaining stable voltage and minimizing losses become increasingly crucial. Meanwhile, the widespread use of heterogeneous devices in modern distribution systems necessitates effective multi-device coordination. This issue is exacerbated by the integration of intermittent renewable sources (e.g., solar and wind), which introduce voltage fluctuations. To tackle these challenges, this paper proposes a novel Sensitivity-based Heterogeneous Ordered Multi-agent Reinforcement Learning (SHOM) method for Volt-Var Control (VVC) in Active Distribution Networks (ADNs). By leveraging voltage-reactive sensitivity to explicitly guide sequential policy updates, SHOM ensures a monotonic improvement in control strategies under heterogeneous, networked constraints. Experimental results on IEEE test feeders demonstrate that the proposed approach achieves superior voltage regulation and lower power losses compared to existing methods."
+ },
+ "10.1109/TSG.2023.3292939": {
+  "paperId": "4813f802eda450ef65d5b2a9d0a23da855ad0f61",
+  "externalIds": {
+   "DBLP": "journals/tsg/ZhangD0XXD024",
+   "DOI": "10.1109/TSG.2023.3292939",
+   "CorpusId": 259529212
+  },
+  "title": "Voltage Sensitivity-Related Hybrid Coordinated Power Control for Voltage Regulation in ADNs",
+  "venue": "IEEE Transactions on Smart Grid",
+  "year": 2024,
+  "citationCount": 36,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TSG.2023.3292939?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TSG.2023.3292939, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "10522791",
+    "name": "Zhanqiang Zhang"
+   },
+   {
+    "authorId": "47168282",
+    "name": "Chun-xia Dou"
+   },
+   {
+    "authorId": "2064748718",
+    "name": "Dong Yue"
+   },
+   {
+    "authorId": "2114920576",
+    "name": "Yu-Sheng Xue"
+   },
+   {
+    "authorId": "40013419",
+    "name": "Xiangpeng Xie"
+   },
+   {
+    "authorId": "2150930316",
+    "name": "Chao Deng"
+   },
+   {
+    "authorId": "2208117291",
+    "name": "Bo Zhang"
+   }
+  ],
+  "abstract": "Voltage is a key operation index for active distribution networks. Coordinated power compensation of distributed energy resources (DERs) has shown promising results in alleviating voltage violation. Most methods use global optimization to obtain the optimal use of network-wide available resources, which becomes unfair when solving the same voltage issue of regional buses. Refined coordination of DERs on regional buses has not been formed as well. Therefore, this paper proposes a voltage sensitivity-related hybrid coordination algorithm. In order to fully tap into surplus reactive power of DESs, Volt/VAr control is considered in a higher priority than Volt/Watt control. For the selected crucial bus, a hybrid coordinated power compensation of regional DERs is designed in descending order of sensitivity or in proportion to available capacity under the same sensitivity value, which prioritizes using local and adjacent DERs to improve regulation effect and reduce changes in power flow. Due to the fact that voltage information is updated through association, the crucial bus needs to be reselected based on voltage assessment as a result, and the algorithm process will continue until the updated bus voltages become acceptable. Finally, the case study results in MATLAB indicate the effectiveness."
+ },
+ "10.1016/j.epsr.2023.109729": {
+  "paperId": "10fc52428b6c9076d04ece3a06e08b740db769ad",
+  "externalIds": {
+   "DOI": "10.1016/j.epsr.2023.109729",
+   "CorpusId": 260671249
+  },
+  "title": "A consensus based adaptive virtual capacitor control strategy for reactive power sharing and voltage restoration in microgrids",
+  "venue": "Electric power systems research",
+  "year": 2023,
+  "citationCount": 16,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.2139/ssrn.4442054",
+   "status": "GREEN",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.epsr.2023.109729?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.epsr.2023.109729, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "121240749",
+    "name": "Yi-Hseih Huang"
+   },
+   {
+    "authorId": "48708104",
+    "name": "Zhanshan Wang"
+   },
+   {
+    "authorId": "2109303645",
+    "name": "Xiu-Chong Liu"
+   },
+   {
+    "authorId": "48673913",
+    "name": "Xiao-Mei Ye"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1109/TII.2025.3593883": {
+  "paperId": "de4fcf30bb2b9053528f67d0520db9a5cb68bf1a",
+  "externalIds": {
+   "DBLP": "journals/tii/LiuMZS25",
+   "DOI": "10.1109/TII.2025.3593883",
+   "CorpusId": 281027353
+  },
+  "title": "Dynamic Average Consensus-Based Reactive Power Sharing and Voltage Regulation Method in the Microgrid",
+  "venue": "IEEE Transactions on Industrial Informatics",
+  "year": 2025,
+  "citationCount": 5,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TII.2025.3593883?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TII.2025.3593883, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2348367081",
+    "name": "Meng-Lin Liu"
+   },
+   {
+    "authorId": "2281328121",
+    "name": "Da-Zhong Ma"
+   },
+   {
+    "authorId": "2303408115",
+    "name": "Hua-Guang Zhang"
+   },
+   {
+    "authorId": "2238403903",
+    "name": "Qiu-Ye Sun"
+   }
+  ],
+  "abstract": "As a burgeoning approach, droop control of interfacing inverters in microgrids has been widely adopted. However, droop control cannot achieve proportional reactive power sharing among distributed generators because of the difference of feeder impedances in actual microgrids. Hence, a novel distributed adaptive virtual impedance method based on average consensus algorithm is proposed to relieve feeder impedance mismatch. There into, virtual impedance is composed of static and adaptive inductance, which is designed to reshape equivalent impedance by creating additional control loops. Adaptive inductance unit is designed based on reactive power mismatch by applying multiagent consensus algorithm. By fully distributed adjustment to equivalent impedance, reactive power sharing accuracy can be improved. Then, proposed control method is applied to modified droop control, which is embedded designed dynamic voltage average consensus estimator, providing superior voltage restoration. At last, the effectiveness of proposed control method is shown by using simulation and further demonstrated through experiment study."
+ },
+ "10.1016/j.epsr.2024.110342": {
+  "paperId": "f77c0e5d811b339b36cbbbb6f41751714c1bd348",
+  "externalIds": {
+   "DOI": "10.1016/j.epsr.2024.110342",
+   "CorpusId": 268766821
+  },
+  "title": "Distributed sliding mode control for reactive power sharing in an islanded microgrid",
+  "venue": "Electric power systems research",
+  "year": 2024,
+  "citationCount": 9,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.epsr.2024.110342?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.epsr.2024.110342, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2294302069",
+    "name": "Wei Sun"
+   },
+   {
+    "authorId": "2294291538",
+    "name": "Xiao Lin"
+   },
+   {
+    "authorId": "2294160185",
+    "name": "Lei Huang"
+   },
+   {
+    "authorId": "2268240743",
+    "name": "Daoming Mu"
+   },
+   {
+    "authorId": "2108900032",
+    "name": "Hai-Yan Zhang"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1016/j.egyr.2022.12.039": null,
+ "10.1109/TPWRS.2021.3110263": {
+  "paperId": "fcafe793df8e87376d5111066b981db0cbbe82f9",
+  "externalIds": {
+   "MAG": "3197321043",
+   "DOI": "10.1109/tpwrs.2021.3110263",
+   "CorpusId": 239638622
+  },
+  "title": "Distributed Finite-Time Event-Triggered Frequency and Voltage Control of AC Microgrids",
+  "venue": "IEEE Transactions on Power Systems",
+  "year": 2021,
+  "citationCount": 94,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.1109/tpwrs.2021.3110263",
+   "status": "BRONZE",
+   "license": "publisher-specific-oa",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/tpwrs.2021.3110263?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/tpwrs.2021.3110263, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2112184818",
+    "name": "Jeewon Choi"
+   },
+   {
+    "authorId": "2134980690",
+    "name": "Seyed Iman Habibi"
+   },
+   {
+    "authorId": "2746200",
+    "name": "A. Bidram"
+   }
+  ],
+  "abstract": "This paper proposes a finite-time event-triggered secondary frequency and voltage control for islanded AC microgrids (MGs) in a distributed fashion. The proposed control strategy can effectively perform frequency restoration and voltage regulations, while sharing the active and reactive power among the distributed generators (DGs) based on their power ratings. The finite-time control enables a system to reach consensus in a finite period of time enhanced from the asymptotic convergence. The event-triggered communication is utilized to reduce the communication burden among the DG controllers by transmitting data among DGs if an event-triggering condition is satisfied. The performance of the proposed finite-time event-triggered frequency control is verified utilizing a hardware-in-the-loop experimental testbed which simulates an AC MG in Opal-RT."
+ },
+ "10.1109/TCYB.2024.3364820": {
+  "paperId": "5570f3a507da11a429bcc8b9df3d39d4ec4fe1f3",
+  "externalIds": {
+   "DBLP": "journals/tcyb/AndreottiCFPS24",
+   "DOI": "10.1109/TCYB.2024.3364820",
+   "CorpusId": 268060593,
+   "PubMed": "38416631"
+  },
+  "title": "Distributed Dynamic Event-Triggered Control for Voltage Recovery in Islanded Microgrids by Using Artificial Delays",
+  "venue": "IEEE Transactions on Cybernetics",
+  "year": 2024,
+  "citationCount": 28,
+  "openAccessPdf": {
+   "url": "https://ieeexplore.ieee.org/ielx7/6221036/6352949/10453046.pdf",
+   "status": "HYBRID",
+   "license": "CCBYNCND",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TCYB.2024.3364820?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TCYB.2024.3364820, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2239536268",
+    "name": "Amedeo Andreotti"
+   },
+   {
+    "authorId": "1490933678",
+    "name": "Bianca Caiazzo"
+   },
+   {
+    "authorId": "144864856",
+    "name": "E. Fridman"
+   },
+   {
+    "authorId": "37309303",
+    "name": "A. Petrillo"
+   },
+   {
+    "authorId": "36376280",
+    "name": "S. Santini"
+   }
+  ],
+  "abstract": "This article tackles secondary voltage recovery problem in islanded microgrids with the aim of reducing communication frequency among distributed generation (DG) units, while maintaining desired performance and saving communication network workload. To pursue this objective, a distributed proportional-integral-derivative controller is first introduced, whose sampled-data implementation is enabled by leveraging the finite-difference approximation for the derivative action, which leads to a distributed proportional-integral-retarded (PIR) controller with a small enough sampling period $h>0$ . Then, the resulting fully distributed PIR control law is combined with a dynamic event-triggered mechanism (DETM), which embeds Zeno-freeness property and avoids the requirement of continuous transmission in triggering process. Thus, the communication burden is significantly mitigated and the waste of communication resources is avoided. By exploiting Lyapunov–Krasovkii method, we derive exponential stability conditions expressed as linear matrix inequalities (LMIs), whose solution allows evaluating the maximum sampling period and DETM parameters preserving the stability of the microgrid. A thorough numerical analysis, carried out on the standard IEEE 14-bus test system, confirms the theoretical derivation."
+ },
+ "10.1109/TSG.2022.3212193": {
+  "paperId": "1f6ebc0f7b2026f134e989f95107255c1d0a9139",
+  "externalIds": {
+   "DBLP": "journals/tsg/ZhangDQHWL23",
+   "DOI": "10.1109/TSG.2022.3212193",
+   "CorpusId": 252744141
+  },
+  "title": "Distributed Secondary Control for Island Microgrids With Expected Dynamic Performance Under Communication Delays",
+  "venue": "IEEE Transactions on Smart Grid",
+  "year": 2023,
+  "citationCount": 31,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TSG.2022.3212193?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TSG.2022.3212193, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2116343905",
+    "name": "Cong-Yue Zhang"
+   },
+   {
+    "authorId": "2658662",
+    "name": "Xiao-Bo Dou"
+   },
+   {
+    "authorId": "36946239",
+    "name": "Xiang-Jun Quan"
+   },
+   {
+    "authorId": "3305560",
+    "name": "Qinran Hu"
+   },
+   {
+    "authorId": "3291327",
+    "name": "Zai-Jun Wu"
+   },
+   {
+    "authorId": "1820906658",
+    "name": "Yong-Qing Lv"
+   }
+  ],
+  "abstract": "In island microgrids, the increasing integration of inverter-interfaced distributed generators (DGs) degrades the dynamic performance of the control system. The operation voltage and frequency may appear unacceptable overshoots and fluctuations under disturbances. To achieve rapid convergence while efficiently suppressing overshoot, this paper develops a distributed control method for island microgrids with expected dynamic performance. In addition to the typical distributed consensus design, an auxiliary dynamic reshaping function is introduced into the algorithm to increase the control degree of freedom of the operation dynamics. Thus, the proposed method can realize independent and flexible configurations of the damping ratio and natural frequency of the control system, and obtain the expected state convergence and overshoot suppression performance according to the actual requirements of microgrids. Besides, different delays between DGs are also considered. Instead of simply adopting the conventional global fixed delay time, we preserve the difference of delays to the greatest extent. Such processing can effectively reduce the conservatism of control and improve the response rate. A nonlinear programming problem is also established for DGs to calculate the allowable delays under the specific performance. Finally, several case studies and an RT-Lab experiment evaluate the effectiveness of the method."
+ },
+ "10.3389/fenrg.2024.1468496": {
+  "paperId": "17e225dfd946f5563ad1927d7a3551616b367f14",
+  "externalIds": {
+   "DOI": "10.3389/fenrg.2024.1468496",
+   "CorpusId": 275802357
+  },
+  "title": "Distributed consensus-based voltage and frequency control for isolated microgrids with fault-induced delayed voltage recovery mitigation",
+  "venue": "Frontiers in Energy Research",
+  "year": 2025,
+  "citationCount": 5,
+  "openAccessPdf": {
+   "url": "https://www.frontiersin.org/journals/energy-research/articles/10.3389/fenrg.2024.1468496/pdf",
+   "status": "GOLD",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.3389/fenrg.2024.1468496?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.3389/fenrg.2024.1468496, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "41074125",
+    "name": "Baheej Alghamdi"
+   }
+  ],
+  "abstract": "This paper presents a distributed consensus-based voltage and frequency control (VFC) strategy for isolated microgrids with distributed energy resources (DERs) and induction motor loads. The proposed controller coordinates the DERs to regulate microgrid frequency and voltage while mitigating fault-induced delayed voltage recovery (FIDVR), a phenomenon where system voltage remains depressed for several seconds after fault clearance due to induction motor stalling. The VFC loop adjusts DER voltage setpoints based on frequency deviation and voltage level to regulate voltage and mitigate FIDVR events, while the active power control loop maintains frequency stability by coordinating active power sharing among DERs and compensating for the constant power load behavior of stalled induction motors. A proximity-based reactive power support prioritization and a distributed voltage estimator enhance the controller’s response to FIDVR events. Coordination between the VFC and active power control loops is achieved through adaptive gain adjustment and a voltage recovery coordination term. Simulation results demonstrate the effectiveness of the proposed controller in maintaining microgrid stability, ensuring fast voltage recovery, and providing robust performance under various operating conditions, including communication delays and different fault durations."
+ },
+ "10.3389/fenrg.2023.1277198": {
+  "paperId": "11aff125eb810f100ada82328f9a2a9e46f212da",
+  "externalIds": {
+   "DOI": "10.3389/fenrg.2023.1277198",
+   "CorpusId": 265539698
+  },
+  "title": "An enhanced consensus-based distributed secondary control for voltage regulation and proper current sharing in a DC islanded microgrid",
+  "venue": "Frontiers in Energy Research",
+  "year": 2023,
+  "citationCount": 11,
+  "openAccessPdf": {
+   "url": "https://www.frontiersin.org/articles/10.3389/fenrg.2023.1277198/pdf?isPublishedV2=False",
+   "status": "GOLD",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.3389/fenrg.2023.1277198?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.3389/fenrg.2023.1277198, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2227699672",
+    "name": "Nada Mosaad"
+   },
+   {
+    "authorId": "2261847786",
+    "name": "Omar Abdel-Rahim"
+   },
+   {
+    "authorId": "89838974",
+    "name": "Tamer F. Megahed"
+   },
+   {
+    "authorId": "2411813",
+    "name": "W. Rohouma"
+   },
+   {
+    "authorId": "2258995993",
+    "name": "Tanemasa Asano"
+   },
+   {
+    "authorId": "30730694",
+    "name": "S. Abdelkader"
+   }
+  ],
+  "abstract": "A centralized secondary control is utilized in a DC islanded microgrid to fine-tune voltage levels following the implementation of droop control. This is done to avoid conflicts between current allocation and voltage adjustments. However, because it introduces a single point of failure, a distributed secondary control is preferred. This paper introduces a consensus-based secondary distributed control approach to restore critical bus voltages to their nominal values and properly distribute current among converters. The critical bus takes the lead in voltage adjustments, with only connected energy resources contributing to regulation. The microgrid is represented as an undirected graph to facilitate consensus building. Two adjustment terms, δv and δi, are generated to assist in returning voltage to its nominal level and correctly allocating current among energy resources. To enhance consistency and improve controller performance compared to those reported in existing literature, all buses are connected to a leader node. In the event of the failure of all converters except one, voltage can still be effectively restored. MATLAB-Simulink simulations are conducted on two medium-voltage DC (MVDC) microgrids to validate the efficiency of the proposed control method. The results confirmed that the proposed control method can effectively maintain voltage stability and enhance the precise distribution of current among agents by 8%."
+ },
+ "10.3390/en18071755": {
+  "paperId": "c6ede624df1057233f1a1faca35c1ce9ffb14352",
+  "externalIds": {
+   "DOI": "10.3390/en18071755",
+   "CorpusId": 277544229
+  },
+  "title": "Fully Distributed Consensus Voltage Restoration Control Based on Dynamic Event-Triggered Mechanisms for Offshore Wind Power Systems",
+  "venue": "Energies",
+  "year": 2025,
+  "citationCount": 3,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.3390/en18071755",
+   "status": "GOLD",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.3390/en18071755?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.3390/en18071755, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2353943675",
+    "name": "Da-Wei Chen"
+   },
+   {
+    "authorId": "2309672717",
+    "name": "Zhi-Jie Zeng"
+   },
+   {
+    "authorId": "2353566996",
+    "name": "Ye Tian"
+   },
+   {
+    "authorId": "2323338074",
+    "name": "Chenyu Wang"
+   },
+   {
+    "authorId": "2353438423",
+    "name": "Jun Xiao"
+   },
+   {
+    "authorId": "2353701148",
+    "name": "Xiao-Qing Lin"
+   }
+  ],
+  "abstract": "Although voltage regulation in distributed generation (DG) in offshore wind power systems has been deeply studied, information on the global communication network structure and high communication bandwidths still remain key factors restricting the integration of a high proportion of new energy sources. In order to achieve precise voltage regulation while reducing communication, this paper proposes a fully distributed dynamic event-triggered secondary voltage restoration control for offshore wind power systems. Firstly, the nonlinear system model is switched to the linear second-order multi-agent system (MAS) by feedback linearization. This is a crucial step for the subsequent research. From there, a fully distributed voltage restoration control strategy is proposed, which utilizes adaptive event-triggered protocol. The proposed protocol operates independently of global information. Finally, the effectiveness of the control protocol is verified through simulation."
+ },
+ "10.1109/TCYB.2022.3218026": {
+  "paperId": "b1e4e7e649d08baddb7d507a12ff28812d18ad95",
+  "externalIds": {
+   "DBLP": "journals/tcyb/YangLLX24",
+   "DOI": "10.1109/TCYB.2022.3218026",
+   "CorpusId": 253521422,
+   "PubMed": "36374906"
+  },
+  "title": "Event-Triggered Distributed Secondary Control With Model-Free Predictive Compensation in AC/DC Networked Microgrids Under DoS Attacks",
+  "venue": "IEEE Transactions on Cybernetics",
+  "year": 2022,
+  "citationCount": 41,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TCYB.2022.3218026?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TCYB.2022.3218026, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2421844",
+    "name": "Han-Qing Yang"
+   },
+   {
+    "authorId": "2143600272",
+    "name": "Tieshan Li"
+   },
+   {
+    "authorId": "40195520",
+    "name": "Y. Long"
+   },
+   {
+    "authorId": "2116643327",
+    "name": "Yang Xiao"
+   }
+  ],
+  "abstract": "This article presents an event-triggered distributed secondary control with predictive compensation based on the model-free predictive control under Denial-of-Service (DoS) attacks in ac/dc-networked microgrids. First, models of ac/dc networked microgrids in both electric network and communication network are established. On this premise, event-triggered distributed secondary control is proposed to solve the problems of strong communication burden and low-power distribution accuracy. Besides, aiming at the impact of DoS attacks on distributed secondary control, a compensation algorithm based on model-free predictive control is designed to estimate the control variables when the DoS attack occurs, which can improve the control performance and maintain the stable operation without a specific system structure system. Then, the convergence of event-triggered distributed secondary control with the condition of whether DoS attacks happen are analyzed. Finally, the effectiveness of the proposed control is verified on the hardware-in-loop (HIL) simulation platform consisting of the RT-LAB simulator, MATLAB/Simulink simulation model, and DSP controller."
+ },
+ "10.1109/TCSI.2024.3449896": {
+  "paperId": "348095ae3a53d7de7ba5073faceda79da98ce335",
+  "externalIds": {
+   "DBLP": "journals/tcasI/ZhangFDWX24",
+   "DOI": "10.1109/TCSI.2024.3449896",
+   "CorpusId": 272406209
+  },
+  "title": "Distributed Resilient Secondary Control for AC Microgrids Against Hybrid Attacks",
+  "venue": "IEEE Transactions on Circuits and Systems Part 1: Regular Papers",
+  "year": 2024,
+  "citationCount": 26,
+  "openAccessPdf": {
+   "url": "",
+   "status": "CLOSED",
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TCSI.2024.3449896?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TCSI.2024.3449896, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2318667066",
+    "name": "Jianwen Zhang"
+   },
+   {
+    "authorId": "2153361265",
+    "name": "Shan Fan"
+   },
+   {
+    "authorId": "2150930316",
+    "name": "Chao Deng"
+   },
+   {
+    "authorId": "2654985",
+    "name": "Bo-Hui Wang"
+   },
+   {
+    "authorId": "2238359255",
+    "name": "Xiang-Peng Xie"
+   }
+  ],
+  "abstract": "In this paper, the distributed secondary voltage and frequency restoration problem is addressed in AC microgrid systems subjected to hybrid false data injection (FDI) and denial-of-service (DoS) attacks. Firstly, a new distributed resilient iterative estimator based on the k-step estimation method is proposed that can accurately estimate the FDI attack signals as well as the voltage and frequency of each distributed generation (DG) even under the impact of DoS attacks. Then, based on the mean value of the attack estimation signal, a distributed resilient secondary controller is designed to compensate for the considered hybrid attacks. Compared with existing researches on resilient control of AC microgrids under hybrid attacks, the voltage and frequency regulation errors of the microgrid system converge to zero for the first time. Finally, the precise convergence of voltage and frequency in the AC microgrid system under the proposed method is verified through a real-time controller-hardware-in-the-loop experiment in OPAL-RT."
+ },
+ "10.17775/CSEEJPES.2020.07140": {
+  "paperId": "c740f18f7772d0fbb275f7024048ff87fecc870e",
+  "externalIds": {
+   "DOI": "10.17775/cseejpes.2020.07140",
+   "CorpusId": 259909047
+  },
+  "title": "Distributed Detection Mechanism and Resilient Consensus Strategy for Secure Voltage Control of AC Microgrids",
+  "venue": "CSEE Journal of Power and Energy Systems",
+  "year": 2023,
+  "citationCount": 22,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.17775/cseejpes.2020.07140",
+   "status": "GOLD",
+   "license": "CCBYNCND",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.17775/cseejpes.2020.07140?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.17775/cseejpes.2020.07140, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "50378529",
+    "name": "Li-Na Sheng"
+   },
+   {
+    "authorId": "2240093112",
+    "name": "Wei Gu"
+   },
+   {
+    "authorId": "2893527",
+    "name": "Ge Cao"
+   }
+  ],
+  "abstract": "Distributed secondary control, depending on the sparse communication topology, excels for its flexibility and expandability in microgrids.The communication network plays an important role in microgrid control, but it is vulnerable to cyber-attacks.In this paper, the mathematical model for false data injection (FDI) attacks in AC microgrids is established, and the corresponding detection mechanism based on the morphological gradient is designed for the location of cyber-attacks in communication topology.Then, we propose a median-based resilient consensus voltage control strategy to mitigate the negative effects caused by malicious cyber-attacks and ensure the safe operation of the microgrid.Combining the detection method and resilient consensus control, a novel eventdriven mitigation scheme is derived to improve the resilience of microgrids under cyber-attacks.Finally, a tested microgrid model composed of five different distributed generation (DG) units is simulated in the MATLAB/Simulink environment.The feasibility and effectiveness of the presented detection mechanism and resilient consensus strategy are verified by simulation results applying different scenarios."
+ },
+ "10.1109/TSG.2025.3646998": {
+  "paperId": "15b5d876a1fec6aa01b1cdeb6399e320743b39c6",
+  "externalIds": {
+   "DBLP": "journals/tsg/YangFD26",
+   "DOI": "10.1109/TSG.2025.3646998",
+   "CorpusId": 284164791
+  },
+  "title": "Event-Based Fixed-Time Resilient Distributed Secondary Control in AC Microgrids Against DoS Attacks",
+  "venue": "IEEE Transactions on Smart Grid",
+  "year": 2026,
+  "citationCount": 5,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TSG.2025.3646998?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TSG.2025.3646998, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2249083726",
+    "name": "Fei-Sheng Yang"
+   },
+   {
+    "authorId": "2311839728",
+    "name": "Yuanchao Fu"
+   },
+   {
+    "authorId": "2267163471",
+    "name": "Yu-Hua Du"
+   }
+  ],
+  "abstract": "This article investigates the fixed-time secondary control problem for alternating current (AC) microgrids subjected to denial-of-service (DoS) attacks. Firstly, an acknowledgment character (ACK) detection mechanism is provided to identify the onset and cessation of intermittent DoS attack intervals. Then, a distributed fixed-time resilient protocol is proposed to rapidly achieve secondary control objectives via a novel lemma under the aperiodically intermittent control. Moreover, a dynamically event-based strategy is introduced into the design of controller to reduce command updates. Finally, real-time simulations on an OPAL-RT platform are performed to demonstrate the validity and effectiveness of the presented method against DoS attacks."
+ },
+ "10.1109/TNSE.2025.3595571": {
+  "paperId": "9dfdd8a7d5fed4ed957f30ff42b1fc00e1c58f4c",
+  "externalIds": {
+   "DBLP": "journals/tnse/WangYXZ26",
+   "DOI": "10.1109/TNSE.2025.3595571",
+   "CorpusId": 280599061
+  },
+  "title": "Attack-Resilient and Privacy-Preserving Distributed Secondary Control of Cyber-Physical Microgrids",
+  "venue": "IEEE Transactions on Network Science and Engineering",
+  "year": 2026,
+  "citationCount": 6,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TNSE.2025.3595571?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TNSE.2025.3595571, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2340748025",
+    "name": "Fuzhi Wang"
+   },
+   {
+    "authorId": "2375904115",
+    "name": "Bin Yang"
+   },
+   {
+    "authorId": "2116643327",
+    "name": "Yang Xiao"
+   },
+   {
+    "authorId": "2145806746",
+    "name": "Jun Zhao"
+   }
+  ],
+  "abstract": "The distributed secondary control protocol plays a crucial role in regulating frequency, voltage, and the sharing of active and reactive power in an AC cyber-physical microgrid (CPMG). The challenges of network attacks, such as false data injection (FDI) attacks and eavesdropping, are considered together for an AC CPMG, and an auxiliary network-based attack-resilient and privacy-preserving distributed secondary control protocol is proposed. Initially, the interactive dynamics between the original network and the auxiliary network are established. With the novel network dynamics, the information exchanged between distributed generators (DGs) has both original physical states and auxiliary states. Subsequently, adjusting the positive control gains introduced by network dynamics yields the stability of consensus errors in the presence of FDI attacks. On this basis, from the perspective of privacy preservation, the control gains and the locally held masked variables are used to design masked states. Owing to the bounded, time-varying, and non-decaying masked variables, privacy preservation is achieved over the entire running time of an AC CPMG. Finally, the comparative simulation results demonstrate that the proposed protocols achieve attack resilience and privacy preservation, exhibiting a significant advantage in scenarios where all network links are subject to FDI attacks and eavesdropping."
+ },
+ "10.1038/s41598-026-64236-x": {
+  "paperId": "6a2f7747bcc0130a29ad1293aaf4b168f9fa4912",
+  "externalIds": {
+   "DOI": "10.1038/s41598-026-64236-x",
+   "CorpusId": 290809826
+  },
+  "title": "Communication-efficient distributed secondary control for accurate reactive and harmonic power sharing in stand-alone AC microgrids under switching communication topologies",
+  "venue": "Scientific Reports",
+  "year": 2026,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "https://www.nature.com/articles/s41598-026-64236-x_reference.pdf",
+   "status": "GOLD",
+   "license": "CCBYNCND",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1038/s41598-026-64236-x?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1038/s41598-026-64236-x, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "9351880",
+    "name": "Iman Lorzadeh"
+   },
+   {
+    "authorId": "2400895124",
+    "name": "Masoud Zare Shahabadi"
+   },
+   {
+    "authorId": "151478425",
+    "name": "Omid Lorzadeh"
+   },
+   {
+    "authorId": "2309833454",
+    "name": "Luc Dupré"
+   },
+   {
+    "authorId": "2237319500",
+    "name": "Lieven Vandevelde"
+   }
+  ],
+  "abstract": "This study proposes a primary-control-agnostic, communication-efficient, fully distributed secondary-control framework for stand-alone AC microgrids (SAMGs) to achieve accurate and simultaneous sharing of reactive and harmonic power under switching communication topologies (SCTs). The proposed secondary layer relies only on locally available interface signals, including power measurements and voltage-reference channels, and is therefore not tied to a specific primary-control structure. It is instantiated and validated on inverter-based resources operated with unified hybrid control (UHC), in which grid-forming and grid-following functionalities are integrated within a single converter. In droop-controlled SAMGs, mismatched feeder impedances and mixed linear/nonlinear loads can lead to inaccurate reactive and harmonic power sharing, circulating power components, and degraded voltage quality, while SCT-induced link variations further complicate distributed coordination. To address these challenges, the proposed controller injects capacity-weighted voltage-correction signals into the primary-control reference channels through decoupled fundamental and harmonic compensation paths. A dual-threshold event-triggered communication mechanism, combining a state-relative term with a time-decaying offset, reduces redundant neighbor-to-neighbor transmissions while preserving coordination performance. A Lyapunov-based analysis establishes boundedness, consensus convergence, and exclusion of Zeno behavior under connected SCTs. Real-time OPAL-RT experiments on a four-inverter SAMG demonstrate accurate reactive and harmonic power sharing, reduced communication updates, stable voltage and frequency regulation, and robust performance under load changes, reference-power variations, voltage/frequency restoration, and plug-and-play operation."
+ },
+ "10.1016/j.epsr.2026.113933": {
+  "paperId": "f244338d3dc2801d9c342729d22195953999a36f",
+  "externalIds": {
+   "DOI": "10.1016/j.epsr.2026.113933",
+   "CorpusId": 291005240
+  },
+  "title": "Controller hardware-in-the-loop (C-HIL) testing of a hybrid control architecture for multi-feeder microgrids with heterogeneous generation",
+  "venue": "Electric power systems research",
+  "year": null,
+  "citationCount": 0,
+  "openAccessPdf": {
+   "url": "https://doi.org/10.1016/j.epsr.2026.113933",
+   "status": "HYBRID",
+   "license": "CCBY",
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.epsr.2026.113933?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.epsr.2026.113933, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2483761810",
+    "name": "T. G. Roberts"
+   },
+   {
+    "authorId": "2456772385",
+    "name": "E. Williams"
+   },
+   {
+    "authorId": "153202522",
+    "name": "Reynaldo Salcedo"
+   },
+   {
+    "authorId": "1398926853",
+    "name": "A. Domínguez-García"
+   }
+  ],
+  "abstract": null
+ },
+ "10.1109/TASE.2025.3650604": {
+  "paperId": "034b3c43bf351f4046c945810290925adb2de27e",
+  "externalIds": {
+   "DBLP": "journals/tase/ZhangZZY26",
+   "DOI": "10.1109/TASE.2025.3650604",
+   "CorpusId": 284957288
+  },
+  "title": "Fully Distributed Event-Triggered Secondary Control for Islanded Microgrid Restoration With Communication Link Faults",
+  "venue": "IEEE Transactions on Automation Science and Engineering",
+  "year": 2026,
+  "citationCount": 12,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TASE.2025.3650604?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TASE.2025.3650604, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "50560711",
+    "name": "Juan Zhang"
+   },
+   {
+    "authorId": "2249240614",
+    "name": "Bo-Wen Zhou"
+   },
+   {
+    "authorId": "2303408115",
+    "name": "Hua-Guang Zhang"
+   },
+   {
+    "authorId": "2378197396",
+    "name": "Dongsheng Yang"
+   }
+  ],
+  "abstract": "In this paper, we consider the islanded microgrid restoration with communication link faults, where faults refer to certain classes of data manipulation attacks. To compensate for the impact of faults in communication links on microgrid stability, a distributed adaptive event-triggered compensator with adaptive parameters has been designed. This avoids the use of global information and reduces communication redundancy. To achieve voltage and frequency recovery, an distributed secondary control strategy is proposed. Using Lyapunov stability theorem, it is proved that the proposed method is effective in counteracting the primary control bias that exists in islanded microgrids in the presence of communication link faults and limited computational resources. The main advantage of our method is the scalability and resilience. Finally, the paper presents the results of a simulation test of an islanded microgrid consisting of four DGs with faults in communication links. These results show that the proposed secondary control strategy is effective. Note to Practitioners—Stable operation of microgrids under communication link faults is a key challenge in the power industry, especially in islanding mode, where communication problems may lead to voltage and frequency instability. The fully distributed event-triggered secondary control strategy proposed in this paper aims to solve this practical problem. The strategy reduces the communication frequency by designing an adaptive compensator to minimize the resource consumption and improve the system efficiency, while avoiding the dependence on global information and enhancing the system scalability and resilience. It has a wide range of potential applications, such as independent power supply in smart parks, island regions or remote areas. The advantage of this strategy is that it can effectively restore and maintain the voltage and frequency stability of the microgrid even in the presence of communication link failures and load variations. However, the study still has limitations, such as more idealized assumptions on the types of communication faults. In the future, we plan to further optimize the control strategy by introducing more advanced fault detection techniques so that it can cope with more complex and variable communication fault scenarios, and thus be more widely applied to real microgrid systems."
+ },
+ "10.1109/TIE.2025.3645452": {
+  "paperId": "8a0257378f3741a5f9fd53ffbc2d0626842b57c3",
+  "externalIds": {
+   "DBLP": "journals/tie/TianSZHY26",
+   "DOI": "10.1109/TIE.2025.3645452",
+   "CorpusId": 284782821
+  },
+  "title": "Adjustable Gain and Reference Signal Sharing-Based Distributed Secondary Control for Voltage Restoration and Current Equalization in DC Microgrid With Time Delay",
+  "venue": "IEEE transactions on industrial electronics (1982. Print)",
+  "year": 2026,
+  "citationCount": 4,
+  "openAccessPdf": {
+   "url": "",
+   "status": null,
+   "license": null,
+   "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TIE.2025.3645452?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TIE.2025.3645452, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+  },
+  "authors": [
+   {
+    "authorId": "2322075166",
+    "name": "Ji Tian"
+   },
+   {
+    "authorId": "2278118362",
+    "name": "Xing-Chen Shang-Guan"
+   },
+   {
+    "authorId": "2124556596",
+    "name": "Chuan-Ke Zhang"
+   },
+   {
+    "authorId": "2268026042",
+    "name": "Yong He"
+   },
+   {
+    "authorId": "2331575520",
+    "name": "Wei Yao"
+   }
+  ],
+  "abstract": "This article proposes an adjustable gain and reference signal sharing based distributed secondary control scheme for direct current microgrids (MGs) systems. First, a consensus-based reference signal sharing strategy considering communication delay is established to synchronize the reference signals of each distributed generator (DG). As long as only one DG receives the reference signal, global synchronization can be achieved, which can effectively reduce communication resources. Then, an adjustable distributed secondary control gain that accounts for communication delay is designed to improve current equalization and voltage restoration capabilities. Lastly, simulations and hardware-in-the-loop tests are both performed across diverse scenarios including load switching, plug-and-play, and scalability operations. These tests verify that the scheme can effectively enhance voltage restoration in dc MGs. Additionally, it is capable of enhancing current equalization performance in dc MGs, even when allowable communication delay is present."
+ }
+}

@@ -23,12 +23,15 @@ __pycache__/
 .antigravity_memory/
 .vscode/
 .gemini/
+.pi-subagents/
 
 # Output and simulation data
 *.csv
 !config/*.csv
 !Forms/*.csv
 !Forms/**/*.csv
+!outputs/benchmark/results/**/*.csv
+!outputs/resilience/results/**/*.csv
 *.xlsx
 *.log
 resultados_solar.csv
@@ -40,6 +43,9 @@ share/
 # Excluir documentación de tesis (LaTeX)
 Thesis_LaTeX/
 
+# Backups temporales de generador de escenarios
+Forms/_respaldo/
+
 # Excluir bóveda de notas de Obsidian
 obsidian_vault/
 
@@ -47,5 +53,8 @@ obsidian_vault/
 *.md
 **/*.md
 
-# Exceptuar explícitamente el README.md de la regla anterior
+# Exceptuar explícitamente el README.md y reportes/gates de benchmark
 !README.md
+!outputs/benchmark/reports/*.md
+!outputs/benchmark/results/**/*.md
+!outputs/resilience/**/*.md

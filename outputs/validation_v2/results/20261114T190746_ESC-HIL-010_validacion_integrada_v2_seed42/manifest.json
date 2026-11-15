@@ -1,0 +1,491 @@
+{
+  "run_id": "20261114T190746_ESC-HIL-010_validacion_integrada_v2_seed42",
+  "scenario": "ESC-HIL-010_validacion_integrada_v2",
+  "steps": 1321,
+  "dt_s": 0.5,
+  "start_time": "2026-11-14T19:07:46.151634",
+  "parameters": {
+    "p_min_diesel": 3500.0,
+    "p_charge_max": 3000.0,
+    "network_profile": "DYNAMIC_CONTINGENCY",
+    "contingencies_file": "contingencias_telematicas.csv",
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T190746_ESC-HIL-010_validacion_integrada_v2_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 397579,
+    "sha256": "53c5a50db30db75c9067c343cd7cd28b33c7371d42288db3ede83751ffab71cd"
+  },
+  "audit_010": {
+    "n_samples": 1321,
+    "time_range_s": [
+      0.0,
+      660.0
+    ],
+    "max_step_elapsed_ms": 15.585,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_1321_samples": true,
+      "zero_rt_overruns": true,
+      "reactive_reconvergence_p23": false,
+      "frequency_tail_stability": false
+    },
+    "p23_metrics": {
+      "e_Q_max": 0.0,
+      "e_Q_final": 0.0
+    },
+    "tail_frequency_p2p_hz": 0.2005,
+    "all_criteria_passed": false,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          40
+        ],
+        "evento": "acoplamiento y convergencia inicial",
+        "n": 80,
+        "f_min": 59.9224,
+        "f_max": 60.2849,
+        "V_min": 0.9998,
+        "V_max": 1.0022,
+        "P3_mean_kW": -0.307,
+        "SoC_ini": 0.5,
+        "SoC_fin": 0.500035,
+        "curtail_ratio_min": 0.15,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          40,
+          70
+        ],
+        "evento": "rampa positiva de carga +30 por ciento",
+        "n": 60,
+        "f_min": 59.8824,
+        "f_max": 60.151,
+        "V_min": 0.9999,
+        "V_max": 1.0024,
+        "P3_mean_kW": -0.085,
+        "SoC_ini": 0.500035,
+        "SoC_fin": 0.500042,
+        "curtail_ratio_min": 0.1974,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          70,
+          100
+        ],
+        "evento": "carga sostenida al +30 por ciento",
+        "n": 60,
+        "f_min": 59.8958,
+        "f_max": 60.0637,
+        "V_min": 1.0,
+        "V_max": 1.0024,
+        "P3_mean_kW": 0.024,
+        "SoC_ini": 0.500042,
+        "SoC_fin": 0.50004,
+        "curtail_ratio_min": 0.6804,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          100,
+          130
+        ],
+        "evento": "escalon negativo de carga",
+        "n": 60,
+        "f_min": 59.9468,
+        "f_max": 60.4225,
+        "V_min": 0.9997,
+        "V_max": 1.0023,
+        "P3_mean_kW": -0.882,
+        "SoC_ini": 0.50004,
+        "SoC_fin": 0.500115,
+        "curtail_ratio_min": 0.15,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          130,
+          160
+        ],
+        "evento": "carga reducida sostenida",
+        "n": 60,
+        "f_min": 60.1616,
+        "f_max": 60.1704,
+        "V_min": 1.0,
+        "V_max": 1.0017,
+        "P3_mean_kW": -0.754,
+        "SoC_ini": 0.500116,
+        "SoC_fin": 0.50018,
+        "curtail_ratio_min": 0.15,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          160,
+          180
+        ],
+        "evento": "retorno a carga nominal",
+        "n": 40,
+        "f_min": 59.9127,
+        "f_max": 60.1664,
+        "V_min": 1.0,
+        "V_max": 1.0022,
+        "P3_mean_kW": -0.119,
+        "SoC_ini": 0.500181,
+        "SoC_fin": 0.500186,
+        "curtail_ratio_min": 0.15,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          180,
+          210
+        ],
+        "evento": "nominal con PV a MPP",
+        "n": 60,
+        "f_min": 59.9539,
+        "f_max": 60.1443,
+        "V_min": 1.0,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.156,
+        "SoC_ini": 0.500186,
+        "SoC_fin": 0.5002,
+        "curtail_ratio_min": 0.2702,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          210,
+          240
+        ],
+        "evento": "sombreado suave 833 a 560 W/m2",
+        "n": 60,
+        "f_min": 59.9351,
+        "f_max": 59.9971,
+        "V_min": 1.0,
+        "V_max": 1.0019,
+        "P3_mean_kW": 0.056,
+        "SoC_ini": 0.5002,
+        "SoC_fin": 0.500195,
+        "curtail_ratio_min": 0.3594,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          240,
+          270
+        ],
+        "evento": "POA sostenida en 560 W/m2",
+        "n": 60,
+        "f_min": 59.9926,
+        "f_max": 60.0053,
+        "V_min": 1.0,
+        "V_max": 1.0019,
+        "P3_mean_kW": 0.0,
+        "SoC_ini": 0.500195,
+        "SoC_fin": 0.500195,
+        "curtail_ratio_min": 1.0,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          270,
+          290
+        ],
+        "evento": "recuperacion suave 560 a 833 W/m2",
+        "n": 40,
+        "f_min": 59.9657,
+        "f_max": 60.126,
+        "V_min": 1.0,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.166,
+        "SoC_ini": 0.500195,
+        "SoC_fin": 0.500204,
+        "curtail_ratio_min": 0.3119,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          290,
+          320
+        ],
+        "evento": "nominal con PV a MPP",
+        "n": 60,
+        "f_min": 59.9615,
+        "f_max": 60.1438,
+        "V_min": 1.0,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.16,
+        "SoC_ini": 0.500204,
+        "SoC_fin": 0.500218,
+        "curtail_ratio_min": 0.2589,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          320,
+          370
+        ],
+        "evento": "sombreado abrupto 833 a 347 W/m2",
+        "n": 100,
+        "f_min": 59.8199,
+        "f_max": 60.0763,
+        "V_min": 0.9999,
+        "V_max": 1.002,
+        "P3_mean_kW": 0.187,
+        "SoC_ini": 0.500218,
+        "SoC_fin": 0.500191,
+        "curtail_ratio_min": 0.816,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          370,
+          400
+        ],
+        "evento": "recuperacion abrupta 347 a 833 W/m2",
+        "n": 60,
+        "f_min": 59.9962,
+        "f_max": 60.1269,
+        "V_min": 1.0,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.248,
+        "SoC_ini": 0.500191,
+        "SoC_fin": 0.500213,
+        "curtail_ratio_min": 0.3222,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          400,
+          430
+        ],
+        "evento": "nominal con PV a MPP",
+        "n": 60,
+        "f_min": 59.9544,
+        "f_max": 60.1749,
+        "V_min": 0.9999,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.233,
+        "SoC_ini": 0.500213,
+        "SoC_fin": 0.500232,
+        "curtail_ratio_min": 0.2079,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          430,
+          480
+        ],
+        "evento": "perdida 20 por ciento 2-3 y excitacion reactiva +1.16/-1.16 kvar",
+        "n": 100,
+        "f_min": 59.9537,
+        "f_max": 60.1727,
+        "V_min": 1.0,
+        "V_max": 1.0022,
+        "P3_mean_kW": -0.159,
+        "SoC_ini": 0.500232,
+        "SoC_fin": 0.500255,
+        "curtail_ratio_min": 0.1885,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 45,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          480,
+          510
+        ],
+        "evento": "cola tras la perdida",
+        "n": 60,
+        "f_min": 59.9621,
+        "f_max": 60.173,
+        "V_min": 0.9999,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.208,
+        "SoC_ini": 0.500255,
+        "SoC_fin": 0.500273,
+        "curtail_ratio_min": 0.1912,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          510,
+          540
+        ],
+        "evento": "desconexion total 1-2",
+        "n": 60,
+        "f_min": 59.9779,
+        "f_max": 60.1608,
+        "V_min": 0.9999,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.258,
+        "SoC_ini": 0.500273,
+        "SoC_fin": 0.500295,
+        "curtail_ratio_min": 0.2735,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 120,
+        "d12_samples": 60
+      },
+      {
+        "ventana_s": [
+          540,
+          570
+        ],
+        "evento": "reconexion 1-2",
+        "n": 60,
+        "f_min": 59.9611,
+        "f_max": 60.1657,
+        "V_min": 1.0,
+        "V_max": 1.0021,
+        "P3_mean_kW": -0.158,
+        "SoC_ini": 0.500296,
+        "SoC_fin": 0.500308,
+        "curtail_ratio_min": 0.1799,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          570,
+          600
+        ],
+        "evento": "escalon de carga +25 por ciento",
+        "n": 60,
+        "f_min": 59.8115,
+        "f_max": 60.122,
+        "V_min": 0.9999,
+        "V_max": 1.0025,
+        "P3_mean_kW": 0.015,
+        "SoC_ini": 0.500309,
+        "SoC_fin": 0.500307,
+        "curtail_ratio_min": 0.3786,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          600,
+          660
+        ],
+        "evento": "cola limpia",
+        "n": 121,
+        "f_min": 59.9582,
+        "f_max": 60.1878,
+        "V_min": 0.9999,
+        "V_max": 1.0023,
+        "P3_mean_kW": -0.207,
+        "SoC_ini": 0.500307,
+        "SoC_fin": 0.500343,
+        "curtail_ratio_min": 0.15,
+        "curtail_min": 0.15,
+        "e_Q_min": 0.0,
+        "e_Q_max": 0.0,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T190746_ESC-HIL-010_validacion_integrada_v2_seed42\\reporte_validacion_v2.md"
+  },
+  "end_time": "2026-11-14T19:08:00.207781",
+  "elapsed_seconds": 12.464,
+  "hashes": {
+    "telemetry_rack_csv": "53c5a50db30db75c9067c343cd7cd28b33c7371d42288db3ede83751ffab71cd",
+    "contingencias_telematicas_csv": "c430fb3c0e2bd481c4b43f2e9057309150627d484ea25fbdea294dfcd1d6decb",
+    "scenario_meta_json": "1f6eb2c4f6a2193c3955739b660ee860629c8d8ca7ecca2ca1a4e1b196cc91a3"
+  }
+}

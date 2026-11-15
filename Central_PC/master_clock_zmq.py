@@ -43,8 +43,8 @@ class MasterClockZMQ:
         self.dt = 0.5  # 500 ms por paso maestro
         self.f_sys = 60.0
         self.f_nom = 60.0
-        self.H_sys = 2.0
-        self.D_sys = 1.0
+        self.H_sys = 6.0
+        self.D_sys = 12.0
         self.operating_mode = "ONLINE"
 
         # Emulador de Canal de Comunicación
@@ -52,6 +52,7 @@ class MasterClockZMQ:
 
         # Seguimiento de frescura e inyecciones para política Hold Last Value / Disyuntor
         self.last_known_injections = {}
+        self.last_node_metadata = {}
         self.node_stale_steps = {}
         self.tripped_nodes = set()
 
@@ -79,7 +80,7 @@ class MasterClockZMQ:
             return self.solver.set_operating_mode(operating_mode, slack_node, V_slack)
         return self.operating_mode, slack_node, V_slack
 
-    def run_step(self, node_injections):
+    def run_step(self, node_injections, extra_payload=None):
         """
         Ejecuta un paso maestro de flujo de potencia con las inyecciones recolectadas.
 
@@ -94,10 +95,13 @@ class MasterClockZMQ:
 
         Parámetros:
             node_injections: {node_id: {"P": watts, "Q": vars}}
+            extra_payload:   Dict opcional con metadatos de telemetría S-40 a propagar.
 
         Retorna:
             Dict con el payload de resultados del paso de simulación.
         """
+        t_step_start = time.perf_counter()
+
         # Emular retardo de comunicación
         delay_applied = self.comm_emulator.apply_delay()
 
@@ -116,6 +120,9 @@ class MasterClockZMQ:
             if n_str in filtered_injections or n_int in filtered_injections:
                 inj = filtered_injections.get(n_str, filtered_injections.get(n_int))
                 self.last_known_injections[n_int] = {"P": float(inj["P"]), "Q": float(inj["Q"])}
+                meta_fields = {k: v for k, v in inj.items() if k not in ("P", "Q")}
+                if meta_fields:
+                    self.last_node_metadata[n_int] = meta_fields
                 self.node_stale_steps[n_int] = 0
                 self.tripped_nodes.discard(n_int)
                 effective_injections[n_int] = self.last_known_injections[n_int]
@@ -156,8 +163,12 @@ class MasterClockZMQ:
             }
 
         self.step_index += 1
+        sample_idx = self.step_index - 1
+        step_elapsed_ms = round((time.perf_counter() - t_step_start) * 1000.0, 3)
         payload = {
             "step": self.step_index,
+            "sample_idx": sample_idx,
+            "time_s": round(sample_idx * self.dt, 2),
             "time_sec": round(self.step_index * self.dt, 2),
             "mode": self.mode,
             "mesh_type": self.mesh_type if self.mode == "SENSITIVITY" else "RADIAL",
@@ -168,6 +179,11 @@ class MasterClockZMQ:
             "f_sys_hz": round(self.f_sys, 4),
             "omega_sys": round(self.f_sys * 2.0 * 3.141592653589793, 4),
             "P_net_w": round(p_net, 2),
+            "step_elapsed_ms": step_elapsed_ms,
+            "injections_effective": {
+                str(k): {"P": round(v["P"], 2), "Q": round(v["Q"], 2)}
+                for k, v in effective_injections.items()
+            },
             "comm_scenario": self.comm_emulator.scenario,
             "comm_delay_s": round(delay_applied, 4),
             "comm_nodes_received": len(filtered_injections),
@@ -175,8 +191,10 @@ class MasterClockZMQ:
             "stale_nodes": stale_nodes,
             "tripped_nodes": list(self.tripped_nodes)
         }
+        if extra_payload:
+            payload.update(extra_payload)
 
-        # Publicar los nuevos voltajes a todos los nodos
+        # Publicar payload de estado de red (voltajes, frecuencia, telemetría y disparos) a todos los nodos
         self.pub_socket.send_json(payload)
         return payload
 

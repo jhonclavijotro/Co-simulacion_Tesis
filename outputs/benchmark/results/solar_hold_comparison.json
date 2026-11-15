@@ -1,0 +1,62 @@
+{
+  "timestamp_utc": "2026-11-04T18:49:43.782472+00:00",
+  "experiment": "EXP-NODAL-SOLAR-HOLD",
+  "parameters": {
+    "v_nom_v": 400.0,
+    "delta_v_v": 80.0,
+    "t_drop_s": 40.0,
+    "tau_s": 4.5,
+    "t_total_s": 120.0,
+    "h_eval_s": 0.5,
+    "h_ref_s": 0.05,
+    "micro_dt_s": 0.001,
+    "q_ref_var": 4000.0,
+    "p_ref_w": 0.0,
+    "poa_w_m2": 800.0,
+    "tamb_k": 298.15
+  },
+  "summary": [
+    {
+      "scheme": "ZOH",
+      "lambda": 0.0,
+      "rms_error_w": 3.85,
+      "max_error_w": 26.65,
+      "ratio_vs_zoh": "1.00x"
+    },
+    {
+      "scheme": "FROH (lambda=0.3)",
+      "lambda": 0.3,
+      "rms_error_w": 7.45,
+      "max_error_w": 110.31,
+      "ratio_vs_zoh": "1.93x"
+    },
+    {
+      "scheme": "FROH (lambda=0.5)",
+      "lambda": 0.5,
+      "rms_error_w": 10.8,
+      "max_error_w": 166.09,
+      "ratio_vs_zoh": "2.80x"
+    },
+    {
+      "scheme": "FROH (lambda=0.7)",
+      "lambda": 0.7,
+      "rms_error_w": 14.33,
+      "max_error_w": 221.87,
+      "ratio_vs_zoh": "3.72x"
+    },
+    {
+      "scheme": "FROH (lambda=0.9)",
+      "lambda": 0.9,
+      "rms_error_w": 17.93,
+      "max_error_w": 277.65,
+      "ratio_vs_zoh": "4.65x"
+    },
+    {
+      "scheme": "FOH",
+      "lambda": 1.0,
+      "rms_error_w": 19.74,
+      "max_error_w": 305.54,
+      "ratio_vs_zoh": "5.12x"
+    }
+  ]
+}

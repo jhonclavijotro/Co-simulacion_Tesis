@@ -1,0 +1,56 @@
+{
+  "id": "ESC-HIL-003",
+  "familia": "hil_corto",
+  "duracion_s": 300,
+  "dt_s": 0.5,
+  "inicio_absoluto": "2026-09-12T06:30:00.000-05:00",
+  "zona_horaria": "America/Bogota (UTC-05:00)",
+  "esquema_datos": "consolidado_rev5",
+  "semilla": 42,
+  "archivos": {
+    "meteorologico": "datos_meteorologicos.csv",
+    "demanda": "datos_demanda.csv",
+    "topologia": "topologia_red_8nodos.csv",
+    "cables": "cables.csv"
+  },
+  "recursos_no_instanciados": [
+    "eolica",
+    "hidrica"
+  ],
+  "capa1": "plantilla_configuracion_cosimulacion.json",
+  "parametros_banco": {
+    "s_base_kVA": 10.0,
+    "tension_base_V": 400.0,
+    "paso_macro_reloj_s": 0.5,
+    "tipo_malla": "RADIAL",
+    "solucionador": "FBS",
+    "topologia": "topologia_red_8nodos.csv",
+    "nodos_demanda": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "capacidades_der": {
+      "1": {
+        "p_max_W": 10000.0,
+        "q_max_var": 6000.0
+      },
+      "2": {
+        "p_max_W": 5000.0,
+        "q_max_var": 3000.0
+      },
+      "3": {
+        "p_max_W": 3000.0,
+        "q_max_var": 2000.0
+      }
+    }
+  },
+  "trazabilidad": {
+    "generado_utc": "2026-11-01T18:42:22+00:00",
+    "tesis_commit": "92cdca5f7fb5718520e75b6c76f1c5cc9b24d56e",
+    "tesis_rama": "dev",
+    "tesis_entradas_sin_commitear": 0
+  }
+}

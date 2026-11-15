@@ -1,0 +1,113 @@
+{
+  "run_id": "20261114T204419_ESC-HIL-012_diesel_nominal_isla_seed42",
+  "scenario": "ESC-HIL-012_diesel_nominal_isla",
+  "steps": 241,
+  "dt_s": 0.5,
+  "start_time": "2026-11-14T20:44:19.437555",
+  "parameters": {
+    "p_min_diesel": 3500.0,
+    "p_charge_max": 0.0,
+    "network_profile": null,
+    "contingencies_file": null,
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261114T204419_ESC-HIL-012_diesel_nominal_isla_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 69533,
+    "sha256": "8733cbb8d431dcc60c23eb0e7676fbd05df73a62adadd773748c9fc83e5c3531"
+  },
+  "audit_s40": {
+    "n_samples": 241,
+    "time_range_s": [
+      0.0,
+      120.0
+    ],
+    "max_step_elapsed_ms": 10.057,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_961_samples": false,
+      "surplus_bess_and_curtail": false,
+      "link_cut": false,
+      "zero_rt_overruns": true
+    },
+    "reconvergence_exercised": false,
+    "criteria_not_exercised": [
+      "reconvergence_under_active_fault"
+    ],
+    "notes_criteria": {
+      "link_cut": "60 muestras (30 s) de desconexion total 1-2 con retencion de consignas por ZOH; no se ejercito reconvergencia dinamica activa pues e_Q se mantuvo en 0.0000 debido a carga reactiva estatica (evidencia de reconvergencia diferida a nuevo escenario dinamico)."
+    },
+    "all_criteria_passed": false,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          40
+        ],
+        "evento": "nominal 6,0 kW",
+        "n": 80,
+        "f_min": 59.5536,
+        "f_max": 60.0773,
+        "V_min": 1.0,
+        "V_max": 1.0023,
+        "P3_mean_kW": 0.0,
+        "SoC_ini": 0.2,
+        "SoC_fin": 0.2,
+        "curtail_ratio_min": 0.4522,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          40,
+          100
+        ],
+        "evento": "escalon de carga +20 %",
+        "n": 120,
+        "f_min": 59.7323,
+        "f_max": 60.0561,
+        "V_min": 1.0,
+        "V_max": 1.0027,
+        "P3_mean_kW": 0.0,
+        "SoC_ini": 0.2,
+        "SoC_fin": 0.2,
+        "curtail_ratio_min": 0.5763,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          100,
+          120
+        ],
+        "evento": "cola",
+        "n": 41,
+        "f_min": 59.9973,
+        "f_max": 60.0055,
+        "V_min": 1.0,
+        "V_max": 1.0027,
+        "P3_mean_kW": 0.0,
+        "SoC_ini": 0.2,
+        "SoC_fin": 0.2,
+        "curtail_ratio_min": 1.0,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261114T204419_ESC-HIL-012_diesel_nominal_isla_seed42\\reporte_s40_validacion.md"
+  },
+  "end_time": "2026-11-14T20:44:24.019754",
+  "elapsed_seconds": 2.954,
+  "hashes": {
+    "telemetry_rack_csv": "8733cbb8d431dcc60c23eb0e7676fbd05df73a62adadd773748c9fc83e5c3531",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "8e31919daf9de250d698e7ba50098a721defd99ef476cc5bd4ed5de3523772e2"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "id": "ESC-HIL-006",
+  "familia": "hil_corto",
+  "duracion_s": 300,
+  "dt_s": 0.5,
+  "inicio_absoluto": "2026-11-12T06:30:00.000-05:00",
+  "zona_horaria": "America/Bogota (UTC-05:00)",
+  "esquema_datos": "consolidado_rev5",
+  "semilla": 42,
+  "archivos": {
+    "meteorologico": "datos_meteorologicos.csv",
+    "demanda": "datos_demanda.csv",
+    "topologia": "topologia_red_8nodos.csv"
+  },
+  "recursos_no_instanciados": [
+    "eolica",
+    "hidrica"
+  ],
+  "capa1": "plantilla_configuracion_cosimulacion.json",
+  "contrato_contingencias": {
+    "version": "v1",
+    "archivo": "contingencias_telematicas.csv",
+    "filas": 0,
+    "sha256": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "ventanas": []
+  },
+  "parametros_banco": {
+    "s_base_kVA": 10.0,
+    "tension_base_V": 400.0,
+    "paso_macro_reloj_s": 0.5,
+    "tipo_malla": "RADIAL",
+    "solucionador": "FBS",
+    "plantilla_base": "plantilla_base.json",
+    "slack_online": "RIGIDO",
+    "H_sys_s": 6.0,
+    "D_sys_pu": 12.0,
+    "topologia": "topologia_red_8nodos.csv",
+    "nodos_demanda": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "capacidades_der": {
+      "1": {
+        "p_max_W": 10000.0,
+        "q_max_var": 6000.0
+      },
+      "2": {
+        "p_max_W": 5000.0,
+        "q_max_var": 3000.0
+      },
+      "3": {
+        "p_max_W": 3000.0,
+        "q_max_var": 2000.0
+      }
+    }
+  },
+  "trazabilidad": {
+    "generado_utc": "2026-11-08T16:35:27+00:00",
+    "tesis_commit": "a007e3dfd156e0c91ca6438c218b3e9a22576987",
+    "tesis_rama": "dev",
+    "tesis_entradas_sin_commitear": 2
+  },
+  "regimen_excedente": {
+    "tipo": "excedente",
+    "ventana_s": [
+      120.0,
+      240.0
+    ],
+    "poa_min_W_m2": 700.0,
+    "poa_ventana_W_m2": 1004.755,
+    "p_min_diesel_W": 8600.0,
+    "p_solar_ventana_kW": 4.2345,
+    "p_charge_max_W": 3000.0,
+    "soc_inicial": 0.5,
+    "holgura_min_kW": 2.882,
+    "holgura_max_kW": 3.469,
+    "referencia": "ESC-HIL-007_excedente_referencia",
+    "demanda_ventana_kW": {
+      "min": 9.3654,
+      "max": 9.9522,
+      "media": 9.6192,
+      "muestras": 241
+    }
+  }
+}

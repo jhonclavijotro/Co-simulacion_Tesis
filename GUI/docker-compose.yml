@@ -15,7 +15,7 @@ services:
       - NODE_ID=1
       - SOURCE_TYPE=DIESEL
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -38,7 +38,7 @@ services:
       - PACKET_LOSS_RATE=0.0
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -57,7 +57,7 @@ services:
       - NODE_ID=2
       - SOURCE_TYPE=SOLAR
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -80,7 +80,7 @@ services:
       - PACKET_LOSS_RATE=0.0
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -99,7 +99,7 @@ services:
       - NODE_ID=3
       - SOURCE_TYPE=EOLICA
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -122,7 +122,7 @@ services:
       - PACKET_LOSS_RATE=0.0
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -141,7 +141,7 @@ services:
       - NODE_ID=4
       - SOURCE_TYPE=HIDRICA
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:
@@ -164,7 +164,7 @@ services:
       - PACKET_LOSS_RATE=0.0
       - TIMEOUT_STEPS=4
       - HOLD_MODE=ZOH
-      - ZFOH_LAMBDA=0.7
+      - FROH_LAMBDA=0.7
       - MASTER_CLOCK_HOST=192.168.1.100
     deploy:
       resources:

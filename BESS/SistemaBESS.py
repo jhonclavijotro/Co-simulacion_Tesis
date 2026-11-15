@@ -110,6 +110,25 @@ class SistemaBESS:
             return p_base * ((soc - soc_min) / (soc_max - soc_min))
 
     @property
+    def P_discharge_max(self) -> float:
+        """Potencia activa máxima de descarga (>0) acotada por límite inferior de SoC (0.20)."""
+        return self.P_disponible
+
+    @property
+    def P_charge_max(self) -> float:
+        """Potencia activa máxima de absorción/carga (>0 como cota) acotada por límite superior de SoC (0.95)."""
+        soc = self.contexto.get("SoC", self.bateria.SoC)
+        soc_max = 0.95
+        soc_nominal = 0.85
+        p_base = float(self.Vdcref * self._I_inv_max)
+        if soc >= soc_max:
+            return 0.0
+        elif soc <= soc_nominal:
+            return p_base
+        else:
+            return p_base * ((soc_max - soc) / (soc_max - soc_nominal))
+
+    @property
     def I_inv_max(self):
         return self._I_inv_max
 
@@ -267,16 +286,19 @@ class SistemaBESS:
 
         P_target = P_ref + delta_P + P_droop
 
-        # Limitar por potencia disponible según SoC
-        p_disp = self.P_disponible
-        P_target = max(-p_disp, min(p_disp, P_target))
+        # Limitar por potencia bidireccional disponible según SoC (descarga > 0, carga < 0)
+        p_disch = self.P_discharge_max
+        p_chg = self.P_charge_max
+        P_target = max(-p_chg, min(p_disch, P_target))
 
         self.contexto["P_target"] = P_target
         self.contexto["P_droop"] = P_droop
         self.contexto["delta_P"] = delta_P
         self.contexto["delta_omega"] = delta_omega
-        self.contexto["P_disponible"] = p_disp
-        self.contexto["P_max"] = p_disp
+        self.contexto["P_disponible"] = p_disch
+        self.contexto["P_max"] = p_disch
+        self.contexto["P_discharge_max"] = p_disch
+        self.contexto["P_charge_max"] = p_chg
 
         paso = (self._paso_interno_detallado if self.modo == "detallado"
                 else self._paso_interno_promedio)

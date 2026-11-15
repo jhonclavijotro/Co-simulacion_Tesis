@@ -42,6 +42,20 @@ class APIAndStaticHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json_response(state)
             return
 
+        elif parsed.path == "/api/cables":
+            from GUI.rpi_dashboard_service import load_cables_catalog
+            self._send_json_response({"cables": load_cables_catalog()})
+            return
+
+        elif parsed.path == "/api/topology":
+            top_state = {
+                "v_base": 400.0,
+                "s_base": 15000.0,
+                "preset": "BT_MALLADA_11"
+            }
+            self._send_json_response(top_state)
+            return
+
         elif parsed.path == "/api/export":
             # Generar exportación CSV en carpeta output_data
             export_path = os.path.abspath(os.path.join(DIRECTORY, "..", "output_data", "telemetry_session_export.csv"))

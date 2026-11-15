@@ -1,0 +1,121 @@
+id: ESC-HIL-011a
+slug: soc_alto
+familia: hil_corto
+descripcion: 'Satelite de 180 s con SoC inicial 0.93: activa el derating de carga
+  del BESS (600 W) y verifica que el recorte sostiene el exceso sin oscilar.'
+trazabilidad:
+  deriva_de: ESC-HIL-010_validacion_integrada_v2
+  esquema_datos: consolidado_rev5
+  cambios_respecto_al_origen: 180 s, SoC inicial 0.93, regimen sostenido para activar
+    el derating del BESS (D-30).
+  equivalencia: no comparable con ESC-HIL-008; mide activacion del derating, no el
+    alcance de los topes.
+  fecha: '2026-11-14'
+regimen_excedente:
+  version: 2
+  p_min_diesel_W: 3500.0
+  p_charge_max_W: 3000.0
+  soc_inicial: 0.93
+  ventanas:
+  - ventana_s:
+    - 40.0
+    - 170.0
+    tipo: excedente
+    causa: regimen sostenido tras el evento de t=30 s
+    perturbacion: recurso
+    poa_min_W_m2: 300.0
+    poa_ventana_W_m2: 834.26
+    p_solar_ventana_kW: 3.27
+    holgura_min_kW: 3.1822
+    holgura_max_kW: 3.3889
+ventanas_validacion:
+- ventana_s:
+  - 0
+  - 30
+  evento: regimen previo con SoC 0.93
+  evidencia: derating de carga activo (600 W)
+- ventana_s:
+  - 30
+  - 90
+  evento: escalon de carga -30 por ciento
+  evidencia: absorcion acotada por SoC
+- ventana_s:
+  - 90
+  - 180
+  evento: cola de observacion
+  evidencia: sostenimiento sin oscilacion
+contrato:
+  max_cambio_rel: 0.3
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 180
+  dt_s: 0.5
+  inicio_absoluto: '2026-11-12T10:00:00-05:00'
+  mapeo_perfil: ventana
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    nodo: 2
+    perfil: dia_claro.csv
+    POA_base_W_m2: 1000.0
+    T_amb_C: 20.0
+    eventos: []
+  eolica:
+    activa: false
+    vel_base_m_s: 0.0
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 1.7647
+      Q_base_kvar: 0.7059
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 2.6471
+      Q_base_kvar: 1.0588
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 2.9412
+      Q_base_kvar: 1.1765
+    '7':
+      perfil: residencial.csv
+      P_base_kW: 1.4706
+      Q_base_kvar: 0.5882
+    '8':
+      perfil: residencial.csv
+      P_base_kW: 1.1765
+      Q_base_kvar: 0.4706
+  eventos:
+  - t_s: 30
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: -0.26471
+    delta_Q_kvar: 0.0
+  - t_s: 30
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: -0.39706
+    delta_Q_kvar: 0.0
+  - t_s: 30
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: -0.44118
+    delta_Q_kvar: 0.0
+  - t_s: 30
+    tipo: escalon
+    nodo: '7'
+    delta_P_kW: -0.22059
+    delta_Q_kvar: 0.0
+  - t_s: 30
+    tipo: escalon
+    nodo: '8'
+    delta_P_kW: -0.17647
+    delta_Q_kvar: 0.0
+  ruido:
+    amplitud_rel: 0.02
+contingencias: contingencias_telematicas.csv

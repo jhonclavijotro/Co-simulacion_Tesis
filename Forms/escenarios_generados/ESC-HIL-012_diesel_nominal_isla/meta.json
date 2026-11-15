@@ -1,0 +1,120 @@
+{
+  "id": "ESC-HIL-012",
+  "familia": "hil_corto",
+  "duracion_s": 120,
+  "dt_s": 0.5,
+  "inicio_absoluto": "2026-11-12T10:00:00.000-05:00",
+  "zona_horaria": "America/Bogota (UTC-05:00)",
+  "esquema_datos": "consolidado_rev5",
+  "semilla": 42,
+  "archivos": {
+    "meteorologico": "datos_meteorologicos.csv",
+    "demanda": "datos_demanda.csv",
+    "topologia": "topologia_red_8nodos.csv"
+  },
+  "recursos_no_instanciados": [
+    "eolica",
+    "hidrica"
+  ],
+  "capa1": "plantilla_configuracion_cosimulacion.json",
+  "contrato_contingencias": {
+    "version": "v1",
+    "archivo": "contingencias_telematicas.csv",
+    "filas": 0,
+    "sha256": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "ventanas": []
+  },
+  "parametros_banco": {
+    "s_base_kVA": 10.0,
+    "tension_base_V": 400.0,
+    "paso_macro_reloj_s": 0.5,
+    "tipo_malla": "RADIAL",
+    "solucionador": "FBS",
+    "plantilla_base": "plantilla_base.json",
+    "slack_online": "RIGIDO",
+    "H_sys_s": 6.0,
+    "D_sys_pu": 12.0,
+    "topologia": "topologia_red_8nodos.csv",
+    "nodos_demanda": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "capacidades_der": {
+      "1": {
+        "p_max_W": 10000.0,
+        "q_max_var": 6000.0
+      },
+      "2": {
+        "p_max_W": 5000.0,
+        "q_max_var": 3000.0
+      },
+      "3": {
+        "p_max_W": 3000.0,
+        "q_max_var": 2000.0
+      }
+    }
+  },
+  "trazabilidad": {
+    "generado_utc": "2026-11-15T00:59:27+00:00",
+    "tesis_commit": "bd5a0786834508c637a3c6fc2426742cbfbba58d",
+    "tesis_rama": "dev",
+    "tesis_entradas_sin_commitear": 1
+  },
+  "regimen_excedente": {
+    "version": 2,
+    "p_min_diesel_W": 3500.0,
+    "p_charge_max_W": 0.0,
+    "soc_inicial": 0.2,
+    "ventanas": [
+      {
+        "tipo": "referencia",
+        "ventana_s": [
+          40.0,
+          120.0
+        ],
+        "poa_min_W_m2": 0.0,
+        "poa_ventana_W_m2": 0.0,
+        "p_solar_ventana_kW": 0.0,
+        "holgura_min_kW": -3.8697,
+        "holgura_max_kW": -3.4991,
+        "causa": "regimen posterior a la unica perturbacion de t=40 s",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 6.9991,
+          "max": 7.3697,
+          "media": 7.1837,
+          "muestras": 161
+        }
+      }
+    ]
+  },
+  "ventanas_validacion": [
+    {
+      "ventana_s": [
+        0,
+        40
+      ],
+      "evento": "nominal 6,0 kW",
+      "evidencia": "linea base"
+    },
+    {
+      "ventana_s": [
+        40,
+        100
+      ],
+      "evento": "escalon de carga +20 %",
+      "evidencia": "regulacion isocrona"
+    },
+    {
+      "ventana_s": [
+        100,
+        120
+      ],
+      "evento": "cola",
+      "evidencia": "asentamiento"
+    }
+  ]
+}

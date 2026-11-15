@@ -1,0 +1,397 @@
+{
+  "id": "ESC-HIL-010",
+  "familia": "hil_corto",
+  "duracion_s": 660,
+  "dt_s": 0.5,
+  "inicio_absoluto": "2026-11-12T10:00:00.000-05:00",
+  "zona_horaria": "America/Bogota (UTC-05:00)",
+  "esquema_datos": "consolidado_rev5",
+  "semilla": 42,
+  "archivos": {
+    "meteorologico": "datos_meteorologicos.csv",
+    "demanda": "datos_demanda.csv",
+    "topologia": "topologia_red_8nodos.csv"
+  },
+  "recursos_no_instanciados": [
+    "eolica",
+    "hidrica"
+  ],
+  "capa1": "plantilla_configuracion_cosimulacion.json",
+  "contrato_contingencias": {
+    "version": "v1",
+    "archivo": "contingencias_telematicas.csv",
+    "filas": 4,
+    "sha256": "c430fb3c0e2bd481c4b43f2e9057309150627d484ea25fbdea294dfcd1d6decb",
+    "ventanas": [
+      {
+        "id": "P_23",
+        "tipo": "perdida",
+        "alcance": "enlace",
+        "origen": "2",
+        "destino": "3",
+        "inicio_s": 430.0,
+        "fin_s": 480.0,
+        "unidad": "fraccion",
+        "param_min": 0.2,
+        "param_max": 0.2
+      },
+      {
+        "id": "P_32",
+        "tipo": "perdida",
+        "alcance": "enlace",
+        "origen": "3",
+        "destino": "2",
+        "inicio_s": 430.0,
+        "fin_s": 480.0,
+        "unidad": "fraccion",
+        "param_min": 0.2,
+        "param_max": 0.2
+      },
+      {
+        "id": "D_12",
+        "tipo": "desconexion",
+        "alcance": "enlace",
+        "origen": "1",
+        "destino": "2",
+        "inicio_s": 510.0,
+        "fin_s": 540.0,
+        "unidad": "",
+        "param_min": null,
+        "param_max": null
+      },
+      {
+        "id": "D_21",
+        "tipo": "desconexion",
+        "alcance": "enlace",
+        "origen": "2",
+        "destino": "1",
+        "inicio_s": 510.0,
+        "fin_s": 540.0,
+        "unidad": "",
+        "param_min": null,
+        "param_max": null
+      }
+    ]
+  },
+  "parametros_banco": {
+    "s_base_kVA": 10.0,
+    "tension_base_V": 400.0,
+    "paso_macro_reloj_s": 0.5,
+    "tipo_malla": "RADIAL",
+    "solucionador": "FBS",
+    "plantilla_base": "plantilla_base.json",
+    "slack_online": "RIGIDO",
+    "H_sys_s": 6.0,
+    "D_sys_pu": 12.0,
+    "topologia": "topologia_red_8nodos.csv",
+    "nodos_demanda": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "capacidades_der": {
+      "1": {
+        "p_max_W": 10000.0,
+        "q_max_var": 6000.0
+      },
+      "2": {
+        "p_max_W": 5000.0,
+        "q_max_var": 3000.0
+      },
+      "3": {
+        "p_max_W": 3000.0,
+        "q_max_var": 2000.0
+      }
+    }
+  },
+  "trazabilidad": {
+    "generado_utc": "2026-11-14T15:55:05+00:00",
+    "tesis_commit": "3ecb3998b17d0387d811f0256155c0f3bdf55fa4",
+    "tesis_rama": "dev",
+    "tesis_entradas_sin_commitear": 13
+  },
+  "regimen_excedente": {
+    "version": 2,
+    "p_min_diesel_W": 3500.0,
+    "p_charge_max_W": 3000.0,
+    "soc_inicial": 0.5,
+    "ventanas": [
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          40.0,
+          70.0
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 834.26,
+        "p_solar_ventana_kW": 3.27,
+        "holgura_min_kW": 0.3374,
+        "holgura_max_kW": 1.7785,
+        "causa": "rampa positiva de carga",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 4.9915,
+          "max": 6.4326,
+          "media": 5.7308,
+          "muestras": 61
+        }
+      },
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          130.0,
+          159.5
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 836.34,
+        "p_solar_ventana_kW": 3.2782,
+        "holgura_min_kW": 2.9819,
+        "holgura_max_kW": 3.1771,
+        "causa": "carga reducida sostenida",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 3.6011,
+          "max": 3.7963,
+          "media": 3.6977,
+          "muestras": 60
+        }
+      },
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          240.0,
+          270.0
+        ],
+        "poa_min_W_m2": 500.0,
+        "poa_ventana_W_m2": 563.73,
+        "p_solar_ventana_kW": 2.2097,
+        "holgura_min_kW": 0.4317,
+        "holgura_max_kW": 0.6852,
+        "causa": "POA sostenida en 560 W/m2",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 5.0245,
+          "max": 5.278,
+          "media": 5.1438,
+          "muestras": 61
+        }
+      },
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          400.0,
+          430.0
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 856.84,
+        "p_solar_ventana_kW": 3.3586,
+        "holgura_min_kW": 1.6358,
+        "holgura_max_kW": 1.8675,
+        "causa": "nominal con PV a MPP",
+        "perturbacion": "recurso",
+        "demanda_ventana_kW": {
+          "min": 4.9911,
+          "max": 5.2228,
+          "media": 5.1158,
+          "muestras": 61
+        }
+      },
+      {
+        "tipo": "excedente",
+        "ventana_s": [
+          430.0,
+          480.0
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 858.51,
+        "p_solar_ventana_kW": 3.3651,
+        "holgura_min_kW": 1.672,
+        "holgura_max_kW": 1.8991,
+        "causa": "excitacion reactiva bajo perdida 2-3",
+        "perturbacion": "mixta",
+        "eventos_demanda": [
+          440.0,
+          440.0,
+          440.0,
+          440.0,
+          440.0,
+          455.0,
+          455.0,
+          455.0,
+          455.0,
+          455.0
+        ],
+        "demanda_ventana_kW": {
+          "min": 4.966,
+          "max": 5.1931,
+          "media": 5.0912,
+          "muestras": 101
+        }
+      }
+    ]
+  },
+  "ventanas_validacion": [
+    {
+      "ventana_s": [
+        0,
+        40
+      ],
+      "evento": "acoplamiento y convergencia inicial",
+      "evidencia": "consenso inicial"
+    },
+    {
+      "ventana_s": [
+        40,
+        70
+      ],
+      "evento": "rampa positiva de carga +30 por ciento",
+      "evidencia": "seguimiento lento"
+    },
+    {
+      "ventana_s": [
+        70,
+        100
+      ],
+      "evento": "carga sostenida al +30 por ciento",
+      "evidencia": "holgura minima"
+    },
+    {
+      "ventana_s": [
+        100,
+        130
+      ],
+      "evento": "escalon negativo de carga",
+      "evidencia": "excedente por caida de carga"
+    },
+    {
+      "ventana_s": [
+        130,
+        160
+      ],
+      "evento": "carga reducida sostenida",
+      "evidencia": "excedente y absorcion"
+    },
+    {
+      "ventana_s": [
+        160,
+        180
+      ],
+      "evento": "retorno a carga nominal",
+      "evidencia": "seguimiento"
+    },
+    {
+      "ventana_s": [
+        180,
+        210
+      ],
+      "evento": "nominal con PV a MPP",
+      "evidencia": "linea base"
+    },
+    {
+      "ventana_s": [
+        210,
+        240
+      ],
+      "evento": "sombreado suave 833 a 560 W/m2",
+      "evidencia": "deficit moderado"
+    },
+    {
+      "ventana_s": [
+        240,
+        270
+      ],
+      "evento": "POA sostenida en 560 W/m2",
+      "evidencia": "excedente con holgura positiva"
+    },
+    {
+      "ventana_s": [
+        270,
+        290
+      ],
+      "evento": "recuperacion suave 560 a 833 W/m2",
+      "evidencia": "seguimiento"
+    },
+    {
+      "ventana_s": [
+        290,
+        320
+      ],
+      "evento": "nominal con PV a MPP",
+      "evidencia": "linea base"
+    },
+    {
+      "ventana_s": [
+        320,
+        370
+      ],
+      "evento": "sombreado abrupto 833 a 347 W/m2",
+      "evidencia": "deficit severo y nadir de f"
+    },
+    {
+      "ventana_s": [
+        370,
+        400
+      ],
+      "evento": "recuperacion abrupta 347 a 833 W/m2",
+      "evidencia": "respuesta del diesel"
+    },
+    {
+      "ventana_s": [
+        400,
+        430
+      ],
+      "evento": "nominal con PV a MPP",
+      "evidencia": "linea base"
+    },
+    {
+      "ventana_s": [
+        430,
+        480
+      ],
+      "evento": "perdida 20 por ciento 2-3 y excitacion reactiva +1.16/-1.16 kvar",
+      "evidencia": "reparto de Q y reconvergencia bajo falla"
+    },
+    {
+      "ventana_s": [
+        480,
+        510
+      ],
+      "evento": "cola tras la perdida",
+      "evidencia": "restablecimiento"
+    },
+    {
+      "ventana_s": [
+        510,
+        540
+      ],
+      "evento": "desconexion total 1-2",
+      "evidencia": "excursion bajo corte"
+    },
+    {
+      "ventana_s": [
+        540,
+        570
+      ],
+      "evento": "reconexion 1-2",
+      "evidencia": "reconvergencia tras reconexion"
+    },
+    {
+      "ventana_s": [
+        570,
+        600
+      ],
+      "evento": "escalon de carga +25 por ciento",
+      "evidencia": "respuesta del diesel"
+    },
+    {
+      "ventana_s": [
+        600,
+        660
+      ],
+      "evento": "cola limpia",
+      "evidencia": "restablecimiento"
+    }
+  ]
+}

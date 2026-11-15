@@ -1,0 +1,5 @@
+id,tipo,alcance,origen,destino,inicio_s,fin_s,param_min,param_max,unidad,modelo,reintento_s,semilla,justificacion
+P_23,perdida,enlace,2,3,360,410,0.2,0.2,fraccion,bernoulli,5,15bd0646,Perdida del 20 por ciento en el enlace 2-3 (D-27).
+P_32,perdida,enlace,3,2,360,410,0.2,0.2,fraccion,bernoulli,5,d3676338,Perdida del 20 por ciento en el enlace 3-2 (D-27).
+D_12,desconexion,enlace,1,2,410,440,,,,,5,79cf4192,Corte total del enlace 1-2 durante 30 s (D-27).
+D_21,desconexion,enlace,2,1,410,440,,,,,5,bb3b63c1,Corte total del enlace 2-1 durante 30 s (D-27).

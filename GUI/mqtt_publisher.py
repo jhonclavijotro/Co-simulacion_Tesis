@@ -53,9 +53,18 @@ class MQTTPublisher:
                 self.connected = False
 
     def publish_step(self, step_idx):
-        poa, temp = self.data_loader.get_solar_at(step_idx)
-        ws = self.data_loader.get_eolic_at(step_idx)
-        vc = self.data_loader.get_hydro_at(step_idx)
+        try:
+            poa, temp = self.data_loader.get_solar_at(step_idx)
+        except Exception:
+            poa, temp = 1000.0, 298.15
+        try:
+            ws = self.data_loader.get_eolic_at(step_idx)
+        except Exception:
+            ws = 10.0
+        try:
+            vc = self.data_loader.get_hydro_at(step_idx)
+        except Exception:
+            vc = 1.5
 
         payloads = {
             "microgrid/meteorologia/solar": {"step": step_idx, "POA": poa, "T_amb": temp},

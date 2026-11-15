@@ -1,0 +1,259 @@
+id: ESC-HIL-008
+slug: validacion_integrada
+familia: hil_corto
+descripcion: Escenario unico de validacion de 480 s (961 muestras a 2 Hz) que reune
+  en una sola corrida las situaciones del capitulo 8 -consenso inicial, seguimiento
+  de carga, dos episodios de excedente (absorcion en BESS y recorte solar), dos de
+  deficit (moderado y severo), perdida de paquetes del 20% y desconexion total de
+  un enlace durante 30 s-. Base citable de D-28.
+trazabilidad:
+  deriva_de: ESC-HIL-003_consolidado_rev5
+  esquema_datos: consolidado_rev5
+  cambios_respecto_al_origen: ventana 10:00, duracion 480 s (D-28), programa de carga
+    con rampa, escalon negativo, rampa de subida en el sombreado y rampa de bajada
+    en la recuperacion; sombreado solar en rampa y escalon; perfil de contingencias
+    con perdida y desconexion; bloque regimen_excedente v2 con dos ventanas.
+  equivalencia: no aplica; es el escenario unico que sustituye como base citable a
+    ESC-HIL-001, 003, 005, 006, 007 y a la campana 20261108T170925.
+  fecha: '2026-11-12'
+regimen_excedente:
+  version: 2
+  p_min_diesel_W: 8600.0
+  p_charge_max_W: 3000.0
+  soc_inicial: 0.5
+  ventanas:
+  - ventana_s:
+    - 150.5
+    - 199.5
+    tipo: excedente
+    causa: caida de carga (escalon negativo en t = 150 s, fuera de la ventana)
+    perturbacion: recurso
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 836.82
+    p_solar_ventana_kW: 3.2795
+    holgura_min_kW: 4.6854
+    holgura_max_kW: 5.0412
+  - ventana_s:
+    - 315.5
+    - 359.5
+    tipo: excedente
+    causa: recuperacion de irradiancia tras el sombreado
+    perturbacion: recurso
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 765.53
+    p_solar_ventana_kW: 2.8699
+    holgura_min_kW: 1.1517
+    holgura_max_kW: 3.3216
+ventanas_validacion:
+- ventana_s:
+  - 0
+  - 40
+  evento: acoplamiento y convergencia inicial
+  evidencia: consenso inicial
+- ventana_s:
+  - 40
+  - 100
+  evento: regimen isocrono sin eventos
+  evidencia: linea base de f y V
+- ventana_s:
+  - 100
+  - 150
+  evento: rampa positiva de carga
+  evidencia: seguimiento lento
+- ventana_s:
+  - 150
+  - 200
+  evento: escalon negativo de carga
+  evidencia: excedente por caida de carga
+- ventana_s:
+  - 200
+  - 250
+  evento: sombreado 800 a 550 W/m2
+  evidencia: deficit moderado
+- ventana_s:
+  - 250
+  - 300
+  evento: sombreado abrupto
+  evidencia: deficit severo y nadir de f
+- ventana_s:
+  - 300
+  - 360
+  evento: recuperacion solar y rampa negativa de carga
+  evidencia: excedente con recorte
+- ventana_s:
+  - 360
+  - 410
+  evento: perdida del 20 por ciento en 2-3
+  evidencia: consenso bajo perdida
+- ventana_s:
+  - 410
+  - 440
+  evento: desconexion total 1-2
+  evidencia: reconvergencia
+- ventana_s:
+  - 440
+  - 480
+  evento: cola limpia
+  evidencia: restablecimiento
+contrato:
+  max_cambio_rel: 0.3
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 480
+  dt_s: 0.5
+  inicio_absoluto: '2026-11-12T10:00:00-05:00'
+  mapeo_perfil: ventana
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    nodo: 2
+    perfil: dia_claro.csv
+    POA_base_W_m2: 1000.0
+    T_amb_C: 20.0
+    eventos:
+    - t_s: 200
+      tipo: rampa
+      factor: 0.7
+      duracion_s: 5
+    - t_s: 250
+      tipo: escalon
+      delta_W_m2: -240.0
+    - t_s: 300
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+    - t_s: 305
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+    - t_s: 310
+      tipo: rampa
+      factor: 1.3
+      duracion_s: 5
+  eolica:
+    activa: false
+    vel_base_m_s: 0.0
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 3.0
+      Q_base_kvar: 1.2
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 4.5
+      Q_base_kvar: 1.8
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 5.0
+      Q_base_kvar: 2.0
+    '7':
+      perfil: residencial.csv
+      P_base_kW: 2.5
+      Q_base_kvar: 1.0
+    '8':
+      perfil: residencial.csv
+      P_base_kW: 2.0
+      Q_base_kvar: 0.8
+  eventos:
+  - t_s: 100
+    tipo: rampa
+    nodo: '4'
+    delta_P_kW: 0.2
+    delta_Q_kvar: 0.08
+    duracion_s: 20
+  - t_s: 100
+    tipo: rampa
+    nodo: '5'
+    delta_P_kW: 0.2
+    delta_Q_kvar: 0.08
+    duracion_s: 20
+  - t_s: 100
+    tipo: rampa
+    nodo: '6'
+    delta_P_kW: 0.2
+    delta_Q_kvar: 0.08
+    duracion_s: 20
+  - t_s: 150
+    tipo: escalon
+    nodo: '4'
+    delta_P_kW: -0.6
+    delta_Q_kvar: -0.24
+  - t_s: 150
+    tipo: escalon
+    nodo: '5'
+    delta_P_kW: -0.9
+    delta_Q_kvar: -0.36
+  - t_s: 150
+    tipo: escalon
+    nodo: '6'
+    delta_P_kW: -0.5
+    delta_Q_kvar: -0.2
+  - t_s: 200
+    tipo: rampa
+    nodo: '4'
+    delta_P_kW: 0.85
+    delta_Q_kvar: 0.34
+    duracion_s: 50
+  - t_s: 200
+    tipo: rampa
+    nodo: '5'
+    delta_P_kW: 1.3
+    delta_Q_kvar: 0.52
+    duracion_s: 50
+  - t_s: 200
+    tipo: rampa
+    nodo: '6'
+    delta_P_kW: 1.45
+    delta_Q_kvar: 0.58
+    duracion_s: 50
+  - t_s: 200
+    tipo: rampa
+    nodo: '7'
+    delta_P_kW: 0.3
+    delta_Q_kvar: 0.12
+    duracion_s: 50
+  - t_s: 250
+    tipo: rampa
+    nodo: '4'
+    delta_P_kW: 0.17
+    delta_Q_kvar: 0.07
+    duracion_s: 50
+  - t_s: 250
+    tipo: rampa
+    nodo: '5'
+    delta_P_kW: 0.17
+    delta_Q_kvar: 0.07
+    duracion_s: 50
+  - t_s: 250
+    tipo: rampa
+    nodo: '6'
+    delta_P_kW: 0.17
+    delta_Q_kvar: 0.07
+    duracion_s: 50
+  - t_s: 300
+    tipo: rampa
+    nodo: '4'
+    delta_P_kW: -0.9
+    delta_Q_kvar: -0.36
+    duracion_s: 40
+  - t_s: 300
+    tipo: rampa
+    nodo: '5'
+    delta_P_kW: -1.1
+    delta_Q_kvar: -0.44
+    duracion_s: 40
+  - t_s: 300
+    tipo: rampa
+    nodo: '6'
+    delta_P_kW: -1.0
+    delta_Q_kvar: -0.4
+    duracion_s: 40
+  ruido:
+    amplitud_rel: 0.02
+contingencias: contingencias_telematicas.csv

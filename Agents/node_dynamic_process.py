@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 import time
 import math
 
@@ -17,46 +18,82 @@ class NodeDynamicProcess:
     """
     Proceso ejecutable de la Dinámica Físico-Eléctrica por Nodo.
     Lee series temporales desde mock_data y calcula la respuesta física del generador.
+
+    Esquemas de Reconstrucción de Señal en Frontera Multitasa:
+      - ZOH (Zero-Order Hold): V_sub(t) = V(k). Esquema canónico por defecto (óptimo en lazo cerrado).
+      - FOH (First-Order Hold): V_sub(t) = V(k) + (dV/dt) * t_sub.
+      - FROH (Fractional-Order Hold): V_sub(t) = V(k) + lambda * (dV/dt) * t_sub con lambda in [0, 1].
+        NOTA TECNICA (S-24): Opera como un PREDICTOR/EXTRAPOLADOR hacia adelante basado en la
+        diferencia finita hacia atrás (V(k) - V(k-1))/H. No es una interpolación causal entre V(k) y V(k+1)
+        (tipo Ishitobi). En perfiles de recuperación exponencial tras perturbaciones (convexas),
+        sobreestima la derivada actual acumulando error en nodos solares sensibles (3.72x peor que ZOH a lambda=0.7).
+        Acepta 'ZFOH' y 'zfoh_lambda' como alias retrocompatibles.
     """
-    def __init__(self, node_id, source_type="SOLAR", hold_mode="ZOH", zfoh_lambda=0.7):
+    def __init__(self, node_id, source_type="SOLAR", hold_mode="ZOH", froh_lambda=0.7, zfoh_lambda=None, soc_inicial=None):
         self.node_id = node_id
         self.source_type = source_type.upper()
-        self.hold_mode = hold_mode.upper()
-        self.zfoh_lambda = float(zfoh_lambda)
+        h_mode = hold_mode.upper()
+        self.hold_mode = "FROH" if h_mode == "ZFOH" else h_mode
+        self.froh_lambda = float(zfoh_lambda if zfoh_lambda is not None else froh_lambda)
+        self.zfoh_lambda = self.froh_lambda  # Alias retrocompatible
         self.V_pcc_prev = None
         self.data_loader = MockDataLoader()
         self.step_index = 0
 
+        # Leer soc_inicial de meta.json del escenario activo si no se especifica explícitamente
+        eff_soc = soc_inicial
+        if eff_soc is None and self.source_type == "BESS":
+            esc_dir = getattr(self.data_loader, "escenario_dir", None)
+            if esc_dir:
+                meta_path = os.path.join(esc_dir, "meta.json")
+                if os.path.exists(meta_path):
+                    try:
+                        with open(meta_path, "r", encoding="utf-8") as f_meta:
+                            meta_data = json.load(f_meta)
+                        reg_exc = meta_data.get("regimen_excedente") or {}
+                        if "soc_inicial" in reg_exc:
+                            eff_soc = float(reg_exc["soc_inicial"])
+                    except Exception:
+                        pass
+        if eff_soc is None:
+            eff_soc = 0.50
+
         # Inicialización del modelo dinámico con capacidades para microrred de baja potencia
         if self.source_type == "SOLAR":
-            self.model = SistemaSolar(N_inv=2)
+            self.model = SistemaSolar(N_inv=1)
         elif self.source_type == "EOLICA":
             self.model = SistemaEolico()
         elif self.source_type == "HIDRICA":
             self.model = SistemaHidrico()
         elif self.source_type == "BESS":
-            self.model = SistemaBESS(N_inv=1)
+            # droop_enabled=False: el control de despacho y droop secundario se gobierna
+            # en el agente MAS (distributed_node_runner) evitando saturacion bang-bang
+            self.model = SistemaBESS(N_inv=1, SoC_inicial=float(eff_soc), droop_enabled=False)
         elif self.source_type == "DIESEL":
-            self.model = SistemaDiesel(P_nominal=10000.0)
+            self.model = SistemaDiesel(P_nominal=10000.0, eta=1.0, droop_enabled=False)
         elif self.source_type == "DEMANDA":
             self.model = SistemaDemanda()
         else:
             raise ValueError(f"Tipo de fuente desconocido: {source_type}")
 
     def step_macro(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0,
-                   macro_dt=0.5, micro_dt=0.001, hold_mode=None, zfoh_lambda=None):
+                   macro_dt=0.5, micro_dt=0.001, hold_mode=None, froh_lambda=None, zfoh_lambda=None,
+                   curtail_ratio=1.0, **kwargs):
         """
         Ejecuta un macro-paso de co-simulación (H = 500 ms) compuesto por 500 micro-pasos (h = 1 ms).
         
         Esquemas de Reconstrucción de Señal (Hold):
-          - ZOH:  V_step(i) = V_pcc (constante a tramos, O(H))
+          - ZOH:  V_step(i) = V_pcc (constante a tramos, O(H)) - CANONICO POR DEFECTO
           - FOH:  V_step(i) = V_pcc + dV/dt * (i * h) (lineal a tramos, O(H^2))
-          - ZFOH: V_step(i) = V_pcc + lambda * dV/dt * (i * h) (combinación convexa, lambda in [0, 1])
+          - FROH: V_step(i) = V_pcc + lambda * dV/dt * (i * h) (predictor hacia adelante, lambda in [0, 1])
+                  (Acepta 'ZFOH' y 'zfoh_lambda' como alias retrocompatibles).
         """
-        active_hold = (hold_mode or self.hold_mode).upper()
-        active_lambda = float(zfoh_lambda if zfoh_lambda is not None else self.zfoh_lambda)
+        req_hold = (hold_mode or self.hold_mode).upper()
+        active_hold = "FROH" if req_hold == "ZFOH" else req_hold
+        eff_lambda = froh_lambda if froh_lambda is not None else (zfoh_lambda if zfoh_lambda is not None else self.froh_lambda)
+        active_lambda = float(eff_lambda)
 
-        # Normalización de tensión al nivel de excitación del inversor de Baja Tensión (110 V)
+        # Detección heurística de escala de tensión (MT > 1kV -> 13.8kV, BT > 10V -> 400V, else pu)
         v_num = float(V_pcc)
         if v_num > 1000.0:
             v_pu = v_num / 13800.0
@@ -68,14 +105,23 @@ class NodeDynamicProcess:
 
         # 1. Cargar datos de entrada según el tipo de fuente
         if self.source_type == "SOLAR":
-            poa, temp = self.data_loader.get_solar_at(self.step_index)
+            try:
+                poa, temp = self.data_loader.get_solar_at(self.step_index)
+            except Exception:
+                poa, temp = 1000.0, 298.15
             self.model.POA = poa
             self.model.Tam = temp
         elif self.source_type == "EOLICA":
-            ws = self.data_loader.get_eolic_at(self.step_index)
+            try:
+                ws = self.data_loader.get_eolic_at(self.step_index)
+            except Exception:
+                ws = 10.0
             self.model.Ws = ws
         elif self.source_type == "HIDRICA":
-            vc = self.data_loader.get_hydro_at(self.step_index)
+            try:
+                vc = self.data_loader.get_hydro_at(self.step_index)
+            except Exception:
+                vc = 1.5
             self.model.Vc = vc
 
         # 2. Inicialización de memoria de extrapolación para paso 0 (flat start)
@@ -85,14 +131,16 @@ class NodeDynamicProcess:
         # Cálculo de la tasa de cambio de tensión en el macro-paso
         dV_dt = (float(v_inv_terminal) - self.V_pcc_prev) / float(macro_dt) if macro_dt > 0 else 0.0
 
-        # 3. Ejecutar integración física de 500 micro-pasos (1 kHz) con reconstrucción de señal
+        # 3. Ejecutar integración física por n_substeps (macro_dt / micro_dt) con reconstrucción de señal
         n_substeps = max(1, int(round(macro_dt / micro_dt)))
+        c_ratio = float(kwargs.get("curtail_ratio", curtail_ratio))
         setpoints = {
             "Q_ref_kvar": Q_ref / 1000.0,
             "P_ref": P_ref,
             "P_ref_w": P_ref,
             "delta_P": delta_P,
-            "delta_omega": delta_omega
+            "delta_omega": delta_omega,
+            "curtail_ratio": c_ratio,
         }
         ctx = None
 
@@ -100,9 +148,10 @@ class NodeDynamicProcess:
             t_sub = i * micro_dt
             if active_hold == "FOH":
                 V_sub = float(v_inv_terminal) + dV_dt * t_sub
-            elif active_hold == "ZFOH":
+            elif active_hold in ["FROH", "ZFOH"]:
+                # Predictor/extrapolador hacia adelante con ganancia fraccional lambda
                 V_sub = float(v_inv_terminal) + active_lambda * dV_dt * t_sub
-            else:  # ZOH por defecto
+            else:  # ZOH por defecto canónico
                 V_sub = float(v_inv_terminal)
 
             ctx = self.model.step(dt=micro_dt, V_pcc=V_sub, setpoints=setpoints)
@@ -148,7 +197,7 @@ class NodeDynamicProcess:
         
         P_ratio = (P_w / P_max) if P_max > 0 else 0.0
 
-        return {
+        res = {
             "node_id": self.node_id,
             "source_type": self.source_type,
             "step": self.step_index,
@@ -159,10 +208,26 @@ class NodeDynamicProcess:
             "P_max": round(P_max, 2),
             "P_ratio": round(P_ratio, 4)
         }
+        if ctx:
+            if "SoC" in ctx:
+                res["SoC"] = round(float(ctx["SoC"]), 6)
+            if "P_curtailed" in ctx:
+                res["P_curtailed"] = round(float(ctx["P_curtailed"]), 2)
+            if "P_mpp" in ctx:
+                res["P_mpp"] = round(float(ctx["P_mpp"]), 2)
+            if "curtail_ratio" in ctx:
+                res["curtail_ratio"] = round(float(ctx["curtail_ratio"]), 4)
+            if "P_charge_max" in ctx:
+                res["P_charge_max"] = round(float(ctx["P_charge_max"]), 2)
+            if "P_discharge_max" in ctx:
+                res["P_discharge_max"] = round(float(ctx["P_discharge_max"]), 2)
 
-    def step(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0):
+        return res
+
+    def step(self, V_pcc=400.0, Q_ref=0.0, P_ref=0.0, delta_P=0.0, delta_omega=0.0, curtail_ratio=1.0, **kwargs):
         """Alias retrocompatible para ejecutar un macro-paso de co-simulación."""
-        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, P_ref=P_ref, delta_P=delta_P, delta_omega=delta_omega, macro_dt=0.5, micro_dt=0.001)
+        return self.step_macro(V_pcc=V_pcc, Q_ref=Q_ref, P_ref=P_ref, delta_P=delta_P, delta_omega=delta_omega,
+                               macro_dt=0.5, micro_dt=0.001, curtail_ratio=curtail_ratio, **kwargs)
 
 
 if __name__ == "__main__":

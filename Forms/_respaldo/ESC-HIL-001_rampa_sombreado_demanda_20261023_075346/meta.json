@@ -1,0 +1,16 @@
+{
+  "id": "ESC-HIL-001",
+  "familia": "hil_corto",
+  "duracion_s": 300,
+  "dt_s": 0.5,
+  "semilla": 42,
+  "archivos": {
+    "4": "datos_demanda_A.csv",
+    "5": "datos_demanda_B.csv",
+    "6": "datos_demanda_C.csv",
+    "solar": "datos_radiacion_temperatura.csv",
+    "eolica": "datos_vel_viento.csv",
+    "topologia": "topologia_red_8nodos.csv",
+    "cables": "cables.csv"
+  }
+}

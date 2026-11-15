@@ -2,7 +2,7 @@
     "nodo_id": 2,
     "tipo": "GENERACION",
     "tecnologia": "SOLAR_FOTOVOLTAICA",
-    "descripcion": "Generador Solar PV con MPPT P&O y VSI trifasico desplegado en Raspberry Pi 5",
+    "descripcion": "Generador Solar PV con MPPT P&O y VSI trifasico desplegado en Raspberry Pi 5. Placa del banco de 8 nodos: 4.9 kWp con inversor limitado a 5.0 kW.",
     "despliegue": {
         "dispositivo": "RASPBERRY_PI_5",
         "ip": "192.168.1.150",
@@ -10,11 +10,13 @@
         "contenedor_docker": "mas_node_solar"
     },
     "parametros_constructivos": {
-        "numero_paneles_total": 72,
-        "paneles_por_string": 18,
-        "numero_strings_paralelo": 4,
+        "numero_paneles_total": 14,
+        "paneles_por_string": 14,
+        "numero_strings_paralelo": 1,
         "potencia_pico_modulo_W": 350.0,
-        "potencia_nominal_total_kW": 25.2,
+        "potencia_pico_arreglo_kWp": 4.9,
+        "potencia_nominal_total_kW": 5.0,
+        "nota_potencia": "5.0 kW es el limite de inyeccion (p_max_W de Capa 1); el arreglo entrega 4.9 kWp.",
         "tension_mppt_nominal_V": 36.5,
         "corriente_mppt_nominal_A": 9.60,
         "tension_circuito_abierto_Voc": 44.2,
@@ -27,7 +29,7 @@
         "tension_salida_dc_ref_V": 750.0
     },
     "inversor_red": {
-        "potencia_aparente_nominal_kVA": 30.0,
+        "potencia_aparente_nominal_kVA": 5.0,
         "tension_ac_nominal_V": 400.0,
         "frecuencia_nominal_Hz": 60.0,
         "filtro_L_H": 0.002,

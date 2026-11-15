@@ -136,10 +136,24 @@ class ForwardBackwardSweepSolver:
         self.Q_net = sum(Q_injections.get(n, 0.0) for n in self.nodes if n != self.slack_node)
         return V, converged, iterations
 
-    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=2.0, D_sys=3.5, f_nom=60.0):
-        """Calcula la respuesta dinámica de frecuencia mediante la ecuación de oscilación (Swing Equation).
-        df/dt = (Delta P_net / (2 * H * S_base)) * f_nom - D * (f - f_nom)
-        Límites normativos según NTC 1340 para redes aisladas: 58.8 Hz a 61.2 Hz (+/- 2%).
+    def compute_frequency_dynamics(self, P_injections, f_prev=60.0, dt=0.5, H_sys=6.0, D_sys=12.0, f_nom=60.0, tau_lpf=2.0):
+        """Calcula la respuesta dinámica de frecuencia mediante modelo de primer orden estabilizado.
+
+        Modelo combinado: filtro LPF sobre P_net + integración de primer orden en frecuencia:
+          1. P_net se filtra con LPF (tau_lpf) para evitar que variaciones instantáneas inter-paso
+             sean amplificadas por la discretización a 500 ms.
+          2. La frecuencia sigue a un setpoint calculado (f_setpoint) con constante de tiempo tau_f:
+               f_setpoint = f_nom + (P_net_filt / S_base) * f_nom / D_sys
+               f_new = f_prev + (f_setpoint - f_prev) / H_sys * dt
+          3. Los límites NTC 1340 [58.8, 61.2] Hz se aplican SOLO al resultado final.
+             Al no clipar el setpoint interno, se evita el ciclo límite relay de la integración explícita.
+
+        Parámetros de sintonización:
+          H_sys = 6.0 s:   Constante de tiempo de seguimiento de frecuencia.
+          D_sys = 12.0:    Factor de escala del desbalance → desvío de frecuencia (D mayor = respuesta suave).
+          tau_lpf = 2.0 s: LPF sobre P_net (~4 pasos @ 500 ms, elimina aliasing temporal).
+
+        Límites normativos NTC 1340: 58.8 Hz a 61.2 Hz (+/- 2%).
         """
         p_net = sum(float(v) for v in P_injections.values())
         self.P_net = p_net
@@ -147,11 +161,24 @@ class ForwardBackwardSweepSolver:
         if self.operating_mode == "ONLINE":
             return f_nom, p_net
 
-        delta_P_pu = p_net / self.S_base
-        # Saturación suave de desbalance instantáneo para evitar oscilaciones no físicas
-        delta_P_pu = max(-0.15, min(0.15, delta_P_pu))
-        df_dt = (delta_P_pu / (2.0 * max(0.5, H_sys))) * f_nom - D_sys * (f_prev - f_nom)
-        f_new = max(58.8, min(61.2, f_prev + df_dt * dt))
+        # 1. Filtro low-pass de primer orden sobre P_net (estado persistente entre pasos)
+        alpha_lpf = tau_lpf / (tau_lpf + dt)
+        if not hasattr(self, '_p_net_filtered'):
+            self._p_net_filtered = p_net  # Inicialización en el primer paso
+        self._p_net_filtered = alpha_lpf * self._p_net_filtered + (1.0 - alpha_lpf) * p_net
+
+        # 2. Setpoint de frecuencia calculado a partir del desbalance filtrado
+        #    f_setpoint = f_nom + (delta_P_pu / D_sys) * f_nom  (sin clip duro)
+        delta_P_pu = self._p_net_filtered / self.S_base
+        f_setpoint = f_nom + (delta_P_pu / max(0.1, D_sys)) * f_nom
+
+        # 3. Integración de primer orden: f evoluciona hacia f_setpoint con constante H_sys
+        tau_f = max(0.5, H_sys)
+        alpha_f = dt / (tau_f + dt)
+        f_new = f_prev + alpha_f * (f_setpoint - f_prev)
+
+        # 4. Límite normativo NTC 1340: ±2% de f_nom = [58.8, 61.2] Hz
+        f_new = max(58.8, min(61.2, f_new))
         return f_new, p_net
 
 if __name__ == "__main__":

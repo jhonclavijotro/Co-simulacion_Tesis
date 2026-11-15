@@ -1,0 +1,52 @@
+id: ESC-HIL-001
+slug: rampa_sombreado_demanda
+familia: hil_corto
+descripcion: Ensayo HIL de 5 minutos con rampa de sombreado solar y variación de demanda
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 300
+  dt_s: 0.5
+  inicio_absoluto: '2026-09-12T06:30:00'
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    perfil: dia_claro.csv
+    POA_base_W_m2: 850.0
+    T_amb_C: 20.0
+    eventos:
+    - t_s: 120
+      tipo: rampa
+      factor: 0.3
+      duracion_s: 15
+  eolica:
+    activa: false
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 3.0
+      Q_base_kvar: 1.2
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 4.5
+      Q_base_kvar: 1.8
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 5.0
+      Q_base_kvar: 2.0
+  eventos:
+  - t_s: 150
+    nodo: '4'
+    delta_P_kW: 2.0
+    delta_Q_kvar: 0.8
+  - t_s: 180
+    nodo: '6'
+    delta_P_kW: 3.0
+    delta_Q_kvar: 1.2
+  ruido:
+    amplitud_rel: 0.02
