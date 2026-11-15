@@ -30,6 +30,13 @@ class NetworkImpairmentProxy:
             "loss_model": "bernoulli",
             "noise_std": 0.0
         },
+        "DYNAMIC_CONTINGENCY": {
+            "base_latency_ms": 0.0,
+            "jitter_ms": 0.0,
+            "loss_rate": 0.0,
+            "loss_model": "bernoulli",
+            "noise_std": 0.0
+        },
         "LAN_ETHERNET": {
             "base_latency_ms": 5.0,
             "jitter_ms": 2.0,

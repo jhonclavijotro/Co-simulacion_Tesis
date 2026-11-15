@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import argparse
+import json
 import zmq
 
 import csv
@@ -56,7 +57,24 @@ class MultiLoadProcess:
             target_dir = self.ensayos_dir if os.path.exists(self.ensayos_dir) else legacy_dir
 
         self.demandas = {}
-        ruta_consolidada = os.path.join(target_dir, "datos_demanda.csv")
+        nombre_consolidado = "datos_demanda.csv"
+        capa1_path = os.path.join(target_dir, "plantilla_configuracion_cosimulacion.json")
+        if os.path.exists(capa1_path):
+            try:
+                with open(capa1_path, "r", encoding="utf-8") as f_c1:
+                    capa1 = json.load(f_c1)
+                arch_dem = (capa1.get("archivos_datos") or {}).get("demanda")
+                if not arch_dem:
+                    arch_dem = ((capa1.get("asignacion_nodos") or {}).get("nodos_demanda") or {}).get("archivo_serie")
+                if arch_dem:
+                    nombre_consolidado = os.path.basename(arch_dem)
+            except Exception:
+                pass
+
+        ruta_consolidada = os.path.join(target_dir, nombre_consolidado)
+        if not os.path.exists(ruta_consolidada):
+            ruta_consolidada = os.path.join(target_dir, "datos_demanda.csv")
+
         if os.path.exists(ruta_consolidada):
             self.esquema = "consolidado"
             self.demandas = self._load_demanda_consolidada(ruta_consolidada)
@@ -196,19 +214,24 @@ class MultiLoadProcess:
                 time_s = clock_msg.get("time_sec", step_idx * 0.5)
 
                 # Evaluar demanda de cada nodo segun las series temporales
-                idx = step_idx - 1
+                idx = max(0, step_idx - 1)
                 demandas_paso = {}
                 for nodo in self.nodos_carga:
                     serie = self.demandas.get(nodo) or []
                     if serie:
-                        demandas_paso[nodo] = serie[idx % len(serie)]
+                        demandas_paso[nodo] = serie[min(idx, len(serie) - 1)]
                     else:
                         demandas_paso[nodo] = self._fallback(nodo, time_s)
+
+                p_load_total_w = sum(p for p, _ in demandas_paso.values())
+                q_load_total_var = sum(q for _, q in demandas_paso.values())
 
                 # Inyecciones para el flujo de potencia: las cargas consumen (potencia negativa)
                 payload = {
                     "source": "LOADS_RPi",
                     "step": step_idx,
+                    "P_load_total_w": round(p_load_total_w, 2),
+                    "Q_load_total_var": round(q_load_total_var, 2),
                     "injections": {
                         str(n): {"P": round(-p, 2), "Q": round(-q, 2)}
                         for n, (p, q) in demandas_paso.items()

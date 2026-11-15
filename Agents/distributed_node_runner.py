@@ -42,7 +42,8 @@ class DistributedNodeRunner:
         q_init: float = 0.0,
         p_init: float = 0.0,
         p_charge_max: float = 3000.0,
-        p_min_diesel: float = 0.0,
+        p_min_diesel: Optional[float] = None,
+        curtail_min: Optional[float] = None,
         operating_mode: str = "OFFLINE",
         network_profile: str = "IDEAL",
         contingencies_file: Optional[str] = None,
@@ -58,6 +59,21 @@ class DistributedNodeRunner:
         self.network_profile = network_profile.upper()
         self.contingencies_file = contingencies_file
         self.network_seed = int(network_seed)
+
+        escenario_dir = self._resolve_active_scenario_dir()
+        meta_data = {}
+        if escenario_dir:
+            meta_path = os.path.join(escenario_dir, "meta.json")
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, "r", encoding="utf-8") as f_meta:
+                        meta_data = json.load(f_meta)
+                except Exception:
+                    pass
+            if not scenario_file:
+                cand_scen = os.path.join(escenario_dir, "plantilla_configuracion_cosimulacion.json")
+                if os.path.exists(cand_scen):
+                    scenario_file = cand_scen
 
         # Cargar parámetros generales del escenario si se especifica archivo (S-24 S2)
         if scenario_file and os.path.exists(scenario_file):
@@ -80,6 +96,30 @@ class DistributedNodeRunner:
                         self.contingencies_file = c_path
             except Exception as e:
                 print(f"[AVISO] No se pudo leer {scenario_file}: {e}")
+
+        # Resolver ruta de contingencias contra escenario activo si viene como nombre relativo
+        if self.contingencies_file and not os.path.exists(self.contingencies_file) and escenario_dir:
+            for cand in (
+                os.path.join(escenario_dir, self.contingencies_file),
+                os.path.join(escenario_dir, os.path.basename(self.contingencies_file)),
+            ):
+                if os.path.exists(cand):
+                    self.contingencies_file = cand
+                    break
+        elif not self.contingencies_file and self.network_profile == "DYNAMIC_CONTINGENCY" and escenario_dir:
+            cand_cont = os.path.join(escenario_dir, "contingencias_telematicas.csv")
+            if os.path.exists(cand_cont):
+                self.contingencies_file = cand_cont
+
+        # Resolver piso técnico diésel y recorte solar desde meta.json si no se explicitó por CLI (S-O-25)
+        reg_exc = meta_data.get("regimen_excedente") or {}
+        if p_min_diesel is None:
+            p_min_diesel = float(reg_exc.get("p_min_diesel_W", 0.0)) if self.source_type == "DIESEL" else 0.0
+        if p_charge_max == 3000.0 and "p_charge_max_W" in reg_exc:
+            p_charge_max = float(reg_exc["p_charge_max_W"])
+        if curtail_min is None:
+            curtail_min = float(reg_exc.get("curtail_min", 0.15))
+        self.curtail_min = float(curtail_min)
 
         # Gestor de perturbaciones telemáticas D-25 / S-34
         self.impairment_proxy = NetworkImpairmentProxy(
@@ -137,8 +177,8 @@ class DistributedNodeRunner:
             epsilon=1e-3,
             max_stale_steps=4
         )
-        # Inicializar ponderaciones de adyacencia derivando el ID del vecino a partir de su puerto ZMQ (node_id = puerto - 6000)
-        adj_init = {int(tgt.split(":")[-1]) - 6000: 1.0 for tgt in self.neighbors_targets if ":" in tgt}
+        # Inicializar ponderaciones de adyacencia derivando el ID del vecino a partir de su puerto ZMQ (ej. 6001/16001 -> 1)
+        adj_init = {int(tgt.split(":")[-1]) % 100: 1.0 for tgt in self.neighbors_targets if ":" in tgt}
         self.agent.set_adjacency(adj_init)
 
         # 3. Setup de Sockets ZeroMQ
@@ -174,8 +214,31 @@ class DistributedNodeRunner:
         self.running = False
         self.Q_ref = float(self.q_init)
         self.P_ref = float(self.p_init)
+        if self.source_type == "DIESEL" and self.p_min_diesel > 0.0 and self.P_ref < self.p_min_diesel:
+            self.P_ref = self.p_min_diesel
+        self.bess_p_int = float(self.P_ref) if self.source_type == "BESS" else 0.0
         self.V_offset = 0.0       # Acumulador integrador de corrección de tensión [p.u.]
         self.omega_offset = 0.0   # Acumulador integrador de corrección de frecuencia [rad/s]
+
+    @staticmethod
+    def _resolve_active_scenario_dir() -> Optional[str]:
+        """Resuelve la carpeta del escenario activo leyendo Forms/escenarios_generados/ACTIVO.txt."""
+        generados_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "Forms", "escenarios_generados")
+        )
+        marcador = os.path.join(generados_dir, "ACTIVO.txt")
+        if not os.path.exists(marcador):
+            return None
+        try:
+            with open(marcador, "r", encoding="utf-8") as f:
+                nombre = f.read().lstrip("\ufeff").strip()
+            if nombre:
+                ruta = os.path.join(generados_dir, nombre)
+                if os.path.isdir(ruta):
+                    return ruta
+        except OSError:
+            pass
+        return None
 
     def run(self, max_steps=None):
         print("=" * 65)
@@ -206,7 +269,8 @@ class DistributedNodeRunner:
                     break
 
                 step_idx = clock_msg.get("step", step_count)
-                time_s = clock_msg.get("time_sec", step_idx * 0.5)
+                sample_idx = max(0, int(step_idx) - 1)
+                time_s = clock_msg.get("time_s", round(sample_idx * 0.5, 2))
                 voltages = clock_msg.get("voltages", {})
                 v_node_info = voltages.get(str(self.node_id), {})
                 v_pcc_volts = v_node_info.get("V_volts", self.v_base)
@@ -229,40 +293,43 @@ class DistributedNodeRunner:
                 Q_var = phys_out["Q_var"]
                 soc = phys_out.get("SoC", None)
                 p_curtailed = phys_out.get("P_curtailed", 0.0)
+                p_mpp = phys_out.get("P_mpp", P_w)
 
-                # Actualizar índice de exceso local eta_excess in [0, 1] (S-36)
-                if self.source_type == "BESS":
-                    p_chg_cap = phys_out.get("P_charge_max", self.p_charge_max)
-                    self.eta_excess = max(0.0, min(1.0, (-P_w) / p_chg_cap)) if (p_chg_cap > 0 and P_w < 0) else 0.0
-                elif self.source_type == "SOLAR":
-                    self.eta_excess = max(0.0, min(1.0, 1.0 - self.curtail_ratio))
-                else:
-                    self.eta_excess = 0.0
-
-                # 3. Consenso P2P: Publicar estado local a los vecinos
+                # 3. Consenso P2P: Publicar estado local a los vecinos (preservando self.eta_excess)
                 q_ratio = Q_var / self.q_max if self.q_max > 0 else 0.0
                 p2p_payload = {
+                    "msg_type": "STATE",
                     "sender_id": self.node_id,
                     "step": step_idx,
+                    "sample_idx": sample_idx,
                     "V": v_pcc_pu,
                     "Q_ratio": q_ratio,
                     "omega": 2.0 * math.pi * f_sys,
+                    "P_w": round(P_w, 2),
+                    "Q_var": round(Q_var, 2),
                     "P_ratio": P_w / self.p_max if self.p_max > 0 else 0.0,
                     "eta_excess": round(self.eta_excess, 4),
-                    "curtail_ratio": round(self.curtail_ratio, 4)
+                    "curtail_ratio": round(self.curtail_ratio, 4),
+                    "curtail_min": round(self.curtail_min, 4),
+                    "P_curtailed": round(p_curtailed, 2),
+                    "P_mpp": round(p_mpp, 2)
                 }
                 if soc is not None:
-                    p2p_payload["SoC"] = round(float(soc), 4)
+                    p2p_payload["SoC"] = round(float(soc), 6)
                 self.pub_p2p.send_json(p2p_payload)
 
-                # 4. Consenso P2P: Recoger estados de los vecinos
-                time.sleep(0.01)  # Breve margen de 10ms para transito de paquetes en switch
+                # 4. Consenso P2P: Recoger estados de los vecinos (espera hasta 45ms o todos los vecinos)
+                expected_neighbors = set(self.agent.adj_vector.keys())
                 raw_neighbors = {}
-                while True:
-                    socks = dict(self.poller_p2p.poll(timeout=10))
+                p2p_deadline = time.perf_counter() + 0.045
+                while time.perf_counter() < p2p_deadline:
+                    rem_ms = max(1, int((p2p_deadline - time.perf_counter()) * 1000))
+                    socks = dict(self.poller_p2p.poll(timeout=min(rem_ms, 8)))
                     if self.sub_p2p in socks and socks[self.sub_p2p] == zmq.POLLIN:
                         try:
                             msg_n = self.sub_p2p.recv_json()
+                            if msg_n.get("msg_type") == "DELIVERY_META":
+                                continue
                             s_id = msg_n.get("sender_id")
                             if s_id is not None:
                                 raw_neighbors[int(s_id)] = {
@@ -274,9 +341,11 @@ class DistributedNodeRunner:
                                     "curtail_ratio": msg_n.get("curtail_ratio", 1.0),
                                     "SoC": msg_n.get("SoC", None)
                                 }
+                            if expected_neighbors and set(raw_neighbors.keys()) >= expected_neighbors:
+                                break
                         except Exception:
                             break
-                    else:
+                    elif expected_neighbors and set(raw_neighbors.keys()) >= expected_neighbors:
                         break
 
                 # Interceptar y perturbar canal mediante proxy de red (D-25 / S-34)
@@ -287,6 +356,13 @@ class DistributedNodeRunner:
                     current_time_s=time_s
                 )
                 self.last_delivery_meta = delivery_meta
+                self.pub_p2p.send_json({
+                    "msg_type": "DELIVERY_META",
+                    "sender_id": self.node_id,
+                    "step": step_idx,
+                    "sample_idx": sample_idx,
+                    "delivery_meta": delivery_meta,
+                })
 
                 # 5. Actualizar ley de control FxTS con vecinos filtrados (disparando retención ZOH si hay pérdidas)
                 omega_local = 2.0 * math.pi * f_sys
@@ -303,37 +379,66 @@ class DistributedNodeRunner:
                 self.neighbor_cache = {n_id: data["state"] for n_id, data in self.agent.neighbor_buffer.items()}
                 self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
 
-                # Lazo de Control Secundario de Frecuencia y Reparto de Potencia Activa (Regimenes 1 y 2 / S-36)
+                # Lazo de Control Secundario de Frecuencia y Reparto de Potencia Activa (Regimenes 1 y 2 / S-36 / D-28)
+                df_hz = f_sys - 60.0
                 err_w = (2.0 * math.pi * 60.0) - omega_local
                 if self.source_type == "DIESEL":
-                    # Anti-windup acotado a [-75.0, +75.0] rad (hasta +/- 6.0 kW de compensacion integral)
+                    # Anti-windup acotado a [-75.0, +75.0] rad (respetando piso técnico p_min_diesel)
                     self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * 0.5))
+                    if self.p_min_diesel > 0.0 and self.P_ref <= self.p_min_diesel + 1.0 and self.int_freq_error < 0.0:
+                        self.int_freq_error = max(-10.0, self.int_freq_error)
                     delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
-                    base_p = self.p_init if self.p_init > 0 else 4000.0
-                    self.P_ref = max(self.p_min_diesel, min(self.p_max, base_p + delta_P_restore + dP))
+                    base_p = self.p_init if self.p_init > 0 else max(4000.0, self.p_min_diesel)
+                    self.P_ref = max(self.p_min_diesel, min(self.p_max, base_p + delta_P_restore + 0.1 * dP))
+
+                    # Señalizar exceso cuando Diésel está en su piso técnico y persiste sobrefrecuencia
+                    if self.p_min_diesel > 0.0 and self.P_ref <= self.p_min_diesel + 25.0 and df_hz > 0.015:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.3 * df_hz))
+                    elif df_hz < -0.005 or self.P_ref > self.p_min_diesel + 100.0:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess - 0.03))
+
                 elif self.source_type == "BESS":
-                    # BESS bidireccional (descarga > 0 ante deficit, absorcion/carga < 0 ante sobrefrecuencia)
-                    delta_P_droop = 40.0 * err_w
-                    base_p = self.p_init if self.p_init != 0.0 else 0.0
-                    p_target = base_p + delta_P_droop + dP
-                    if err_w < -0.15:  # Sobrefrecuencia (f > 60.024 Hz, regimen excedentario)
-                        d_eta_bess = self.agent.delta_eta
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + d_eta_bess - 0.02 * err_w))
-                        p_charge_target = -self.eta_excess * self.p_charge_max
-                        p_target = min(p_target, p_charge_target)
+                    # BESS bidireccional proporcional rápido (Droop primario P(f) desacoplado del integrador diésel)
+                    p_chg_lim = min(self.p_charge_max, float(phys_out.get("P_charge_max", self.p_charge_max)))
+                    p_dis_lim = min(self.p_max, float(phys_out.get("P_discharge_max", self.p_max)))
+                    
+                    # Banda muerta de +-0.010 Hz para evitar chattering en régimen permanente
+                    bess_deadband = 0.010
+                    if abs(df_hz) > bess_deadband:
+                        df_eff = df_hz - math.copysign(bess_deadband, df_hz)
+                        p_target = -4000.0 * df_eff
                     else:
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + self.agent.delta_eta - 0.02))
-                    self.P_ref = max(-self.p_charge_max, min(self.p_max, p_target))
+                        p_target = 0.0
+                    self.P_ref = max(-p_chg_lim, min(p_dis_lim, p_target))
+
+                    # Coordinación de excedente eta_excess: SOLO si BESS está saturando en carga o con capacidad agotada
+                    is_charging_saturated = (p_chg_lim <= 200.0) or ((-P_w) >= 0.85 * p_chg_lim and p_chg_lim > 0.0)
+                    if is_charging_saturated and df_hz > 0.015:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.3 * df_hz))
+                    elif df_hz < -0.005 or (-P_w) < 0.60 * p_chg_lim:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess - 0.03))
+                    else:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.1 * self.agent.delta_eta))
+
                 elif self.source_type == "SOLAR":
-                    # Solar: MPP nominal en equilibrio/deficit; curtailment coordinado ante sobrefrecuencia
-                    if err_w < -0.15:  # Sobrefrecuencia (f > 60.024 Hz, regimen excedentario)
-                        d_eta_pv = self.agent.delta_eta
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + d_eta_pv - 0.02 * err_w))
-                        self.curtail_ratio = max(0.0, min(1.0, 1.0 - self.eta_excess))
+                    # Solar: MPP nominal en equilibrio/déficit; curtailment coordinado ante excedente genuino
+                    neighbor_eta_max = max(
+                        (float(s.get("eta_excess", 0.0)) for s in filtered_neighbors.values()),
+                        default=0.0
+                    )
+                    excess_active = (neighbor_eta_max > 0.05 and df_hz > 0.010) or (df_hz > 0.030)
+                    if excess_active and df_hz > 0.010:
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.4 * (df_hz - 0.010)))
+                    elif df_hz < -0.005 or (neighbor_eta_max < 0.02 and df_hz < 0.010):
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess - 0.02))
                     else:
-                        d_eta_pv = self.agent.delta_eta
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + d_eta_pv - 0.02))
-                        self.curtail_ratio = max(0.0, min(1.0, 1.0 - self.eta_excess))
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.05 * self.agent.delta_eta))
+
+                    # Filtro de tasa suave (rate-limit) en curtail_ratio para suprimir ciclos límite bang-bang
+                    target_curtail = max(self.curtail_min, min(1.0, 1.0 - self.eta_excess))
+                    rate_limit = 0.04  # variación máxima del 4% por paso (0.5 s)
+                    d_curtail = max(-rate_limit, min(rate_limit, target_curtail - self.curtail_ratio))
+                    self.curtail_ratio = max(self.curtail_min, min(1.0, self.curtail_ratio + d_curtail))
                     self.P_ref = max(0.0, min(self.p_max, self.P_ref))
                 else:
                     self.P_ref = max(0.0, min(self.p_max, self.P_ref))
@@ -342,18 +447,22 @@ class DistributedNodeRunner:
                 self.V_offset = max(-0.10, min(0.10, self.V_offset + dV))
                 self.omega_offset = max(-1.0, min(1.0, self.omega_offset + dw))
 
-                # 6. Reportar inyeccion (P, Q) al PC Central
+                # 6. Reportar inyeccion (P, Q) y telemetría S-40 al PC Central
                 inj_payload = {
                     "node_id": self.node_id,
                     "step": step_idx,
+                    "sample_idx": sample_idx,
                     "P_w": round(P_w, 2),
                     "Q_var": round(Q_var, 2),
                     "eta_excess": round(self.eta_excess, 4),
                     "curtail_ratio": round(self.curtail_ratio, 4),
+                    "curtail_min": round(self.curtail_min, 4),
+                    "P_curtailed": round(p_curtailed, 2),
+                    "P_mpp": round(p_mpp, 2),
                     "delivery_meta": delivery_meta
                 }
                 if soc is not None:
-                    inj_payload["SoC"] = round(float(soc), 4)
+                    inj_payload["SoC"] = round(float(soc), 6)
                 try:
                     self.req_master.send_json(inj_payload)
                     ack = self.req_master.recv_json()
@@ -410,9 +519,10 @@ if __name__ == "__main__":
     parser.add_argument("--q-init", type=float, default=0.0, help="Consigna inicial de reactiva [var]")
     parser.add_argument("--p-init", type=float, default=0.0, help="Consigna inicial de activa [W]")
     parser.add_argument("--p-charge-max", type=float, default=3000.0, help="Capacidad maxima de absorcion/carga BESS [W]")
-    parser.add_argument("--p-min-diesel", type=float, default=0.0, help="Potencia minima tecnica del generador diesel [W]")
+    parser.add_argument("--p-min-diesel", type=float, default=None, help="Potencia minima tecnica del generador diesel [W]")
+    parser.add_argument("--curtail-min", type=float, default=None, help="Piso minimo de recorte solar (default: 0.15 o desde regimen_excedente en meta.json)")
     parser.add_argument("--mode", default="OFFLINE", choices=["ONLINE", "OFFLINE"], help="Modo de operacion")
-    parser.add_argument("--network-profile", default="IDEAL", choices=["IDEAL", "LAN_ETHERNET", "INDUSTRIAL_WIFI", "SEVERE_STRESS", "CRITICAL_PARTITION", "CUSTOM"], help="Perfil de perturbaciones telemáticas")
+    parser.add_argument("--network-profile", default="IDEAL", choices=["IDEAL", "DYNAMIC_CONTINGENCY", "LAN_ETHERNET", "INDUSTRIAL_WIFI", "SEVERE_STRESS", "CRITICAL_PARTITION", "CUSTOM"], help="Perfil de perturbaciones telemáticas")
     parser.add_argument("--contingencies-file", default=None, help="Ruta al archivo CSV de contingencias telemáticas D-25")
     parser.add_argument("--network-seed", type=int, default=42, help="Semilla pseudoaleatoria base de red (D-25)")
     parser.add_argument("--steps", type=int, default=None, help="Numero maximo de pasos")
@@ -443,6 +553,7 @@ if __name__ == "__main__":
         p_init=args.p_init,
         p_charge_max=args.p_charge_max,
         p_min_diesel=args.p_min_diesel,
+        curtail_min=args.curtail_min,
         operating_mode=args.mode,
         network_profile=args.network_profile,
         contingencies_file=args.contingencies_file,

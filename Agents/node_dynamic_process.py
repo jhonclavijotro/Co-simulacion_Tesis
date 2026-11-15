@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 import time
 import math
 
@@ -28,7 +29,7 @@ class NodeDynamicProcess:
         sobreestima la derivada actual acumulando error en nodos solares sensibles (3.72x peor que ZOH a lambda=0.7).
         Acepta 'ZFOH' y 'zfoh_lambda' como alias retrocompatibles.
     """
-    def __init__(self, node_id, source_type="SOLAR", hold_mode="ZOH", froh_lambda=0.7, zfoh_lambda=None):
+    def __init__(self, node_id, source_type="SOLAR", hold_mode="ZOH", froh_lambda=0.7, zfoh_lambda=None, soc_inicial=None):
         self.node_id = node_id
         self.source_type = source_type.upper()
         h_mode = hold_mode.upper()
@@ -38,6 +39,24 @@ class NodeDynamicProcess:
         self.V_pcc_prev = None
         self.data_loader = MockDataLoader()
         self.step_index = 0
+
+        # Leer soc_inicial de meta.json del escenario activo si no se especifica explícitamente
+        eff_soc = soc_inicial
+        if eff_soc is None and self.source_type == "BESS":
+            esc_dir = getattr(self.data_loader, "escenario_dir", None)
+            if esc_dir:
+                meta_path = os.path.join(esc_dir, "meta.json")
+                if os.path.exists(meta_path):
+                    try:
+                        with open(meta_path, "r", encoding="utf-8") as f_meta:
+                            meta_data = json.load(f_meta)
+                        reg_exc = meta_data.get("regimen_excedente") or {}
+                        if "soc_inicial" in reg_exc:
+                            eff_soc = float(reg_exc["soc_inicial"])
+                    except Exception:
+                        pass
+        if eff_soc is None:
+            eff_soc = 0.50
 
         # Inicialización del modelo dinámico con capacidades para microrred de baja potencia
         if self.source_type == "SOLAR":
@@ -49,9 +68,9 @@ class NodeDynamicProcess:
         elif self.source_type == "BESS":
             # droop_enabled=False: el control de despacho y droop secundario se gobierna
             # en el agente MAS (distributed_node_runner) evitando saturacion bang-bang
-            self.model = SistemaBESS(N_inv=1, droop_enabled=False)
+            self.model = SistemaBESS(N_inv=1, SoC_inicial=float(eff_soc), droop_enabled=False)
         elif self.source_type == "DIESEL":
-            self.model = SistemaDiesel(P_nominal=10000.0, droop_enabled=False)
+            self.model = SistemaDiesel(P_nominal=10000.0, eta=1.0, droop_enabled=False)
         elif self.source_type == "DEMANDA":
             self.model = SistemaDemanda()
         else:
@@ -191,7 +210,7 @@ class NodeDynamicProcess:
         }
         if ctx:
             if "SoC" in ctx:
-                res["SoC"] = round(float(ctx["SoC"]), 4)
+                res["SoC"] = round(float(ctx["SoC"]), 6)
             if "P_curtailed" in ctx:
                 res["P_curtailed"] = round(float(ctx["P_curtailed"]), 2)
             if "P_mpp" in ctx:

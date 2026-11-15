@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import json
 import time
 import socket
 import argparse
@@ -259,6 +260,69 @@ class ClusterDeployer:
             except Exception as e:
                 print(f"    [ERROR] Fallo en conexion a {name}: {e}")
 
+    @staticmethod
+    def _load_active_scenario_config() -> Dict[str, Any]:
+        """Lee capacidades DER y asignaciones de la Capa 1 del escenario activo."""
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        gen_dir = os.path.join(base_dir, "Forms", "escenarios_generados")
+        marcador = os.path.join(gen_dir, "ACTIVO.txt")
+        esc_dir = None
+        if os.path.exists(marcador):
+            try:
+                with open(marcador, "r", encoding="utf-8") as f:
+                    name = f.read().lstrip("\ufeff").strip()
+                if name and os.path.isdir(os.path.join(gen_dir, name)):
+                    esc_dir = os.path.join(gen_dir, name)
+            except OSError:
+                pass
+        cfg = {
+            "capacidades": {
+                1: {"p_max_W": 10000.0, "q_max_var": 6000.0, "p_init": 8600.0, "q_init": 1500.0},
+                2: {"p_max_W": 5000.0, "q_max_var": 3000.0, "p_init": 3250.0, "q_init": 600.0},
+                3: {"p_max_W": 3000.0, "q_max_var": 2000.0, "p_init": 0.0, "q_init": 1000.0},
+            },
+            "nodos_demanda": [4, 5, 6, 7, 8],
+            "p_min_diesel_W": None,
+            "p_charge_max_W": None,
+            "v_base": 400.0,
+        }
+        if not esc_dir:
+            return cfg
+        capa1_path = os.path.join(esc_dir, "plantilla_configuracion_cosimulacion.json")
+        if os.path.exists(capa1_path):
+            try:
+                with open(capa1_path, "r", encoding="utf-8") as f_c:
+                    capa1 = json.load(f_c)
+                pg = capa1.get("parametros_generales") or {}
+                if "tension_base_V" in pg:
+                    cfg["v_base"] = float(pg["tension_base_V"])
+                caps = capa1.get("capacidades_der") or {}
+                for n in (1, 2, 3):
+                    c = caps.get(str(n)) or {}
+                    if "p_max_W" in c:
+                        cfg["capacidades"][n]["p_max_W"] = float(c["p_max_W"])
+                    if "q_max_var" in c:
+                        cfg["capacidades"][n]["q_max_var"] = float(c["q_max_var"])
+                nd = ((capa1.get("asignacion_nodos") or {}).get("nodos_demanda") or {}).get("nodos")
+                if isinstance(nd, list) and nd:
+                    cfg["nodos_demanda"] = [int(x) for x in nd]
+            except Exception:
+                pass
+        meta_path = os.path.join(esc_dir, "meta.json")
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f_m:
+                    meta = json.load(f_m)
+                reg_exc = meta.get("regimen_excedente") or {}
+                if "p_min_diesel_W" in reg_exc:
+                    cfg["p_min_diesel_W"] = float(reg_exc["p_min_diesel_W"])
+                    cfg["capacidades"][1]["p_init"] = cfg["p_min_diesel_W"]
+                if "p_charge_max_W" in reg_exc:
+                    cfg["p_charge_max_W"] = float(reg_exc["p_charge_max_W"])
+            except Exception:
+                pass
+        return cfg
+
     def start_cluster(
         self,
         steps=None,
@@ -274,9 +338,20 @@ class ClusterDeployer:
         extra_bess_args: str = "",
     ):
         """Inicia los servicios en cada Raspberry Pi segun su rol asignado (Docker o Nativo)."""
+        scen_cfg = self._load_active_scenario_config()
+        if p_min_diesel is None and scen_cfg["p_min_diesel_W"] is not None:
+            p_min_diesel = scen_cfg["p_min_diesel_W"]
+        if p_charge_max is None and scen_cfg["p_charge_max_W"] is not None:
+            p_charge_max = scen_cfg["p_charge_max_W"]
+        v_base = scen_cfg["v_base"]
+        caps = scen_cfg["capacidades"]
+        nodos_dem_arg = ",".join(str(x) for x in scen_cfg["nodos_demanda"])
+        num_nodes = max(scen_cfg["nodos_demanda"] + [3])
+
         print("\n" + "=" * 65)
-        print(f" INICIANDO SERVICIOS DEL CLUSTER (MODO: {engine.upper()} - BAJA TENSIÓN 400V)")
+        print(f" INICIANDO SERVICIOS DEL CLUSTER (MODO: {engine.upper()} - BAJA TENSIÓN {v_base:.0f}V)")
         print(f" - Servidor PC Central: {self.master_host}")
+        print(f" - Capacidades DER:     N1={caps[1]['p_max_W']:.0f}W/{caps[1]['q_max_var']:.0f}var | N2={caps[2]['p_max_W']:.0f}W/{caps[2]['q_max_var']:.0f}var | N3={caps[3]['p_max_W']:.0f}W/{caps[3]['q_max_var']:.0f}var")
         if p_min_diesel is not None:
             print(f" - P_min Diésel: {p_min_diesel} W")
         if p_charge_max is not None:
@@ -300,7 +375,13 @@ class ClusterDeployer:
 
             if role == "DIESEL_SLACK":
                 cname = "nodo_1_diesel"
-                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL --master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 --mode OFFLINE --v-base 400.0 --p-max 12000.0 --q-max 9000.0 --q-init 2000.0 --p-init 4000.0 {steps_arg}"
+                c1 = caps[1]
+                py_cmd = (
+                    f"python3 Agents/distributed_node_runner.py --node-id 1 --source-type DIESEL "
+                    f"--master-host {self.master_host} --p2p-port 6001 --neighbors 10.0.0.152:6002 "
+                    f"--mode OFFLINE --v-base {v_base:.1f} --p-max {c1['p_max_W']:.1f} "
+                    f"--q-max {c1['q_max_var']:.1f} --q-init {c1['q_init']:.1f} --p-init {c1['p_init']:.1f} {steps_arg}"
+                )
                 if p_min_diesel is not None:
                     py_cmd += f" --p-min-diesel {p_min_diesel}"
                 if network_profile:
@@ -315,7 +396,13 @@ class ClusterDeployer:
                     py_cmd += f" {extra_diesel_args}"
             elif role == "SOLAR_PV":
                 cname = "nodo_2_solar"
-                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR --master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 --mode OFFLINE --v-base 400.0 --p-max 5000.0 --q-max 3000.0 --q-init 600.0 --p-init 2000.0 {steps_arg}"
+                c2 = caps[2]
+                py_cmd = (
+                    f"python3 Agents/distributed_node_runner.py --node-id 2 --source-type SOLAR "
+                    f"--master-host {self.master_host} --p2p-port 6002 --neighbors 10.0.0.151:6001 10.0.0.153:6003 "
+                    f"--mode OFFLINE --v-base {v_base:.1f} --p-max {c2['p_max_W']:.1f} "
+                    f"--q-max {c2['q_max_var']:.1f} --q-init {c2['q_init']:.1f} --p-init {c2['p_init']:.1f} {steps_arg}"
+                )
                 if network_profile:
                     py_cmd += f" --network-profile {network_profile}"
                 if contingencies_file:
@@ -328,7 +415,13 @@ class ClusterDeployer:
                     py_cmd += f" {extra_solar_args}"
             elif role == "BESS_STORAGE":
                 cname = "nodo_3_bess"
-                py_cmd = f"python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS --master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 --mode OFFLINE --v-base 400.0 --p-max 1500.0 --q-max 1000.0 --q-init 500.0 --p-init 750.0 {steps_arg}"
+                c3 = caps[3]
+                py_cmd = (
+                    f"python3 Agents/distributed_node_runner.py --node-id 3 --source-type BESS "
+                    f"--master-host {self.master_host} --p2p-port 6003 --neighbors 10.0.0.152:6002 "
+                    f"--mode OFFLINE --v-base {v_base:.1f} --p-max {c3['p_max_W']:.1f} "
+                    f"--q-max {c3['q_max_var']:.1f} --q-init {c3['q_init']:.1f} --p-init {c3['p_init']:.1f} {steps_arg}"
+                )
                 if p_charge_max is not None:
                     py_cmd += f" --p-charge-max {p_charge_max}"
                 if network_profile:
@@ -343,10 +436,10 @@ class ClusterDeployer:
                     py_cmd += f" {extra_bess_args}"
             elif role in ["LOADS_RES_COM", "LOADS_TRIPLE"]:
                 cname = "nodos_cargas"
-                py_cmd = f"python3 Agents/multi_load_process.py --master-host {self.master_host} {steps_arg}"
+                py_cmd = f"python3 Agents/multi_load_process.py --master-host {self.master_host} --nodos {nodos_dem_arg} {steps_arg}"
             elif role == "LOAD_IND":
                 cname = "nodo_monitor_hil"
-                py_cmd = f"python3 Agents/monitor_node_service.py --master-host {self.master_host} {steps_arg}"
+                py_cmd = f"python3 Agents/monitor_node_service.py --master-host {self.master_host} --num-nodes {num_nodes} --v-base {v_base:.1f} {steps_arg}"
             elif role == "DATA_STORAGE":
                 cname = "nodo_data_storage"
                 py_cmd = f"python3 GUI/rpi_dashboard_service.py --master-host {self.master_host} --web-port 8000 {steps_arg}"

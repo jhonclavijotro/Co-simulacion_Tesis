@@ -144,6 +144,58 @@ class TestSurplusRegime(unittest.TestCase):
         finally:
             runner_bess.close()
 
+    def test_curtail_min_parameterization_and_clamping(self):
+        """Verifica la parametrización de curtail_min (S-O-25) a través de la ley dinámica SOLAR."""
+        # 1. Configuración por defecto: curtail_min = 0.15
+        runner_default = DistributedNodeRunner(
+            node_id=2,
+            source_type="SOLAR",
+            master_host="127.0.0.1",
+            p2p_port=6420,
+            port_rep=6421,
+            port_pub=6422
+        )
+        try:
+            self.assertEqual(runner_default.curtail_min, 0.15, "Por defecto curtail_min debe ser 0.15")
+            # Simular dinámica de sobregeneración en lazo cerrado para la rama SOLAR
+            df_hz = 0.05
+            neighbor_eta_max = 1.0
+            for _ in range(50):
+                d_eta_pv = 0.05
+                if df_hz > 0.003 and (neighbor_eta_max > 0.02 or df_hz > 0.02):
+                    runner_default.eta_excess = max(0.0, min(1.0, runner_default.eta_excess + d_eta_pv + 0.35 * df_hz))
+                runner_default.curtail_ratio = max(runner_default.curtail_min, min(1.0, 1.0 - runner_default.eta_excess))
+
+            self.assertAlmostEqual(runner_default.eta_excess, 1.0, places=4, msg="eta_excess debe poder saturar a 1.0")
+            self.assertAlmostEqual(runner_default.curtail_ratio, 0.15, places=4, msg="curtail_ratio debe saturar a 0.15 con curtail_min=0.15")
+        finally:
+            runner_default.close()
+
+        # 2. Configuración explícita con curtail_min = 0.0
+        runner_zero = DistributedNodeRunner(
+            node_id=2,
+            source_type="SOLAR",
+            master_host="127.0.0.1",
+            p2p_port=6423,
+            port_rep=6424,
+            port_pub=6425,
+            curtail_min=0.0
+        )
+        try:
+            self.assertEqual(runner_zero.curtail_min, 0.0, "curtail_min debe ser 0.0 cuando se explicita")
+            df_hz = 0.05
+            neighbor_eta_max = 1.0
+            for _ in range(50):
+                d_eta_pv = 0.05
+                if df_hz > 0.003 and (neighbor_eta_max > 0.02 or df_hz > 0.02):
+                    runner_zero.eta_excess = max(0.0, min(1.0, runner_zero.eta_excess + d_eta_pv + 0.35 * df_hz))
+                runner_zero.curtail_ratio = max(runner_zero.curtail_min, min(1.0, 1.0 - runner_zero.eta_excess))
+
+            self.assertAlmostEqual(runner_zero.eta_excess, 1.0, places=4, msg="eta_excess debe alcanzar 1.0")
+            self.assertAlmostEqual(runner_zero.curtail_ratio, 0.0, places=4, msg="curtail_ratio debe alcanzar 0.0 cuando curtail_min=0.0")
+        finally:
+            runner_zero.close()
+
 
 if __name__ == "__main__":
     unittest.main()

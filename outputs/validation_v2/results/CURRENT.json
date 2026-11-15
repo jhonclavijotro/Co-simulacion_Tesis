@@ -1,0 +1,12 @@
+{
+  "run_id": "20261114T190831_ESC-HIL-010_validacion_integrada_v2_seed42",
+  "scenario": "ESC-HIL-010_validacion_integrada_v2",
+  "timestamp_utc": "2026-11-15T00:08:46.331332Z",
+  "results_dir": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T190831_ESC-HIL-010_validacion_integrada_v2_seed42",
+  "manifest_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T190831_ESC-HIL-010_validacion_integrada_v2_seed42\\manifest.json",
+  "manifest_sha256": "9752c02316ca06cf46137844ee101f8fb59020acec77d67bb6774d84009d98f4",
+  "telemetry_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T190831_ESC-HIL-010_validacion_integrada_v2_seed42\\telemetry_rack.csv",
+  "telemetry_sha256": "68670ef6b6a630215894337ae1d1f8703288e6d718303bebc76ac2269836fd19",
+  "contingencies_sha256": "c430fb3c0e2bd481c4b43f2e9057309150627d484ea25fbdea294dfcd1d6decb",
+  "certified_d30": false
+}

@@ -1,0 +1,243 @@
+{
+  "run_id": "20261114T082959_ESC-HIL-008_validacion_integrada_seed42",
+  "scenario": "ESC-HIL-008_validacion_integrada",
+  "steps": 961,
+  "dt_s": 0.5,
+  "start_time": "2026-11-14T08:29:59.953652",
+  "parameters": {
+    "p_min_diesel": 8600.0,
+    "p_charge_max": 3000.0,
+    "network_profile": "DYNAMIC_CONTINGENCY",
+    "contingencies_file": "contingencias_telematicas.csv",
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation\\results\\20261114T082959_ESC-HIL-008_validacion_integrada_seed42\\telemetry_rack.csv",
+    "source": "monitor_sftp",
+    "bytes": 297597,
+    "sha256": "2ef02be419f12e3a3cc48e552ba30d8168318befc6dcd5bb872d620468906df2"
+  },
+  "audit_s40": {
+    "n_samples": 961,
+    "time_range_s": [
+      0.0,
+      480.0
+    ],
+    "max_step_elapsed_ms": 2.118,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_961_samples": true,
+      "surplus_bess_and_curtail": true,
+      "link_cut": true,
+      "zero_rt_overruns": true
+    },
+    "reconvergence_exercised": false,
+    "criteria_not_exercised": [
+      "reconvergence_under_active_fault"
+    ],
+    "notes_criteria": {
+      "link_cut": "60 muestras (30 s) de desconexion total 1-2 con retencion de consignas por ZOH; no se ejercito reconvergencia dinamica activa pues e_Q se mantuvo en 0.0000 debido a carga reactiva estatica (evidencia de reconvergencia diferida a nuevo escenario dinamico)."
+    },
+    "all_criteria_passed": true,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          40
+        ],
+        "evento": "acoplamiento y convergencia inicial",
+        "n": 80,
+        "f_min": 59.7224,
+        "f_max": 60.4992,
+        "V_min": 1.0,
+        "V_max": 1.004,
+        "P3_mean_kW": -1.602,
+        "SoC_ini": 0.5,
+        "SoC_fin": 0.500182,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          40,
+          100
+        ],
+        "evento": "regimen isocrono sin eventos",
+        "n": 120,
+        "f_min": 59.736,
+        "f_max": 60.3942,
+        "V_min": 1.0,
+        "V_max": 1.004,
+        "P3_mean_kW": -1.828,
+        "SoC_ini": 0.500186,
+        "SoC_fin": 0.500494,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          100,
+          150
+        ],
+        "evento": "rampa positiva de carga",
+        "n": 100,
+        "f_min": 59.6632,
+        "f_max": 60.4292,
+        "V_min": 1.0,
+        "V_max": 1.004,
+        "P3_mean_kW": -1.493,
+        "SoC_ini": 0.500495,
+        "SoC_fin": 0.500706,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          150,
+          200
+        ],
+        "evento": "escalon negativo de carga",
+        "n": 100,
+        "f_min": 59.9725,
+        "f_max": 60.4121,
+        "V_min": 0.9999,
+        "V_max": 1.0039,
+        "P3_mean_kW": -2.952,
+        "SoC_ini": 0.50071,
+        "SoC_fin": 0.501125,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          200,
+          250
+        ],
+        "evento": "sombreado 800 a 550 W/m2",
+        "n": 100,
+        "f_min": 59.7435,
+        "f_max": 60.2978,
+        "V_min": 1.0,
+        "V_max": 1.004,
+        "P3_mean_kW": -1.108,
+        "SoC_ini": 0.501129,
+        "SoC_fin": 0.501282,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          250,
+          300
+        ],
+        "evento": "sombreado abrupto",
+        "n": 100,
+        "f_min": 59.7167,
+        "f_max": 60.1917,
+        "V_min": 1.0,
+        "V_max": 1.0038,
+        "P3_mean_kW": 1.626,
+        "SoC_ini": 0.501283,
+        "SoC_fin": 0.501051,
+        "curtail_min": 0.6523,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          300,
+          360
+        ],
+        "evento": "recuperacion solar y rampa negativa de carga",
+        "n": 120,
+        "f_min": 59.7454,
+        "f_max": 60.3551,
+        "V_min": 1.0,
+        "V_max": 1.0043,
+        "P3_mean_kW": -0.681,
+        "SoC_ini": 0.501048,
+        "SoC_fin": 0.501167,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          360,
+          410
+        ],
+        "evento": "perdida del 20 por ciento en 2-3",
+        "n": 100,
+        "f_min": 59.7519,
+        "f_max": 60.3492,
+        "V_min": 1.0,
+        "V_max": 1.0043,
+        "P3_mean_kW": -1.88,
+        "SoC_ini": 0.50117,
+        "SoC_fin": 0.501434,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 45,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          410,
+          440
+        ],
+        "evento": "desconexion total 1-2",
+        "n": 60,
+        "f_min": 59.7519,
+        "f_max": 60.3356,
+        "V_min": 1.0,
+        "V_max": 1.0043,
+        "P3_mean_kW": -1.765,
+        "SoC_ini": 0.501438,
+        "SoC_fin": 0.501584,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 120,
+        "d12_samples": 60
+      },
+      {
+        "ventana_s": [
+          440,
+          480
+        ],
+        "evento": "cola limpia",
+        "n": 81,
+        "f_min": 59.76,
+        "f_max": 60.338,
+        "V_min": 1.0,
+        "V_max": 1.0043,
+        "P3_mean_kW": -2.063,
+        "SoC_ini": 0.501587,
+        "SoC_fin": 0.501821,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.0,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation\\results\\20261114T082959_ESC-HIL-008_validacion_integrada_seed42\\reporte_s40_validacion.md"
+  },
+  "end_time": "2026-11-14T08:38:34.516534",
+  "elapsed_seconds": 481.504,
+  "hashes": {
+    "telemetry_rack_csv": "2ef02be419f12e3a3cc48e552ba30d8168318befc6dcd5bb872d620468906df2",
+    "contingencias_telematicas_csv": "78df90f5aadc4e8edc995c808d77e4d58bb785fa051d1ee2b8a91f623192a382",
+    "scenario_meta_json": "08f257f4f7e242dc47ffa1c310d1c3e5f1338f9b1f1e36f3a792d0a5dd15ad70"
+  }
+}
