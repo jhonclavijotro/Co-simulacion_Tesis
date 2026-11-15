@@ -377,6 +377,15 @@ class RackExperimentOrchestrator:
                 elif scenario_name.startswith("ESC-HIL-011"):
                     audit_summary = self.audit_011_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
                     experiment_meta["audit_011"] = audit_summary
+                elif scenario_name.startswith("ESC-HIL-012"):
+                    audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
+                    experiment_meta["audit_s1"] = audit_summary
+                elif scenario_name.startswith("ESC-HIL-013"):
+                    audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
+                    experiment_meta["audit_s2"] = audit_summary
+                elif scenario_name.startswith("ESC-HIL-014"):
+                    audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
+                    experiment_meta["audit_s3"] = audit_summary
                 else:
                     audit_summary = self.audit_s40_telemetry(local_csv, scenario_dir, results_dir)
                     experiment_meta["audit_s40"] = audit_summary
@@ -688,6 +697,243 @@ class RackExperimentOrchestrator:
             },
             "p3_range_kW": [min(p3_vals), max(p3_vals)],
             "all_criteria_passed": all_passed,
+            "report_path": report_path,
+        }
+
+    @staticmethod
+    def audit_independent_telemetry(local_csv: str, scenario_dir: str, results_dir: str, scenario_name: str) -> Dict[str, Any]:
+        """Audita los escenarios independientes S1/S2/S3 (ESC-HIL-012/013/014, D-31 / S-O-28 / S-O-31)."""
+        with open(local_csv, "r", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+
+        def _f(r: dict, key: str, default: float = 0.0) -> float:
+            val = r.get(key)
+            if val in (None, ""):
+                return default
+            return float(val)
+
+        if "012" in scenario_name:
+            tag = "s1"
+            tag_upper = "S1"
+        elif "013" in scenario_name:
+            tag = "s2"
+            tag_upper = "S2"
+        elif "014" in scenario_name:
+            tag = "s3"
+            tag_upper = "S3"
+        else:
+            tag = "indep"
+            tag_upper = "INDEP"
+
+        n_samples = len(rows)
+        t_first = _f(rows[0], "time_s", _f(rows[0], "time_sec", -1.0)) if rows else -1.0
+        t_last = _f(rows[-1], "time_s", _f(rows[-1], "time_sec", -1.0)) if rows else -1.0
+        step_times_ms = [_f(r, "step_elapsed_ms", 0.0) for r in rows]
+        overruns = sum(1 for ms in step_times_ms if ms > 500.0)
+
+        meta_path = os.path.join(scenario_dir, "meta.json")
+        windows = [
+            {"ventana_s": [0, 40], "evento": "base"},
+            {"ventana_s": [40, 100], "evento": "perturbacion"},
+            {"ventana_s": [100, 120], "evento": "cola"},
+        ]
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f_m:
+                    w_meta = json.load(f_m).get("ventanas_validacion")
+                if isinstance(w_meta, list) and w_meta:
+                    windows = w_meta
+            except Exception:
+                pass
+
+        window_metrics: List[Dict[str, Any]] = []
+        for idx_w, w in enumerate(windows):
+            t0, t1 = w["ventana_s"]
+            is_last = idx_w == len(windows) - 1
+            sub = [
+                r for r in rows
+                if (t0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= t1 if is_last
+                    else t0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) < t1)
+            ]
+            if not sub:
+                window_metrics.append({"ventana_s": [t0, t1], "evento": w.get("evento", ""), "n": 0})
+                continue
+
+            f_vals = [_f(r, "f_sys_hz", 60.0) for r in sub]
+            v_all = [_f(r, f"V{i}_pu", 1.0) for r in sub for i in range(1, 9) if f"V{i}_pu" in r]
+            p1_vals = [_f(r, "P1_kW", 0.0) for r in sub]
+            p2_vals = [_f(r, "P2_kW", 0.0) for r in sub]
+            p3_vals = [_f(r, "P3_kW", 0.0) for r in sub]
+            pc_vals = [_f(r, "P_curtailed_kW", 0.0) for r in sub]
+            pload_vals = [_f(r, "P_load_total_kW", 0.0) for r in sub]
+            soc_vals = [_f(r, "SoC", 0.5) for r in sub if r.get("SoC", "") != ""]
+            curt_vals = [_f(r, "curtail_ratio", 1.0) for r in sub]
+
+            window_metrics.append({
+                "ventana_s": [t0, t1],
+                "evento": w.get("evento", ""),
+                "n": len(sub),
+                "f_min": round(min(f_vals), 4),
+                "f_max": round(max(f_vals), 4),
+                "f_mean": round(sum(f_vals) / len(f_vals), 4),
+                "f_p2p": round(max(f_vals) - min(f_vals), 4),
+                "V_min": round(min(v_all), 4) if v_all else 1.0,
+                "V_max": round(max(v_all), 4) if v_all else 1.0,
+                "P1_mean_kW": round(sum(p1_vals) / len(p1_vals), 4),
+                "P2_mean_kW": round(sum(p2_vals) / len(p2_vals), 4),
+                "P3_mean_kW": round(sum(p3_vals) / len(p3_vals), 4),
+                "P_curtailed_mean_kW": round(sum(pc_vals) / len(pc_vals), 4),
+                "P_load_mean_kW": round(sum(pload_vals) / len(pload_vals), 4),
+                "SoC_ini": round(soc_vals[0], 6) if soc_vals else None,
+                "SoC_fin": round(soc_vals[-1], 6) if soc_vals else None,
+                "curtail_ratio_min": round(min(curt_vals), 4),
+            })
+
+        sub_tail = [r for r in rows if 100.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 120.0]
+        tail_f_vals = [_f(r, "f_sys_hz", 60.0) for r in sub_tail] if sub_tail else [60.0]
+        tail_f_mean = sum(tail_f_vals) / len(tail_f_vals)
+        tail_f_min = min(tail_f_vals)
+        tail_f_max = max(tail_f_vals)
+        tail_p2p = tail_f_max - tail_f_min
+        tail_max_dev = max(abs(f - 60.0) for f in tail_f_vals)
+
+        v_all_vals = [_f(r, f"V{i}_pu", 1.0) for r in rows for i in range(1, 9) if f"V{i}_pu" in r]
+        v_min_all = min(v_all_vals) if v_all_vals else 1.0
+        v_max_all = max(v_all_vals) if v_all_vals else 1.0
+
+        p1_all = [_f(r, "P1_kW", 0.0) for r in rows]
+        p2_all = [_f(r, "P2_kW", 0.0) for r in rows]
+        p3_all = [_f(r, "P3_kW", 0.0) for r in rows]
+        pc_all = [_f(r, "P_curtailed_kW", 0.0) for r in rows]
+        curt_all = [_f(r, "curtail_ratio", 1.0) for r in rows]
+        soc_all = [_f(r, "SoC", 0.5) for r in rows if r.get("SoC", "") != ""]
+
+        sub_40_120 = [r for r in rows if _f(r, "time_s", _f(r, "time_sec", -1.0)) >= 40.0]
+        p3_40_120 = [_f(r, "P3_kW", 0.0) for r in sub_40_120] if sub_40_120 else p3_all
+        pc_40_120 = [_f(r, "P_curtailed_kW", 0.0) for r in sub_40_120] if sub_40_120 else pc_all
+        p3_mean_40_120 = sum(p3_40_120) / len(p3_40_120)
+        pc_mean_40_120 = sum(pc_40_120) / len(pc_40_120)
+        soc_ini_all = soc_all[0] if soc_all else 0.5
+        soc_fin_all = soc_all[-1] if soc_all else 0.5
+
+        crit_1 = n_samples == 241 and abs(t_first - 0.0) < 1e-6 and abs(t_last - 120.0) < 1e-6
+        crit_2 = overruns == 0 and (max(step_times_ms) < 500.0 if step_times_ms else True)
+        crit_tail_p2p = tail_p2p <= 0.10
+        crit_voltages = (v_min_all >= 0.95) and (v_max_all <= 1.05)
+
+        criteria_dict: Dict[str, bool] = {
+            "certified_241_samples": crit_1,
+            "zero_rt_overruns": crit_2,
+            "tail_frequency_p2p_le_010hz": crit_tail_p2p,
+            "voltages_within_5pct": crit_voltages,
+        }
+
+        if tag == "s1":
+            crit_p2_zero = all(abs(x) < 1e-6 for x in p2_all)
+            crit_p3_zero = all(abs(x) < 1e-6 for x in p3_all)
+            crit_p1_range = (min(p1_all) >= 3.49) and (max(p1_all) <= 10.0)
+            crit_tail_band = tail_max_dev <= 0.05
+            criteria_dict.update({
+                "pv_disconnected_p2_zero": crit_p2_zero,
+                "bess_inert_p3_zero": crit_p3_zero,
+                "diesel_within_operating_limits": crit_p1_range,
+                "tail_frequency_within_005hz": crit_tail_band,
+            })
+            specific_lines = [
+                f"  - **PV desconectado (`P2 == 0`):** {'PASS' if crit_p2_zero else 'FAIL'} (máx={max(p2_all):.4f} kW)",
+                f"  - **BESS inerte (`P3 == 0`):** {'PASS' if crit_p3_zero else 'FAIL'} (rango=[{min(p3_all):.4f}, {max(p3_all):.4f}] kW)",
+                f"  - **Diésel en banda operativa `[3.5, 10.0] kW`:** {'PASS' if crit_p1_range else 'FAIL'} (rango=[{min(p1_all):.4f}, {max(p1_all):.4f}] kW)",
+                f"  - **Cola `[100, 120] s` en banda `|f-60| <= 0.05 Hz`:** {'PASS' if crit_tail_band else 'FAIL'} (max|f-60|={tail_max_dev:.4f} Hz)",
+            ]
+        elif tag == "s2":
+            crit_no_deficit = (min(p1_all) >= 3.49) and (max(p1_all) <= 10.0)
+            crit_bess_absorb = (p3_mean_40_120 < 0.0) and (soc_fin_all > soc_ini_all)
+            criteria_dict.update({
+                "no_deficit_diesel_in_range": crit_no_deficit,
+                "bess_absorbs_surplus": crit_bess_absorb,
+            })
+            specific_lines = [
+                f"  - **Sin déficit (`P1 >= 3.49 kW` y `<= 10.0 kW`):** {'PASS' if crit_no_deficit else 'FAIL'} (rango=[{min(p1_all):.4f}, {max(p1_all):.4f}] kW)",
+                f"  - **Absorción en BESS (`[40, 120] s`):** {'PASS' if crit_bess_absorb else 'FAIL'} (P3 media={p3_mean_40_120:+.4f} kW, SoC: {soc_ini_all:.6f} -> {soc_fin_all:.6f})",
+                f"  - **Recorte solar medio (`[40, 120] s`):** {pc_mean_40_120:.4f} kW (curtail_ratio_min={min(curt_all):.4f})",
+            ]
+        elif tag == "s3":
+            crit_no_deficit = (min(p1_all) >= 3.49) and (max(p1_all) <= 10.0)
+            crit_pv_curtail = (pc_mean_40_120 > 0.0) and (min(curt_all) < 1.0)
+            crit_bess_no_charge = all(x >= -0.05 for x in p3_all)
+            criteria_dict.update({
+                "no_deficit_diesel_in_range": crit_no_deficit,
+                "pv_curtailment_active": crit_pv_curtail,
+                "bess_charge_disabled": crit_bess_no_charge,
+            })
+            specific_lines = [
+                f"  - **Sin déficit (`P1 >= 3.49 kW` y `<= 10.0 kW`):** {'PASS' if crit_no_deficit else 'FAIL'} (rango=[{min(p1_all):.4f}, {max(p1_all):.4f}] kW)",
+                f"  - **Recorte solar activo (`[40, 120] s`):** {'PASS' if crit_pv_curtail else 'FAIL'} (P_curtailed media={pc_mean_40_120:.4f} kW, curtail_ratio_min={min(curt_all):.4f})",
+                f"  - **BESS bloqueado en carga (`SoC_0 = {soc_ini_all:.2f}`):** {'PASS' if crit_bess_no_charge else 'FAIL'} (P3 rango=[{min(p3_all):.4f}, {max(p3_all):.4f}] kW, SoC_fin={soc_fin_all:.6f})",
+            ]
+        else:
+            specific_lines = []
+
+        all_passed = all(criteria_dict.values())
+
+        report_name = f"reporte_{tag}_validacion.md"
+        report_path = os.path.join(results_dir, report_name)
+        lines = [
+            f"# Reporte de Validación {tag_upper} — {scenario_name} (D-31 / S-O-28)",
+            "",
+            f"- **Muestras:** {n_samples} (`t = {t_first}..{t_last} s`)",
+            f"- **Tiempo de paso máx:** {max(step_times_ms):.2f} ms (`overruns > 500 ms`: {overruns})",
+            f"- **Cola limpia `[100, 120] s`:** media `{tail_f_mean:.4f} Hz`, rango `[{tail_f_min:.4f}, {tail_f_max:.4f}] Hz`, p2p `{tail_p2p:.4f} Hz`, max|f-60| `{tail_max_dev:.4f} Hz`",
+            f"- **Tensiones nodales (global):** `[{v_min_all:.4f}, {v_max_all:.4f}] pu`",
+            "- **Criterios de Aceptación:**",
+            f"  - **Muestras exactas (241 @ 2 Hz / 120 s):** {'PASS' if crit_1 else 'FAIL'}",
+            f"  - **Cero violaciones RT (500 ms):** {'PASS' if crit_2 else 'FAIL'}",
+            f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p else 'FAIL'} (`{tail_p2p:.4f} Hz`)",
+            f"  - **Tensiones en banda ±5 % (`[0.95, 1.05] pu`):** {'PASS' if crit_voltages else 'FAIL'}",
+            *specific_lines,
+            f"- **Dictamen General {tag_upper}:** {'CERTIFICADO' if all_passed else 'REPROBADO'}",
+            "",
+            "| Ventana (s) | Evento | N | f [min, max] (Hz) | f media (Hz) | f p2p (Hz) | V [min, max] (pu) | P1 media (kW) | P2 media (kW) | P3 media (kW) | P_curt media (kW) | SoC ini -> fin | curtail_min_obs |",
+            "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        ]
+        for m in window_metrics:
+            if m.get("n", 0) == 0:
+                continue
+            lines.append(
+                f"| [{m['ventana_s'][0]}, {m['ventana_s'][1]}] | {m['evento']} | {m['n']} | "
+                f"[{m['f_min']:.4f}, {m['f_max']:.4f}] | {m['f_mean']:.4f} | {m['f_p2p']:.4f} | "
+                f"[{m['V_min']:.4f}, {m['V_max']:.4f}] | {m['P1_mean_kW']:.4f} | {m['P2_mean_kW']:.4f} | "
+                f"{m['P3_mean_kW']:+.4f} | {m['P_curtailed_mean_kW']:.4f} | {m['SoC_ini']} -> {m['SoC_fin']} | {m['curtail_ratio_min']:.4f} |"
+            )
+        with open(report_path, "w", encoding="utf-8") as f_rep:
+            f_rep.write("\n".join(lines) + "\n")
+        print(f"[OK] Reporte {tag_upper} generado: {report_path}")
+
+        return {
+            "scenario_tag": tag_upper,
+            "n_samples": n_samples,
+            "time_range_s": [t_first, t_last],
+            "max_step_elapsed_ms": round(max(step_times_ms), 3) if step_times_ms else 0.0,
+            "rt_overruns": overruns,
+            "criteria": criteria_dict,
+            "tail_100_120_s": {
+                "f_mean_hz": round(tail_f_mean, 4),
+                "f_min_hz": round(tail_f_min, 4),
+                "f_max_hz": round(tail_f_max, 4),
+                "f_p2p_hz": round(tail_p2p, 4),
+                "max_abs_dev_hz": round(tail_max_dev, 4),
+            },
+            "voltage_range_pu": [round(v_min_all, 4), round(v_max_all, 4)],
+            "post_40s_summary": {
+                "P3_mean_kW": round(p3_mean_40_120, 4),
+                "P_curtailed_mean_kW": round(pc_mean_40_120, 4),
+                "SoC_ini": round(soc_ini_all, 6),
+                "SoC_fin": round(soc_fin_all, 6),
+                "curtail_ratio_min": round(min(curt_all), 4),
+                "P1_range_kW": [round(min(p1_all), 4), round(max(p1_all), 4)],
+            },
+            "all_criteria_passed": bool(all_passed),
+            "windows": window_metrics,
             "report_path": report_path,
         }
 

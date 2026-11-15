@@ -1,12 +1,12 @@
 {
-  "run_id": "20261114T200404_ESC-HIL-010_validacion_integrada_v2_seed42",
+  "run_id": "20261114T212451_ESC-HIL-010_validacion_integrada_v2_seed42",
   "scenario": "ESC-HIL-010_validacion_integrada_v2",
-  "timestamp_utc": "2026-11-15T01:04:19.775595Z",
-  "results_dir": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T200404_ESC-HIL-010_validacion_integrada_v2_seed42",
-  "manifest_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T200404_ESC-HIL-010_validacion_integrada_v2_seed42\\manifest.json",
-  "manifest_sha256": "3836065bc7981d1cd666c6240b7e7eb7cfa6e2401d61a818e32af34bb0b4d77a",
-  "telemetry_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T200404_ESC-HIL-010_validacion_integrada_v2_seed42\\telemetry_rack.csv",
-  "telemetry_sha256": "4f9206c31da39c13e5b55db74fd4381df0143c14d9238c65116a8dbcea99ca32",
+  "timestamp_utc": "2026-11-15T02:25:06.808486Z",
+  "results_dir": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T212451_ESC-HIL-010_validacion_integrada_v2_seed42",
+  "manifest_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T212451_ESC-HIL-010_validacion_integrada_v2_seed42\\manifest.json",
+  "manifest_sha256": "cf14170ff6f78ea274f4efc1c80181ca2923e02dab2875cc8be59af65eea954e",
+  "telemetry_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\validation_v2\\results\\20261114T212451_ESC-HIL-010_validacion_integrada_v2_seed42\\telemetry_rack.csv",
+  "telemetry_sha256": "01bf8e9439b53f4b293d911c2b25d1638553b64bead3498c829172ec679803c2",
   "contingencies_sha256": "c430fb3c0e2bd481c4b43f2e9057309150627d484ea25fbdea294dfcd1d6decb",
   "certified_d30": false
 }

@@ -58,10 +58,10 @@
     }
   },
   "trazabilidad": {
-    "generado_utc": "2026-11-15T00:59:27+00:00",
-    "tesis_commit": "bd5a0786834508c637a3c6fc2426742cbfbba58d",
+    "generado_utc": "2026-11-15T02:09:42+00:00",
+    "tesis_commit": "69b29a5e75caac99825065eecf318786ddd0ebd1",
     "tesis_rama": "dev",
-    "tesis_entradas_sin_commitear": 1
+    "tesis_entradas_sin_commitear": 0
   },
   "regimen_excedente": {
     "version": 2,
@@ -77,9 +77,9 @@
         ],
         "poa_min_W_m2": 700.0,
         "poa_ventana_W_m2": 800.89,
-        "p_solar_ventana_kW": 3.1387,
-        "holgura_min_kW": 0.9721,
-        "holgura_max_kW": 1.2931,
+        "p_solar_ventana_kW": 2.4214,
+        "holgura_min_kW": 0.2548,
+        "holgura_max_kW": 0.5758,
         "causa": "regimen posterior a la unica perturbacion de t=40 s",
         "perturbacion": "recurso",
         "demanda_ventana_kW": {

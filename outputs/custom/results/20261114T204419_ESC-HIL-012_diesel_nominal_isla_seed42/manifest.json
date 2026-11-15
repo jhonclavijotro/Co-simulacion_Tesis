@@ -17,7 +17,15 @@
     "bytes": 69533,
     "sha256": "8733cbb8d431dcc60c23eb0e7676fbd05df73a62adadd773748c9fc83e5c3531"
   },
-  "audit_s40": {
+  "end_time": "2026-11-14T20:44:24.019754",
+  "elapsed_seconds": 2.954,
+  "hashes": {
+    "telemetry_rack_csv": "8733cbb8d431dcc60c23eb0e7676fbd05df73a62adadd773748c9fc83e5c3531",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "8e31919daf9de250d698e7ba50098a721defd99ef476cc5bd4ed5de3523772e2"
+  },
+  "audit_s1": {
+    "scenario_tag": "S1",
     "n_samples": 241,
     "time_range_s": [
       0.0,
@@ -26,19 +34,38 @@
     "max_step_elapsed_ms": 10.057,
     "rt_overruns": 0,
     "criteria": {
-      "certified_961_samples": false,
-      "surplus_bess_and_curtail": false,
-      "link_cut": false,
-      "zero_rt_overruns": true
+      "certified_241_samples": true,
+      "zero_rt_overruns": true,
+      "tail_frequency_p2p_le_010hz": true,
+      "voltages_within_5pct": true,
+      "pv_disconnected_p2_zero": true,
+      "bess_inert_p3_zero": true,
+      "diesel_within_operating_limits": true,
+      "tail_frequency_within_005hz": true
     },
-    "reconvergence_exercised": false,
-    "criteria_not_exercised": [
-      "reconvergence_under_active_fault"
+    "tail_100_120_s": {
+      "f_mean_hz": 60.0011,
+      "f_min_hz": 59.9973,
+      "f_max_hz": 60.0055,
+      "f_p2p_hz": 0.0082,
+      "max_abs_dev_hz": 0.0055
+    },
+    "voltage_range_pu": [
+      1.0,
+      1.0027
     ],
-    "notes_criteria": {
-      "link_cut": "60 muestras (30 s) de desconexion total 1-2 con retencion de consignas por ZOH; no se ejercito reconvergencia dinamica activa pues e_Q se mantuvo en 0.0000 debido a carga reactiva estatica (evidencia de reconvergencia diferida a nuevo escenario dinamico)."
+    "post_40s_summary": {
+      "P3_mean_kW": 0.0,
+      "P_curtailed_mean_kW": 0.0,
+      "SoC_ini": 0.2,
+      "SoC_fin": 0.2,
+      "curtail_ratio_min": 0.4522,
+      "P1_range_kW": [
+        3.915,
+        7.4856
+      ]
     },
-    "all_criteria_passed": false,
+    "all_criteria_passed": true,
     "windows": [
       {
         "ventana_s": [
@@ -49,16 +76,18 @@
         "n": 80,
         "f_min": 59.5536,
         "f_max": 60.0773,
+        "f_mean": 59.898,
+        "f_p2p": 0.5237,
         "V_min": 1.0,
         "V_max": 1.0023,
+        "P1_mean_kW": 5.7903,
+        "P2_mean_kW": 0.0,
         "P3_mean_kW": 0.0,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 6.0026,
         "SoC_ini": 0.2,
         "SoC_fin": 0.2,
-        "curtail_ratio_min": 0.4522,
-        "curtail_min": 0.15,
-        "e_Q_final": 0.0,
-        "dropped_pkts": 0,
-        "d12_samples": 0
+        "curtail_ratio_min": 0.4522
       },
       {
         "ventana_s": [
@@ -69,16 +98,18 @@
         "n": 120,
         "f_min": 59.7323,
         "f_max": 60.0561,
+        "f_mean": 59.9576,
+        "f_p2p": 0.3238,
         "V_min": 1.0,
         "V_max": 1.0027,
+        "P1_mean_kW": 7.1063,
+        "P2_mean_kW": 0.0,
         "P3_mean_kW": 0.0,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 7.1859,
         "SoC_ini": 0.2,
         "SoC_fin": 0.2,
-        "curtail_ratio_min": 0.5763,
-        "curtail_min": 0.15,
-        "e_Q_final": 0.0,
-        "dropped_pkts": 0,
-        "d12_samples": 0
+        "curtail_ratio_min": 0.5763
       },
       {
         "ventana_s": [
@@ -89,25 +120,20 @@
         "n": 41,
         "f_min": 59.9973,
         "f_max": 60.0055,
+        "f_mean": 60.0011,
+        "f_p2p": 0.0082,
         "V_min": 1.0,
         "V_max": 1.0027,
+        "P1_mean_kW": 7.1802,
+        "P2_mean_kW": 0.0,
         "P3_mean_kW": 0.0,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 7.1774,
         "SoC_ini": 0.2,
         "SoC_fin": 0.2,
-        "curtail_ratio_min": 1.0,
-        "curtail_min": 0.15,
-        "e_Q_final": 0.0,
-        "dropped_pkts": 0,
-        "d12_samples": 0
+        "curtail_ratio_min": 1.0
       }
     ],
-    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261114T204419_ESC-HIL-012_diesel_nominal_isla_seed42\\reporte_s40_validacion.md"
-  },
-  "end_time": "2026-11-14T20:44:24.019754",
-  "elapsed_seconds": 2.954,
-  "hashes": {
-    "telemetry_rack_csv": "8733cbb8d431dcc60c23eb0e7676fbd05df73a62adadd773748c9fc83e5c3531",
-    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
-    "scenario_meta_json": "8e31919daf9de250d698e7ba50098a721defd99ef476cc5bd4ed5de3523772e2"
+    "report_path": "outputs/custom/results/20261114T204419_ESC-HIL-012_diesel_nominal_isla_seed42\\reporte_s1_validacion.md"
   }
 }
