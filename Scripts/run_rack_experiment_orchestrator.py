@@ -266,6 +266,20 @@ class RackExperimentOrchestrator:
                     cmd_n2.extend(q_flags)
                     cmd_n3.extend(q_flags)
 
+                # Resolver excitación reactiva de cargas desde meta.json si no vino explícita por CLI
+                meta_path = os.path.join(scenario_dir, "meta.json")
+                if q_step_node is None and os.path.exists(meta_path):
+                    try:
+                        with open(meta_path, "r", encoding="utf-8") as f_m:
+                            ex_q = json.load(f_m).get("excitacion_reactiva") or {}
+                        if "nodo" in ex_q:
+                            q_step_node = int(ex_q["nodo"])
+                            q_step_var = float(ex_q.get("q_step_var", 1000.0))
+                            q_step_start = float(ex_q.get("inicio_s", 50.0))
+                            q_step_duration = float(ex_q.get("duracion_s", 5.0))
+                    except Exception:
+                        pass
+
                 cmd_loads = [
                     python_bin, "-u", "-B", "Agents/multi_load_process.py",
                     "--master-host", "127.0.0.1",
@@ -397,6 +411,9 @@ class RackExperimentOrchestrator:
                 elif scenario_name.startswith("ESC-HIL-014"):
                     audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
                     experiment_meta["audit_s3"] = audit_summary
+                elif scenario_name.startswith("ESC-HIL-015"):
+                    audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
+                    experiment_meta["audit_s4"] = audit_summary
                 else:
                     audit_summary = self.audit_s40_telemetry(local_csv, scenario_dir, results_dir)
                     experiment_meta["audit_s40"] = audit_summary
@@ -732,6 +749,9 @@ class RackExperimentOrchestrator:
         elif "014" in scenario_name:
             tag = "s3"
             tag_upper = "S3"
+        elif "015" in scenario_name:
+            tag = "s4"
+            tag_upper = "S4"
         else:
             tag = "indep"
             tag_upper = "INDEP"
@@ -907,6 +927,47 @@ class RackExperimentOrchestrator:
                 f"  - **BESS bloqueado en carga (`SoC_0 = {soc_ini_all:.2f}`):** {'PASS' if crit_bess_no_charge else 'FAIL'} (P3 rango=[{min(p3_all):.4f}, {max(p3_all):.4f}] kW, SoC_fin={soc_fin_all:.6f})",
                 f"  - **Estabilidad de cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s3 else 'FAIL'} ({tail_p2p:.4f} Hz)",
             ]
+        elif tag == "s4":
+            # S-O-36 P1: Criterios de Aceptación para Ensayo de Excitación de Reactiva (ESC-HIL-015)
+            # 1. Dispersión de ratios (máx - mín) supera 0.010 durante la excitación [50, 55] s
+            sub_excit = [r for r in rows if 50.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 55.0]
+            eq_excit = [_f(r, "e_Q") for r in sub_excit]
+            e_q_max_excit = max(eq_excit) if eq_excit else 0.0
+            crit_dispersion = e_q_max_excit > 0.010
+
+            # 2. Retorna a <= 0.0067 (banda 2%) en <= 13.5 s tras el cese del escalón (t=55 s)
+            sub_recovery = [r for r in rows if 55.0 < _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 68.5]
+            t_entry = None
+            for r in sub_recovery:
+                if _f(r, "e_Q") <= 0.0067:
+                    t_entry = _f(r, "time_s", _f(r, "time_sec", -1.0))
+                    break
+
+            recovery_time_s = (t_entry - 55.0) if t_entry is not None else 999.0
+            r_at_135 = next((r for r in rows if abs(_f(r, "time_s", _f(r, "time_sec", -1.0)) - 68.5) < 0.25), {})
+            e_q_at_13_5s = _f(r_at_135, "e_Q", 1.0)
+            crit_reconvergence = (t_entry is not None) and (recovery_time_s <= 13.5) and (e_q_at_13_5s <= 0.0067)
+
+            # 3. e_Q distinto de cero en al menos 20 muestras bajo excitación / transitorio
+            sub_trans = [r for r in rows if _f(r, "time_s", _f(r, "time_sec", -1.0)) >= 50.0]
+            nonzero_eq_samples = sum(1 for r in sub_trans if _f(r, "e_Q") > 0.0001)
+            crit_nonzero = nonzero_eq_samples >= 20
+
+            # 4. Tensiones en +-5% y sin ciclo límite (tail p2p <= 0.10 Hz)
+            crit_tail_p2p_s4 = tail_p2p <= 0.10
+
+            criteria_dict.update({
+                "ratio_dispersion_gt_0010": crit_dispersion,
+                "reconvergence_le_13_5s": crit_reconvergence,
+                "nonzero_eq_samples_ge_20": crit_nonzero,
+                "tail_frequency_p2p_le_010hz": crit_tail_p2p_s4,
+            })
+            specific_lines = [
+                f"  - **Dispersión de ratios bajo excitación (`e_Q_max > 0.010` en [50, 55] s):** {'PASS' if crit_dispersion else 'FAIL'} (e_Q_max={e_q_max_excit:.4f})",
+                f"  - **Reconvergencia a banda 2% (`e_Q <= 0.0067` en <= 13.5 s tras cese):** {'PASS' if crit_reconvergence else 'FAIL'} (t_recov={recovery_time_s:.1f} s, e_Q(68.5s)={e_q_at_13_5s:.4f})",
+                f"  - **Muestras no nulas de e_Q bajo excitación (>= 20 muestras):** {'PASS' if crit_nonzero else 'FAIL'} ({nonzero_eq_samples} muestras con e_Q > 0)",
+                f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s4 else 'FAIL'} ({tail_p2p:.4f} Hz)",
+            ]
         else:
             specific_lines = []
 
@@ -941,6 +1002,27 @@ class RackExperimentOrchestrator:
                 f"[{m['V_min']:.4f}, {m['V_max']:.4f}] | {m['P1_mean_kW']:.4f} | {m['P2_mean_kW']:.4f} | "
                 f"{m['P3_mean_kW']:+.4f} | {m['P_curtailed_mean_kW']:.4f} | {m['SoC_ini']} -> {m['SoC_fin']} | {m['curtail_ratio_min']:.4f} |"
             )
+
+        if tag == "s4":
+            lines.append("")
+            lines.append("### Registro Muestra a Muestra de Potencia Reactiva y Consenso (Ventana de Excitación [48, 72] s)")
+            lines.append("| t (s) | Q1 (kvar) | Q2 (kvar) | Q3 (kvar) | q1 (Q1/6k) | q2 (Q2/3k) | q3 (Q3/1k) | e_Q | f_sys (Hz) | V_min (pu) |")
+            lines.append("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+            sub_window_rep = [r for r in rows if 48.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 72.0]
+            for r in sub_window_rep:
+                t_val = _f(r, "time_s", _f(r, "time_sec", -1.0))
+                q1_v = _f(r, "Q1_kvar")
+                q2_v = _f(r, "Q2_kvar")
+                q3_v = _f(r, "Q3_kvar")
+                r1_v = _f(r, "Q_ratio_1")
+                r2_v = _f(r, "Q_ratio_2")
+                r3_v = _f(r, "Q_ratio_3")
+                eq_v = _f(r, "e_Q")
+                f_v = _f(r, "f_sys_hz")
+                v_vals = [_f(r, f"V{i}_pu", 1.0) for i in range(1, 9) if f"V{i}_pu" in r]
+                v_min = min(v_vals) if v_vals else 1.0
+                lines.append(f"| {t_val:.1f} | {q1_v:+.4f} | {q2_v:+.4f} | {q3_v:+.4f} | {r1_v:.4f} | {r2_v:.4f} | {r3_v:.4f} | {eq_v:.4f} | {f_v:.4f} | {v_min:.4f} |")
+
         with open(report_path, "w", encoding="utf-8") as f_rep:
             f_rep.write("\n".join(lines) + "\n")
         print(f"[OK] Reporte {tag_upper} generado: {report_path}")
@@ -1050,6 +1132,7 @@ class RackExperimentOrchestrator:
                 "curtail_ratio_min": round(min(curt_vals), 4),
                 "curtail_min": round(min(curt_min_param), 4),
                 "e_Q_final": round(eq_vals[-1], 4),
+                "e_Q_max": round(max(eq_vals), 4) if eq_vals else 0.0,
                 "dropped_pkts": dropped,
                 "d12_samples": d12_cnt,
             })
@@ -1066,7 +1149,12 @@ class RackExperimentOrchestrator:
             and w_300.get("SoC_fin") is not None and w_300.get("SoC_ini") is not None
             and w_300["SoC_fin"] > w_300["SoC_ini"] and w_300.get("curtail_ratio_min", 1.0) < 1.0
         )
-        crit_3 = w_410.get("d12_samples", 0) == 60 and w_440.get("e_Q_final", 1.0) < 0.05
+        # S-O-36 P4: Precondición e_Q_max > 0.01 en ventana de falla para evaluar reconvergencia real
+        crit_3_link_cut_no_dev = (
+            w_410.get("d12_samples", 0) == 60
+            and w_410.get("e_Q_max", 0.0) > 0.01
+            and w_440.get("e_Q_final", 1.0) < 0.05
+        )
         crit_4 = overruns == 0 and (max(step_times_ms) < 500.0 if step_times_ms else True)
 
         report_path = os.path.join(results_dir, "reporte_s40_validacion.md")
@@ -1078,7 +1166,7 @@ class RackExperimentOrchestrator:
             "- **Criterios certificados:** 3 certificados + 1 no ejercitado",
             f"  - **Criterio 1 (961 muestras @ 2 Hz):** {'PASS' if crit_1 else 'FAIL'}",
             f"  - **Criterio 2 (Régimen excedentario BESS+PV):** {'PASS' if crit_2 else 'FAIL'}",
-            f"  - **Criterio 3 (Desconexión de enlace 1↔2, 60 muestras / 30 s + Retención ZOH):** {'PASS' if crit_3 else 'FAIL'} (reconvergencia dinámica no ejercitada bajo falla activa; diferida a nuevo escenario)",
+            f"  - **Criterio 3 (Corte de enlace 1↔2 con precondición e_Q_max > 0.01 / link_cut_no_deviation):** {'PASS' if crit_3_link_cut_no_dev else 'FAIL'} (reconvergencia dinámica no ejercitada bajo falla activa: e_Q_max={w_410.get('e_Q_max', 0.0):.4f})",
             f"  - **Criterio 4 (0 violaciones RT 500 ms):** {'PASS' if crit_4 else 'FAIL'}",
             "- **Criterios no ejercitados:** `[\"reconvergence_under_active_fault\"]`",
             "",
@@ -1106,7 +1194,7 @@ class RackExperimentOrchestrator:
             "criteria": {
                 "certified_961_samples": crit_1,
                 "surplus_bess_and_curtail": crit_2,
-                "link_cut": crit_3,
+                "link_cut_no_deviation": crit_3_link_cut_no_dev,
                 "zero_rt_overruns": crit_4,
             },
             "reconvergence_exercised": False,
@@ -1114,9 +1202,9 @@ class RackExperimentOrchestrator:
                 "reconvergence_under_active_fault"
             ],
             "notes_criteria": {
-                "link_cut": "60 muestras (30 s) de desconexion total 1-2 con retencion de consignas por ZOH; no se ejercito reconvergencia dinamica activa pues e_Q se mantuvo en 0.0000 debido a carga reactiva estatica (evidencia de reconvergencia diferida a nuevo escenario dinamico)."
+                "link_cut_no_deviation": "Corte de enlace 1-2 (60 muestras / 30 s) con precondicion de excitacion e_Q_max > 0.01 y reconvergencia e_Q < 0.05. En ESC-HIL-008 e_Q_max fue 0.0000 (carga estatica), no satisfaciendo la precondicion de excitacion activa."
             },
-            "all_criteria_passed": bool(crit_1 and crit_2 and crit_3 and crit_4),
+            "all_criteria_passed": bool(crit_1 and crit_2 and crit_3_link_cut_no_dev and crit_4),
             "windows": window_metrics,
             "report_path": report_path,
         }
