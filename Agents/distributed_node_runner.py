@@ -161,6 +161,11 @@ class DistributedNodeRunner:
         self.p_min_diesel = float(p_min_diesel)
         self.curtail_ratio = 1.0
         self.eta_excess = 0.0
+        # S-O-34 / C2: Máquina de estados para compuerta de recorte solar
+        self.curtail_state = "IDLE"  # "IDLE" o "CURTAIL"
+        self.curtail_dwell_steps = 0
+        self.curtail_enter_steps = 0
+        self.last_known_bess_soc = None
         self.operating_mode = operating_mode.upper()
         self.q_perturb_node = int(q_perturb_node) if q_perturb_node is not None else None
         self.q_perturb_var = float(q_perturb_var)
@@ -423,44 +428,86 @@ class DistributedNodeRunner:
                     # BESS bidireccional proporcional rápido (Droop primario P(f) desacoplado del integrador diésel)
                     p_chg_lim = min(self.p_charge_max, float(phys_out.get("P_charge_max", self.p_charge_max)))
                     p_dis_lim = min(self.p_max, float(phys_out.get("P_discharge_max", self.p_max)))
-                    
+
+                    # S-O-34 / C1: Droop del BESS adaptativo por SoC
+                    # m_p0 = 1.33e-4 Hz/W => k_p0 = 7500 W/Hz; banda de operación SoC [0.20, 0.80], k_SoC = 0.5
+                    k_p0 = 7500.0
+                    current_soc = float(soc) if soc is not None else 0.50
+                    soc_clamped = max(0.20, min(0.80, current_soc))
+
+                    if df_hz > 0.0:  # Carga (absorbiendo excedente de potencia activa)
+                        # A menor SoC, mayor capacidad restante de carga => mayor ganancia
+                        gain_factor = 1.0 + 0.5 * (0.50 - soc_clamped) / 0.30
+                    else:  # Descarga (apoyando déficit de generación)
+                        gain_factor = 1.0 + 0.5 * (soc_clamped - 0.50) / 0.30
+
+                    k_p_eff = k_p0 * gain_factor
+
                     # Banda muerta de +-0.010 Hz para evitar chattering en régimen permanente
                     bess_deadband = 0.010
                     if abs(df_hz) > bess_deadband:
                         df_eff = df_hz - math.copysign(bess_deadband, df_hz)
-                        p_target = -6000.0 * df_eff
+                        p_target = -k_p_eff * df_eff
                     else:
                         p_target = 0.0
                     self.P_ref = max(-p_chg_lim, min(p_dis_lim, p_target))
 
-                    # Coordinación de excedente eta_excess: SOLO si BESS está saturando en carga o con capacidad agotada
-                    is_charging_saturated = (p_chg_lim <= 200.0) or ((-P_w) >= 0.85 * p_chg_lim and p_chg_lim > 0.0)
+                    # Coordinación de excedente eta_excess: BESS señaliza saturación real para consenso P2P
+                    is_charging_saturated = (p_chg_lim <= 200.0) or (current_soc >= 0.90) or ((-P_w) >= 0.95 * p_chg_lim and p_chg_lim > 0.0)
                     if is_charging_saturated and df_hz > 0.015:
                         self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.3 * df_hz))
-                    elif df_hz < -0.005 or (-P_w) < 0.60 * p_chg_lim:
+                    elif df_hz < -0.005 or ((-P_w) < 0.60 * p_chg_lim and current_soc < 0.85):
                         self.eta_excess = max(0.0, min(1.0, self.eta_excess - 0.03))
                     else:
                         self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.1 * self.agent.delta_eta))
 
                 elif self.source_type == "SOLAR":
-                    # Solar: MPP nominal en equilibrio/déficit; curtailment coordinado ante excedente genuino
-                    neighbor_eta_max = max(
-                        (float(s.get("eta_excess", 0.0)) for s in filtered_neighbors.values()),
-                        default=0.0
-                    )
-                    excess_active = (neighbor_eta_max > 0.05 and df_hz > 0.010) or (df_hz > 0.060)
-                    if excess_active and df_hz > 0.010:
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.4 * (df_hz - 0.010)))
-                    elif df_hz < -0.005 or (neighbor_eta_max < 0.02 and df_hz < 0.010):
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess - 0.02))
-                    else:
-                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.05 * self.agent.delta_eta))
+                    # Actualizar SoC conocido del BESS a través del canal P2P
+                    for s in filtered_neighbors.values():
+                        if "SoC" in s and s["SoC"] is not None:
+                            self.last_known_bess_soc = float(s["SoC"])
+                    bess_soc = self.last_known_bess_soc if self.last_known_bess_soc is not None else 0.50
 
-                    # Filtro de tasa suave (rate-limit) en curtail_ratio para suprimir ciclos límite bang-bang
-                    target_curtail = max(self.curtail_min, min(1.0, 1.0 - self.eta_excess))
-                    rate_limit = 0.04  # variación máxima del 4% por paso (0.5 s)
-                    d_curtail = max(-rate_limit, min(rate_limit, target_curtail - self.curtail_ratio))
-                    self.curtail_ratio = max(self.curtail_min, min(1.0, self.curtail_ratio + d_curtail))
+                    # S-O-34 / C2: Compuerta de recorte por estado de carga con histéresis y reset del trinquete
+                    # 1. Transición de IDLE a CURTAIL: f >= 60.060 Hz Y SoC >= 0.90 sostenido 2 s (4 pasos @ 0.5s)
+                    if self.curtail_state == "IDLE":
+                        if f_sys >= 60.060 and bess_soc >= 0.90:
+                            self.curtail_enter_steps += 1
+                            if self.curtail_enter_steps >= 4:  # 2.0 s sostenido
+                                self.curtail_state = "CURTAIL"
+                                self.curtail_dwell_steps = 0
+                        else:
+                            self.curtail_enter_steps = 0
+
+                    # 2. Transición de CURTAIL a IDLE: f <= 60.040 Hz Y SoC <= 0.80 tras dwell mínimo de 2 s
+                    elif self.curtail_state == "CURTAIL":
+                        self.curtail_dwell_steps += 1
+                        can_exit = (self.curtail_dwell_steps >= 4)
+                        if can_exit and f_sys <= 60.040 and bess_soc <= 0.80:
+                            self.curtail_state = "IDLE"
+                            self.curtail_dwell_steps = 0
+                            self.curtail_enter_steps = 0
+                            # Reset del trinquete al volver a IDLE (C2)
+                            self.eta_excess = 0.0
+                            self.curtail_ratio = 1.0
+
+                    # 3. Aplicar ley de control según el estado activo
+                    if self.curtail_state == "CURTAIL":
+                        # Ganancia de recorte k_f = 25 kW/Hz (recorte total a 0.20 Hz)
+                        # Banda muerta / histéresis: base en 60.040 Hz
+                        df_curtail = max(0.0, f_sys - 60.040)
+                        p_curt_target = 25000.0 * df_curtail
+                        p_mpp_ref = max(100.0, p_mpp if p_mpp > 0 else self.p_max)
+                        eta_target = max(0.0, min(1.0, p_curt_target / p_mpp_ref))
+
+                        # Filtrado suave de eta_excess para suprimir oscilaciones de alta frecuencia
+                        self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.3 * (eta_target - self.eta_excess)))
+                        self.curtail_ratio = max(self.curtail_min, min(1.0, 1.0 - self.eta_excess))
+                    else:
+                        # En estado IDLE: sin recorte (curtail_ratio = 1.0)
+                        self.eta_excess = 0.0
+                        self.curtail_ratio = 1.0
+
                     self.P_ref = max(0.0, min(self.p_max, self.P_ref))
                 else:
                     self.P_ref = max(0.0, min(self.p_max, self.P_ref))

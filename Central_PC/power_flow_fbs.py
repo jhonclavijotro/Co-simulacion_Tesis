@@ -124,7 +124,11 @@ class ForwardBackwardSweepSolver:
                 # Z en p.u. = Z_ohm / (V_base^2 / S_base)
                 Z_base = (self.V_base ** 2) / self.S_base
                 Z_pu = br["Z"] / Z_base
-                V[v] = V[u] - I_branch[(u, v)] * Z_pu
+                # S-O-34 / C0 / D-34: Signo físico de caída de tensión.
+                # Como I_branch es la suma de inyecciones (negativa para cargas consumiendo),
+                # la caída física V[u] - V[v] = I_flow * Z_pu = -I_branch * Z_pu,
+                # por tanto: V[v] = V[u] + I_branch[(u, v)] * Z_pu.
+                V[v] = V[u] + I_branch[(u, v)] * Z_pu
 
             # 4. Verificación de Convergencia
             max_diff = max(abs(abs(V[n]) - abs(V_prev[n])) for n in self.nodes)

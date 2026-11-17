@@ -1,4 +1,5 @@
 import csv
+import math
 from Solar.SolarPanel import SolarPanel
 from Solar.MPPTController import MPPTController
 from Solar.BoostConverter import BoostConverter
@@ -122,25 +123,29 @@ class SistemaSolar:
         # para emular el desplazamiento del punto de operación (off-MPPT) y evitar sobretensión ficticia en Vdc
         I_pv_eff = ctx["I_pv"] * curtail_ratio if curtail_ratio < 1.0 else ctx["I_pv"]
 
+        # Corriente inyectada al bus DC conservando potencia DC del Boost (P_dc = V_dc * I_dc_in = V_array * I_pv_eff)
+        # S-O-34 / D-34 C-4: D = 1 - V_array/V_dc ==> I_dc_in = I_pv_eff * (1 - D) = I_pv_eff * (V_array / V_dc)
+        I_dc_in = I_pv_eff * (1.0 - ctx["duty_cycle"])
+
         # Ejecutar un paso del inversor conectado a red con seguimiento de reactiva
         q_ref_val = ctx.get("Pq", 0.0)
         Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
-            ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], I_pv_eff, dt,
+            ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], I_dc_in, dt,
             Q_ref=q_ref_val,
             D=ctx["duty_cycle"])
 
-        # Potencia MPP nominal disponible del arreglo fotovoltaico a Vdc_ref (400V)
+        # Potencia MPP nominal disponible del arreglo fotovoltaico sobre V_array real (S-O-34 / D-34 C-4)
         # P_mpp es invariante a la modulación de curtail_ratio y depende únicamente del recurso solar (POA, T)
-        P_mpp = max(self.inversor.Vdcref, 10.0) * max(0.0, ctx["I_pv"]) * self.N_inv
+        P_mpp = max(0.0, ctx["V_array"] * ctx["I_pv"]) * self.N_inv
         if P_mpp <= 0.0:
             P_mpp = float(Pw)
 
         if curtail_ratio < 1.0:
-            Pw_eff = P_mpp * curtail_ratio
-            P_curtailed = P_mpp - Pw_eff
-            Idi_eff = Idi * curtail_ratio
+            Pw_eff = Pw
+            P_curtailed = max(0.0, P_mpp - Pw_eff)
+            Idi_eff = Idi
         else:
-            Pw_eff = P_mpp
+            Pw_eff = Pw
             P_curtailed = 0.0
             Idi_eff = Idi
 
@@ -153,17 +158,18 @@ class SistemaSolar:
         ctx["Iqi"] = Iqi
         ctx["Idiref"] = Idiref
 
-        # Actualizar el bus DC del convertidor Boost
-        # NOTA: Idi es ahora la corriente equivalente DC que demanda el inversor (Iinv_dc)
-        # Esta corriente ya incluye la relacion de transformacion Vdi/Vdc
+        # Actualizar el bus DC del convertidor Boost con la corriente DC real de carga
         _, Vdc_new = self.boost.update_state(
-            ctx["duty_cycle"], I_pv_eff, ctx["V_array"], ctx["Idi"], dt)
+            ctx["duty_cycle"], I_pv_eff, ctx["V_array"], I_dc_in, dt)
         ctx["V_dc"] = Vdc_new
 
         # Obtener la tension trifasica de la red o usar el valor externo del PCC
         if V_pcc is not None:
             if isinstance(V_pcc, (int, float)):
-                Va, Vb, Vc = self.transformadas.synthesize_vabc(V_pcc)
+                # Convertir p.u. a V_rms fase si V_pcc viene en p.u. (S-O-34)
+                V_nom_ref = self.V_base_MT if self.N_inv > 1 else 400.0
+                V_phase_rms = float(V_pcc) * (V_nom_ref / math.sqrt(3.0)) if float(V_pcc) <= 2.5 else float(V_pcc)
+                Va, Vb, Vc = self.transformadas.synthesize_vabc(V_phase_rms)
             else:
                 Va, Vb, Vc = V_pcc
             ctx["V_actual"] = V_pcc

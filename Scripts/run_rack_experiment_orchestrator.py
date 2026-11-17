@@ -848,28 +848,53 @@ class RackExperimentOrchestrator:
         elif tag == "s2":
             crit_no_deficit = (min(p1_all) >= 3.49) and (max(p1_all) <= 10.0)
             crit_bess_absorb = (p3_mean_40_120 < 0.0) and (soc_fin_all > soc_ini_all)
+
+            # S-O-34 / C1 / C2: Criterios estrictos de aceptación S2
+            curt_40_120 = [_f(r, "curtail_ratio", 1.0) for r in sub_40_120] if sub_40_120 else curt_all
+            pct_ones = (sum(1 for c in curt_40_120 if c >= 0.999) / len(curt_40_120)) if curt_40_120 else 0.0
+            crit_curtail_1 = pct_ones >= 0.95
+            crit_ss_freq = tail_max_dev <= 0.070
+
+            # Concordancia de SoC con energía absorbida en la ventana de excedente [40, 120] s (S-O-34 C1)
+            # Pack nominal: 48.0 V * 10 serie = 480.0 V, 200.0 Ah => E_nom = 480 * 200 * 3600 = 345,600,000 J
+            e_absorbed_sub = sum(-float(_f(r, "P3_kW", 0.0)) * 1000.0 * 0.5 for r in sub_40_120 if float(_f(r, "P3_kW", 0.0)) < 0)
+            theo_d_soc = e_absorbed_sub / (480.0 * 200.0 * 3600.0)
+            soc_sub_vals = [_f(r, "SoC", 0.5) for r in sub_40_120 if r.get("SoC", "") != ""]
+            meas_d_soc = (soc_sub_vals[-1] - soc_sub_vals[0]) if len(soc_sub_vals) >= 2 else (soc_fin_all - soc_ini_all)
+            concordance = (meas_d_soc / theo_d_soc) if theo_d_soc > 1e-6 else 1.0
+            crit_soc_concordance = concordance >= 0.95
+
             criteria_dict.update({
                 "no_deficit_diesel_in_range": crit_no_deficit,
                 "bess_absorbs_surplus": crit_bess_absorb,
+                "curtail_ratio_1_in_ge_95pct": crit_curtail_1,
+                "steady_state_delta_f_le_0070hz": crit_ss_freq,
+                "soc_concordance_ge_95pct": crit_soc_concordance,
             })
             specific_lines = [
                 f"  - **Sin déficit (`P1 >= 3.49 kW` y `<= 10.0 kW`):** {'PASS' if crit_no_deficit else 'FAIL'} (rango=[{min(p1_all):.4f}, {max(p1_all):.4f}] kW)",
                 f"  - **Absorción en BESS (`[40, 120] s`):** {'PASS' if crit_bess_absorb else 'FAIL'} (P3 media={p3_mean_40_120:+.4f} kW, SoC: {soc_ini_all:.6f} -> {soc_fin_all:.6f})",
+                f"  - **Cero recorte solar (`curtail_ratio == 1.0` en >= 95%):** {'PASS' if crit_curtail_1 else 'FAIL'} ({pct_ones*100:.1f} % en 1.0)",
+                f"  - **Desvío régimen permanente (`|f-60| <= 0.070 Hz`):** {'PASS' if crit_ss_freq else 'FAIL'} (máx dev={tail_max_dev:.4f} Hz)",
+                f"  - **Concordancia energética de SoC (>= 95%):** {'PASS' if crit_soc_concordance else 'FAIL'} ({concordance*100:.1f} % concordancia)",
                 f"  - **Recorte solar medio (`[40, 120] s`):** {pc_mean_40_120:.4f} kW (curtail_ratio_min={min(curt_all):.4f})",
             ]
         elif tag == "s3":
             crit_no_deficit = (min(p1_all) >= 3.49) and (max(p1_all) <= 10.0)
             crit_pv_curtail = (pc_mean_40_120 > 0.0) and (min(curt_all) < 1.0)
             crit_bess_no_charge = all(x >= -0.05 for x in p3_all)
+            crit_tail_p2p_s3 = tail_p2p <= 0.10
             criteria_dict.update({
                 "no_deficit_diesel_in_range": crit_no_deficit,
                 "pv_curtailment_active": crit_pv_curtail,
                 "bess_charge_disabled": crit_bess_no_charge,
+                "tail_p2p_le_010hz": crit_tail_p2p_s3,
             })
             specific_lines = [
                 f"  - **Sin déficit (`P1 >= 3.49 kW` y `<= 10.0 kW`):** {'PASS' if crit_no_deficit else 'FAIL'} (rango=[{min(p1_all):.4f}, {max(p1_all):.4f}] kW)",
                 f"  - **Recorte solar activo (`[40, 120] s`):** {'PASS' if crit_pv_curtail else 'FAIL'} (P_curtailed media={pc_mean_40_120:.4f} kW, curtail_ratio_min={min(curt_all):.4f})",
                 f"  - **BESS bloqueado en carga (`SoC_0 = {soc_ini_all:.2f}`):** {'PASS' if crit_bess_no_charge else 'FAIL'} (P3 rango=[{min(p3_all):.4f}, {max(p3_all):.4f}] kW, SoC_fin={soc_fin_all:.6f})",
+                f"  - **Estabilidad de cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s3 else 'FAIL'} ({tail_p2p:.4f} Hz)",
             ]
         else:
             specific_lines = []
