@@ -1,0 +1,138 @@
+{
+  "run_id": "20261117T080149_ESC-HIL-014_excedente_sin_espacio_seed42",
+  "scenario": "ESC-HIL-014_excedente_sin_espacio",
+  "steps": 241,
+  "dt_s": 0.5,
+  "start_time": "2026-11-17T08:01:49.270748",
+  "parameters": {
+    "p_min_diesel": null,
+    "p_charge_max": null,
+    "network_profile": null,
+    "contingencies_file": null,
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261117T080149_ESC-HIL-014_excedente_sin_espacio_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 71632,
+    "sha256": "2594eb7fbbd4527c3df0a6c477e85d379ce7248d3b5d83ac5dc3973c40f94b26"
+  },
+  "audit_s3": {
+    "scenario_tag": "S3",
+    "n_samples": 241,
+    "time_range_s": [
+      0.0,
+      120.0
+    ],
+    "max_step_elapsed_ms": 11.576,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_241_samples": true,
+      "zero_rt_overruns": true,
+      "tail_frequency_p2p_le_010hz": false,
+      "voltages_within_5pct": true,
+      "no_deficit_diesel_in_range": true,
+      "pv_curtailment_active": true,
+      "bess_charge_disabled": true
+    },
+    "tail_100_120_s": {
+      "f_mean_hz": 60.015,
+      "f_min_hz": 59.9348,
+      "f_max_hz": 60.0817,
+      "f_p2p_hz": 0.1469,
+      "max_abs_dev_hz": 0.0817
+    },
+    "voltage_range_pu": [
+      1.0,
+      1.0025
+    ],
+    "post_40s_summary": {
+      "P3_mean_kW": 0.1024,
+      "P_curtailed_mean_kW": 0.7312,
+      "SoC_ini": 0.95,
+      "SoC_fin": 0.949979,
+      "curtail_ratio_min": 0.3103,
+      "P1_range_kW": [
+        3.5,
+        4.1156
+      ]
+    },
+    "all_criteria_passed": false,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          40
+        ],
+        "evento": "nominal 6,5 kW con PV a 800 W/m2",
+        "n": 80,
+        "f_min": 59.9844,
+        "f_max": 60.0131,
+        "f_mean": 59.9981,
+        "f_p2p": 0.0287,
+        "V_min": 1.0,
+        "V_max": 1.0025,
+        "P1_mean_kW": 4.069,
+        "P2_mean_kW": 2.4247,
+        "P3_mean_kW": 0.003,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 6.501,
+        "SoC_ini": 0.95,
+        "SoC_fin": 0.95,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          40,
+          100
+        ],
+        "evento": "escalon de carga -15 %",
+        "n": 120,
+        "f_min": 59.8318,
+        "f_max": 60.1612,
+        "f_mean": 60.0151,
+        "f_p2p": 0.3294,
+        "V_min": 1.0,
+        "V_max": 1.0024,
+        "P1_mean_kW": 3.7718,
+        "P2_mean_kW": 1.6597,
+        "P3_mean_kW": 0.1149,
+        "P_curtailed_mean_kW": 0.7638,
+        "P_load_mean_kW": 5.5085,
+        "SoC_ini": 0.95,
+        "SoC_fin": 0.949982,
+        "curtail_ratio_min": 0.3103
+      },
+      {
+        "ventana_s": [
+          100,
+          120
+        ],
+        "evento": "cola",
+        "n": 41,
+        "f_min": 59.9348,
+        "f_max": 60.0817,
+        "f_mean": 60.015,
+        "f_p2p": 0.1469,
+        "V_min": 1.0,
+        "V_max": 1.0021,
+        "P1_mean_kW": 3.5869,
+        "P2_mean_kW": 1.7904,
+        "P3_mean_kW": 0.0656,
+        "P_curtailed_mean_kW": 0.6358,
+        "P_load_mean_kW": 5.4987,
+        "SoC_ini": 0.949982,
+        "SoC_fin": 0.949979,
+        "curtail_ratio_min": 0.6011
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261117T080149_ESC-HIL-014_excedente_sin_espacio_seed42\\reporte_s3_validacion.md"
+  },
+  "end_time": "2026-11-17T08:01:56.133139",
+  "elapsed_seconds": 3.29,
+  "hashes": {
+    "telemetry_rack_csv": "2594eb7fbbd4527c3df0a6c477e85d379ce7248d3b5d83ac5dc3973c40f94b26",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "8fc902da0b89d6400da4974633297444cf6cbd6bb58717ddd59a675b0199a50c"
+  }
+}

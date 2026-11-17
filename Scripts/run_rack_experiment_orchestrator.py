@@ -282,7 +282,7 @@ class RackExperimentOrchestrator:
                     subprocess.Popen(cmd_loads, stdout=f_loads, stderr=subprocess.STDOUT),
                 ]
                 print(f"    [OK] 4 procesos distribuidos iniciados localmente en 127.0.0.1 (logs en output_data/).")
-                time.sleep(1.5)
+                time.sleep(3.5)
             else:
                 # 2. Limpieza preventiva en el clúster
                 print("\n[Paso 1/5] Deteniendo contenedores previos en el clúster...")

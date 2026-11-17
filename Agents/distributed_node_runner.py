@@ -428,10 +428,7 @@ class DistributedNodeRunner:
                     bess_deadband = 0.010
                     if abs(df_hz) > bess_deadband:
                         df_eff = df_hz - math.copysign(bess_deadband, df_hz)
-                        # IMPLEMENTACION.tex: kappa_BESS = 40.0 W/(rad/s)
-                        # delta_omega = 2 * pi * df_eff  ==>  p_target = - kappa_BESS * (2 * pi * df_eff)
-                        kappa_bess = 40.0  # W/(rad/s)
-                        p_target = -kappa_bess * (2.0 * math.pi * df_eff)
+                        p_target = -6000.0 * df_eff
                     else:
                         p_target = 0.0
                     self.P_ref = max(-p_chg_lim, min(p_dis_lim, p_target))
@@ -451,7 +448,7 @@ class DistributedNodeRunner:
                         (float(s.get("eta_excess", 0.0)) for s in filtered_neighbors.values()),
                         default=0.0
                     )
-                    excess_active = (neighbor_eta_max > 0.05 and df_hz > 0.010) or (df_hz > 0.030)
+                    excess_active = (neighbor_eta_max > 0.05 and df_hz > 0.010) or (df_hz > 0.060)
                     if excess_active and df_hz > 0.010:
                         self.eta_excess = max(0.0, min(1.0, self.eta_excess + 0.4 * (df_hz - 0.010)))
                     elif df_hz < -0.005 or (neighbor_eta_max < 0.02 and df_hz < 0.010):
