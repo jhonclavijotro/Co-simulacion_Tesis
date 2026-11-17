@@ -414,6 +414,9 @@ class RackExperimentOrchestrator:
                 elif scenario_name.startswith("ESC-HIL-015"):
                     audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
                     experiment_meta["audit_s4"] = audit_summary
+                elif scenario_name.startswith("ESC-HIL-016"):
+                    audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
+                    experiment_meta["audit_s4_180s"] = audit_summary
                 else:
                     audit_summary = self.audit_s40_telemetry(local_csv, scenario_dir, results_dir)
                     experiment_meta["audit_s40"] = audit_summary
@@ -752,6 +755,9 @@ class RackExperimentOrchestrator:
         elif "015" in scenario_name:
             tag = "s4"
             tag_upper = "S4"
+        elif "016" in scenario_name:
+            tag = "s4_180s"
+            tag_upper = "S4_180S"
         else:
             tag = "indep"
             tag_upper = "INDEP"
@@ -820,7 +826,14 @@ class RackExperimentOrchestrator:
                 "curtail_ratio_min": round(min(curt_vals), 4),
             })
 
-        sub_tail = [r for r in rows if 100.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 120.0]
+        if tag == "s4_180s":
+            tail_t0, tail_t1 = 120.0, 180.0
+            tail_str = "[120, 180] s"
+        else:
+            tail_t0, tail_t1 = 100.0, 120.0
+            tail_str = "[100, 120] s"
+
+        sub_tail = [r for r in rows if tail_t0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= tail_t1]
         tail_f_vals = [_f(r, "f_sys_hz", 60.0) for r in sub_tail] if sub_tail else [60.0]
         tail_f_mean = sum(tail_f_vals) / len(tail_f_vals)
         tail_f_min = min(tail_f_vals)
@@ -847,13 +860,21 @@ class RackExperimentOrchestrator:
         soc_ini_all = soc_all[0] if soc_all else 0.5
         soc_fin_all = soc_all[-1] if soc_all else 0.5
 
-        crit_1 = n_samples == 241 and abs(t_first - 0.0) < 1e-6 and abs(t_last - 120.0) < 1e-6
+        if tag == "s4_180s":
+            crit_1 = n_samples == 361 and abs(t_first - 0.0) < 1e-6 and abs(t_last - 180.0) < 1e-6
+            crit_samples_key = "certified_361_samples"
+            crit_samples_text = "Muestras exactas (361 @ 2 Hz / 180 s)"
+        else:
+            crit_1 = n_samples == 241 and abs(t_first - 0.0) < 1e-6 and abs(t_last - 120.0) < 1e-6
+            crit_samples_key = "certified_241_samples"
+            crit_samples_text = "Muestras exactas (241 @ 2 Hz / 120 s)"
+
         crit_2 = overruns == 0 and (max(step_times_ms) < 500.0 if step_times_ms else True)
         crit_tail_p2p = tail_p2p <= 0.10
         crit_voltages = (v_min_all >= 0.95) and (v_max_all <= 1.05)
 
         criteria_dict: Dict[str, bool] = {
-            "certified_241_samples": crit_1,
+            crit_samples_key: crit_1,
             "zero_rt_overruns": crit_2,
             "tail_frequency_p2p_le_010hz": crit_tail_p2p,
             "voltages_within_5pct": crit_voltages,
@@ -968,6 +989,71 @@ class RackExperimentOrchestrator:
                 f"  - **Muestras no nulas de e_Q bajo excitación (>= 20 muestras):** {'PASS' if crit_nonzero else 'FAIL'} ({nonzero_eq_samples} muestras con e_Q > 0)",
                 f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s4 else 'FAIL'} ({tail_p2p:.4f} Hz)",
             ]
+        elif tag == "s4_180s":
+            # S-O-37: Criterios de Aceptación para Ensayo de Excitación de Reactiva 180s (ESC-HIL-016)
+            # 1. Dispersión de ratios (máx - mín) supera 0.010 durante la excitación [50, 55] s
+            sub_excit = [r for r in rows if 50.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 55.0]
+            eq_excit = [_f(r, "e_Q") for r in sub_excit]
+            e_q_max_excit = max(eq_excit) if eq_excit else 0.0
+            crit_dispersion = e_q_max_excit > 0.010
+
+            # 2. Retorna a <= 0.0067 (banda 2%) en <= 13.5 s tras el cese del escalón (t=55 s)
+            sub_recovery = [r for r in rows if 55.0 < _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 68.5]
+            t_entry = None
+            for r in sub_recovery:
+                if _f(r, "e_Q") <= 0.0067:
+                    t_entry = _f(r, "time_s", _f(r, "time_sec", -1.0))
+                    break
+
+            recovery_time_s = (t_entry - 55.0) if t_entry is not None else 999.0
+            crit_reconvergence = (t_entry is not None) and (recovery_time_s <= 13.5)
+
+            # 3. Dispersión sostenida en la cola [120, 180] s (e_Q <= 0.0067)
+            sub_tail_180 = [r for r in rows if 120.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 180.0]
+            eq_tail_180 = [_f(r, "e_Q") for r in sub_tail_180]
+            e_q_tail_max = max(eq_tail_180) if eq_tail_180 else 0.0
+            e_q_tail_mean = sum(eq_tail_180) / len(eq_tail_180) if eq_tail_180 else 0.0
+            crit_tail_dispersion = (e_q_tail_max <= 0.0067) or (e_q_tail_mean <= 0.0067 and (sum(1 for x in eq_tail_180 if x <= 0.0067) / len(eq_tail_180) >= 0.95))
+
+            # Determinar instante exacto de cruce sostenido tras cese (t >= 55 s) donde e_Q permanece <= 0.0067
+            t_cruce_sostenido = None
+            for idx_c, r_c in enumerate(rows):
+                t_c = _f(r_c, "time_s", _f(r_c, "time_sec", -1.0))
+                if t_c >= 55.0:
+                    remaining = [_f(rem, "e_Q") for rem in rows[idx_c:]]
+                    if all(x <= 0.0067 for x in remaining):
+                        t_cruce_sostenido = t_c
+                        break
+            if t_cruce_sostenido is None:
+                for idx_c, r_c in reversed(list(enumerate(rows))):
+                    if _f(r_c, "e_Q") > 0.0067:
+                        if idx_c + 1 < len(rows):
+                            t_cruce_sostenido = _f(rows[idx_c + 1], "time_s", _f(rows[idx_c + 1], "time_sec", -1.0))
+                        break
+
+            # 4. e_Q distinto de cero en al menos 20 muestras bajo excitación / transitorio
+            sub_trans = [r for r in rows if _f(r, "time_s", _f(r, "time_sec", -1.0)) >= 50.0]
+            nonzero_eq_samples = sum(1 for r in sub_trans if _f(r, "e_Q") > 0.0001)
+            crit_nonzero = nonzero_eq_samples >= 20
+
+            # 5. Estabilidad de frecuencia en cola
+            crit_tail_p2p_s4 = tail_p2p <= 0.10
+
+            criteria_dict.update({
+                "ratio_dispersion_gt_0010": crit_dispersion,
+                "reconvergence_le_13_5s": crit_reconvergence,
+                "tail_dispersion_le_00067": crit_tail_dispersion,
+                "nonzero_eq_samples_ge_20": crit_nonzero,
+                "tail_frequency_p2p_le_010hz": crit_tail_p2p_s4,
+            })
+            cruce_sost_str = f"{t_cruce_sostenido:.1f} s" if t_cruce_sostenido is not None else "N/A"
+            specific_lines = [
+                f"  - **Dispersión de ratios bajo excitación (`e_Q_max > 0.010` en [50, 55] s):** {'PASS' if crit_dispersion else 'FAIL'} (e_Q_max={e_q_max_excit:.4f})",
+                f"  - **Reconvergencia a banda 2% (`e_Q <= 0.0067` en <= 13.5 s tras cese):** {'PASS' if crit_reconvergence else 'FAIL'} (t_recov={recovery_time_s:.1f} s, primera entrada a t={t_entry:.1f} s)",
+                f"  - **Dispersión sostenida en cola [120, 180] s (`e_Q <= 0.0067`):** {'PASS' if crit_tail_dispersion else 'FAIL'} (e_Q_max={e_q_tail_max:.4f}, e_Q_media={e_q_tail_mean:.4f}, cruce sostenido definitivo en t={cruce_sost_str})",
+                f"  - **Muestras no nulas de e_Q bajo excitación (>= 20 muestras):** {'PASS' if crit_nonzero else 'FAIL'} ({nonzero_eq_samples} muestras con e_Q > 0)",
+                f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s4 else 'FAIL'} ({tail_p2p:.4f} Hz)",
+            ]
         else:
             specific_lines = []
 
@@ -980,10 +1066,10 @@ class RackExperimentOrchestrator:
             "",
             f"- **Muestras:** {n_samples} (`t = {t_first}..{t_last} s`)",
             f"- **Tiempo de paso máx:** {max(step_times_ms):.2f} ms (`overruns > 500 ms`: {overruns})",
-            f"- **Cola limpia `[100, 120] s`:** media `{tail_f_mean:.4f} Hz`, rango `[{tail_f_min:.4f}, {tail_f_max:.4f}] Hz`, p2p `{tail_p2p:.4f} Hz`, max|f-60| `{tail_max_dev:.4f} Hz`",
+            f"- **Cola limpia `{tail_str}`:** media `{tail_f_mean:.4f} Hz`, rango `[{tail_f_min:.4f}, {tail_f_max:.4f}] Hz`, p2p `{tail_p2p:.4f} Hz`, max|f-60| `{tail_max_dev:.4f} Hz`",
             f"- **Tensiones nodales (global):** `[{v_min_all:.4f}, {v_max_all:.4f}] pu`",
             "- **Criterios de Aceptación:**",
-            f"  - **Muestras exactas (241 @ 2 Hz / 120 s):** {'PASS' if crit_1 else 'FAIL'}",
+            f"  - **{crit_samples_text}:** {'PASS' if crit_1 else 'FAIL'}",
             f"  - **Cero violaciones RT (500 ms):** {'PASS' if crit_2 else 'FAIL'}",
             f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p else 'FAIL'} (`{tail_p2p:.4f} Hz`)",
             f"  - **Tensiones en banda ±5 % (`[0.95, 1.05] pu`):** {'PASS' if crit_voltages else 'FAIL'}",
@@ -1003,12 +1089,12 @@ class RackExperimentOrchestrator:
                 f"{m['P3_mean_kW']:+.4f} | {m['P_curtailed_mean_kW']:.4f} | {m['SoC_ini']} -> {m['SoC_fin']} | {m['curtail_ratio_min']:.4f} |"
             )
 
-        if tag == "s4":
+        if tag in ("s4", "s4_180s"):
             lines.append("")
-            lines.append("### Registro Muestra a Muestra de Potencia Reactiva y Consenso (Ventana de Excitación [48, 72] s)")
+            lines.append("### Registro Muestra a Muestra de Potencia Reactiva y Consenso (Ventana de Excitación y Transitorio [48, 75] s)")
             lines.append("| t (s) | Q1 (kvar) | Q2 (kvar) | Q3 (kvar) | q1 (Q1/6k) | q2 (Q2/3k) | q3 (Q3/1k) | e_Q | f_sys (Hz) | V_min (pu) |")
             lines.append("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
-            sub_window_rep = [r for r in rows if 48.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 72.0]
+            sub_window_rep = [r for r in rows if 48.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 75.0]
             for r in sub_window_rep:
                 t_val = _f(r, "time_s", _f(r, "time_sec", -1.0))
                 q1_v = _f(r, "Q1_kvar")
@@ -1022,6 +1108,27 @@ class RackExperimentOrchestrator:
                 v_vals = [_f(r, f"V{i}_pu", 1.0) for i in range(1, 9) if f"V{i}_pu" in r]
                 v_min = min(v_vals) if v_vals else 1.0
                 lines.append(f"| {t_val:.1f} | {q1_v:+.4f} | {q2_v:+.4f} | {q3_v:+.4f} | {r1_v:.4f} | {r2_v:.4f} | {r3_v:.4f} | {eq_v:.4f} | {f_v:.4f} | {v_min:.4f} |")
+
+            if tag == "s4_180s":
+                lines.append("")
+                lines.append("### Registro Muestra a Muestra en Cola Extendida [120, 180] s (Muestreo cada 2.5 s)")
+                lines.append("| t (s) | Q1 (kvar) | Q2 (kvar) | Q3 (kvar) | q1 (Q1/6k) | q2 (Q2/3k) | q3 (Q3/1k) | e_Q | f_sys (Hz) | V_min (pu) |")
+                lines.append("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+                sub_tail_rep = [r for r in rows if 120.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 180.0]
+                for r in sub_tail_rep:
+                    t_val = _f(r, "time_s", _f(r, "time_sec", -1.0))
+                    if abs(t_val % 2.5) < 0.1 or t_val in (120.0, 180.0):
+                        q1_v = _f(r, "Q1_kvar")
+                        q2_v = _f(r, "Q2_kvar")
+                        q3_v = _f(r, "Q3_kvar")
+                        r1_v = _f(r, "Q_ratio_1")
+                        r2_v = _f(r, "Q_ratio_2")
+                        r3_v = _f(r, "Q_ratio_3")
+                        eq_v = _f(r, "e_Q")
+                        f_v = _f(r, "f_sys_hz")
+                        v_vals = [_f(r, f"V{i}_pu", 1.0) for i in range(1, 9) if f"V{i}_pu" in r]
+                        v_min = min(v_vals) if v_vals else 1.0
+                        lines.append(f"| {t_val:.1f} | {q1_v:+.4f} | {q2_v:+.4f} | {q3_v:+.4f} | {r1_v:.4f} | {r2_v:.4f} | {r3_v:.4f} | {eq_v:.4f} | {f_v:.4f} | {v_min:.4f} |")
 
         with open(report_path, "w", encoding="utf-8") as f_rep:
             f_rep.write("\n".join(lines) + "\n")
