@@ -90,7 +90,7 @@
             "p_nominal_W": 1500.0,
             "q_nominal_var": 1000.0,
             "p_max_W": 3000.0,
-            "q_max_var": 2000.0
+            "q_max_var": 1000.0
         },
         "nota": "p_nominal/q_nominal son la placa del banco (Especificacion_Banco_Pruebas_BT_6Nodos_Mallado para N1-N3). p_max/q_max son los limites efectivos de los agentes FxTS en run_simulation_bt_formatos.py: N1 y N3 quedan por encima de placa en el entorno local de verificacion. Ver checklist C1-C2 del Registro_Ampliacion_8Nodos_5Cargas."
     },

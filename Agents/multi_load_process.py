@@ -37,11 +37,16 @@ class MultiLoadProcess:
         8: (2000.0, 800.0, 0.10, 0.5),
     }
 
-    def __init__(self, master_host="10.0.0.156", port_rep=5555, port_pub=5556, nodos=None):
+    def __init__(self, master_host="10.0.0.156", port_rep=5555, port_pub=5556, nodos=None,
+                 q_step_node=None, q_step_var=1000.0, q_step_start=None, q_step_duration=5.0):
         self.master_host = master_host
         self.port_rep = port_rep
         self.port_pub = port_pub
         self.nodos_carga = [int(n) for n in (nodos if nodos else (4, 5, 6, 7, 8))]
+        self.q_step_node = int(q_step_node) if q_step_node is not None else None
+        self.q_step_var = float(q_step_var)
+        self.q_step_start = float(q_step_start) if q_step_start is not None else None
+        self.q_step_duration = float(q_step_duration)
 
         # Modelos de Carga y Series de Tiempo
         base_forms = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Forms"))
@@ -84,6 +89,22 @@ class MultiLoadProcess:
                 letra = chr(ord("A") + nodo - 4)
                 ruta = os.path.join(target_dir, f"datos_demanda_{letra}.csv")
                 self.demandas[nodo] = self._load_demanda_csv(ruta)
+
+        # S-O-34 / C3: Resolver excitación reactiva de carga desde meta.json si no vino por CLI
+        if self.q_step_node is None:
+            meta_path = os.path.join(target_dir, "meta.json")
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, "r", encoding="utf-8") as f_meta:
+                        meta_cfg = json.load(f_meta)
+                    ex_q = meta_cfg.get("excitacion_reactiva") or {}
+                    if "nodo" in ex_q:
+                        self.q_step_node = int(ex_q["nodo"])
+                        self.q_step_var = float(ex_q.get("q_step_var", 1000.0))
+                        self.q_step_start = float(ex_q.get("inicio_s", 50.0))
+                        self.q_step_duration = float(ex_q.get("duracion_s", 5.0))
+                except Exception:
+                    pass
 
         # Atributos heredados (compatibilidad con scripts externos del banco de 8)
         self.demanda_4_data = self.demandas.get(4, [])
@@ -219,9 +240,17 @@ class MultiLoadProcess:
                 for nodo in self.nodos_carga:
                     serie = self.demandas.get(nodo) or []
                     if serie:
-                        demandas_paso[nodo] = serie[min(idx, len(serie) - 1)]
+                        p_val, q_val = serie[min(idx, len(serie) - 1)]
                     else:
-                        demandas_paso[nodo] = self._fallback(nodo, time_s)
+                        p_val, q_val = self._fallback(nodo, time_s)
+
+                    # S-O-34 / C3: Perturbación física de reactiva (escalón en nodo de carga por duracion determinada)
+                    if (self.q_step_node is not None and nodo == self.q_step_node
+                            and self.q_step_start is not None
+                            and self.q_step_start <= time_s < (self.q_step_start + self.q_step_duration)):
+                        q_val += self.q_step_var
+
+                    demandas_paso[nodo] = (p_val, q_val)
 
                 p_load_total_w = sum(p for p, _ in demandas_paso.values())
                 q_load_total_var = sum(q for _, q in demandas_paso.values())
@@ -276,9 +305,21 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=None, help="Pasos de simulacion")
     parser.add_argument("--nodos", default=None,
                         help="Nodos de carga separados por coma (p. ej. 7,8,9,10,11)")
+    parser.add_argument("--q-step-node", type=int, default=None, help="Nodo para escalón de reactiva (S-O-34 C3)")
+    parser.add_argument("--q-step-var", type=float, default=1000.0, help="Magnitud del escalón de reactiva [var]")
+    parser.add_argument("--q-step-start", type=float, default=None, help="Inicio del escalón de reactiva [s]")
+    parser.add_argument("--q-step-duration", type=float, default=5.0, help="Duración del escalón de reactiva [s]")
     args = parser.parse_args()
 
     nodos = [int(n) for n in args.nodos.split(",")] if args.nodos else None
-    proc = MultiLoadProcess(master_host=args.master_host, port_rep=args.port_rep,
-                            port_pub=args.port_pub, nodos=nodos)
+    proc = MultiLoadProcess(
+        master_host=args.master_host,
+        port_rep=args.port_rep,
+        port_pub=args.port_pub,
+        nodos=nodos,
+        q_step_node=args.q_step_node,
+        q_step_var=args.q_step_var,
+        q_step_start=args.q_step_start,
+        q_step_duration=args.q_step_duration
+    )
     proc.run(max_steps=args.steps)

@@ -126,7 +126,11 @@ class RackExperimentOrchestrator:
         q_perturb_node: Optional[int] = None,
         q_perturb_var: float = 0.0,
         q_perturb_start: float = 40.0,
-        q_perturb_end: float = 120.0
+        q_perturb_end: float = 120.0,
+        q_step_node: Optional[int] = None,
+        q_step_var: float = 1000.0,
+        q_step_start: Optional[float] = None,
+        q_step_duration: float = 5.0
     ) -> Dict[str, Any]:
         """
         Ejecuta un ciclo formal de ensayo HIL con salvaguarda integral.
@@ -236,7 +240,7 @@ class RackExperimentOrchestrator:
                     "--master-host", "127.0.0.1", "--p2p-port", "6003",
                     "--neighbors", "127.0.0.1:6002",
                     "--mode", "OFFLINE", "--v-base", "400.0",
-                    "--p-max", "3000.0", "--q-max", "2000.0",
+                    "--p-max", "3000.0", "--q-max", "1000.0",
                     "--q-init", "0.0", "--p-init", "0.0",
                     "--steps", str(steps)
                 ]
@@ -268,6 +272,13 @@ class RackExperimentOrchestrator:
                     "--nodos", "4,5,6,7,8",
                     "--steps", str(steps)
                 ]
+                if q_step_node is not None:
+                    cmd_loads.extend([
+                        "--q-step-node", str(q_step_node),
+                        "--q-step-var", str(q_step_var),
+                        "--q-step-start", str(q_step_start if q_step_start is not None else 50.0),
+                        "--q-step-duration", str(q_step_duration)
+                    ])
 
                 os.makedirs("output_data", exist_ok=True)
                 f_n1 = open("output_data/node_1_sil.log", "w", encoding="utf-8")

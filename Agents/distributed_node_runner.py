@@ -51,7 +51,8 @@ class DistributedNodeRunner:
         q_perturb_node: Optional[int] = None,
         q_perturb_var: float = 0.0,
         q_perturb_start: float = 40.0,
-        q_perturb_end: float = 120.0
+        q_perturb_end: float = 120.0,
+        m_q: Optional[float] = None
     ):
         self.node_id = int(node_id)
         self.source_type = source_type.upper()
@@ -171,6 +172,18 @@ class DistributedNodeRunner:
         self.q_perturb_var = float(q_perturb_var)
         self.q_perturb_start = float(q_perturb_start)
         self.q_perturb_end = float(q_perturb_end)
+
+        # S-O-34 / C3: Droop Q-V unificado para hacer observable el reparto de reactiva
+        # Caída a plena carga unificada a 8.0 V (2.0% de 400 V) => m_q = 8.0 / Q_max
+        # N1 (Diésel): m_q = 0.00133 V/var (Q_max = 6 kvar)
+        # N2 (Solar):  m_q = 0.00267 V/var (Q_max = 3 kvar)
+        # N3 (BESS):   m_q = 0.00800 V/var (Q_max = 1 kvar)
+        if m_q is not None and float(m_q) > 0.0:
+            self.m_q = float(m_q)
+        else:
+            self.m_q = 8.0 / max(1.0, self.q_max)
+        self.delta_Q_sec = 0.0
+        self.q_slack_measured = None
 
         # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa (Amortiguado y Asintótico)
         self.int_freq_error = 0.0
@@ -299,6 +312,12 @@ class DistributedNodeRunner:
                 f_sys = clock_msg.get("f_sys_hz", 60.0)
 
                 # 2. Paso de Dinamica Fisica (1 kHz integrado a 500 ms)
+                # S-O-34 / C3: Droop Q-V primario en función de la tensión en bornes (v_pcc_volts)
+                # Caída a plena carga unificada a 8.0 V (2.0%) -> Q_droop = (V_nom - V_pcc) / m_q
+                if self.source_type != "DIESEL":
+                    q_droop = (self.v_base - v_pcc_volts) / self.m_q
+                    self.Q_ref = max(0.0, min(self.q_max, q_droop + self.delta_Q_sec))
+
                 # Aplicar offset de tensión acumulado del consenso a la referencia del inversor
                 v_pcc_corrected = v_pcc_volts + self.V_offset * self.v_base
                 # Perturbación reactiva local directa en DER (S-O-30 / D-31)
@@ -318,6 +337,10 @@ class DistributedNodeRunner:
                 )
                 P_w = phys_out["P_w"]
                 Q_var = phys_out["Q_var"]
+                # En modo isla, el Diésel asume la barra Slack física reportada por el solver
+                if self.source_type == "DIESEL" and "Q_slack_var" in clock_msg:
+                    self.q_slack_measured = float(clock_msg["Q_slack_var"])
+                    Q_var = self.q_slack_measured
                 soc = phys_out.get("SoC", None)
                 p_curtailed = phys_out.get("P_curtailed", 0.0)
                 p_mpp = phys_out.get("P_mpp", P_w)
@@ -404,7 +427,12 @@ class DistributedNodeRunner:
                     return_all=True
                 )
                 self.neighbor_cache = {n_id: data["state"] for n_id, data in self.agent.neighbor_buffer.items()}
-                self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
+                self.delta_Q_sec = max(-self.q_max, min(self.q_max, self.delta_Q_sec + dQ))
+                if self.source_type != "DIESEL":
+                    q_droop = (self.v_base - v_pcc_volts) / self.m_q
+                    self.Q_ref = max(0.0, min(self.q_max, q_droop + self.delta_Q_sec))
+                else:
+                    self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
 
                 # Lazo de Control Secundario de Frecuencia y Reparto de Potencia Activa (Regimenes 1 y 2 / S-36 / D-28)
                 df_hz = f_sys - 60.0
@@ -599,6 +627,7 @@ if __name__ == "__main__":
     parser.add_argument("--q-perturb-var", type=float, default=0.0, help="Magnitud de perturbacion reactiva [var]")
     parser.add_argument("--q-perturb-start", type=float, default=40.0, help="Inicio de perturbacion reactiva [s]")
     parser.add_argument("--q-perturb-end", type=float, default=120.0, help="Fin de perturbacion reactiva [s]")
+    parser.add_argument("--m-q", type=float, default=None, help="Pendiente de droop Q-V en V/var (default: 8.0/Q_max)")
     args = parser.parse_args()
 
     # Resolver alias de lambda
@@ -634,6 +663,7 @@ if __name__ == "__main__":
         q_perturb_node=args.q_perturb_node,
         q_perturb_var=args.q_perturb_var,
         q_perturb_start=args.q_perturb_start,
-        q_perturb_end=args.q_perturb_end
+        q_perturb_end=args.q_perturb_end,
+        m_q=args.m_q
     )
     runner.run(max_steps=args.steps)

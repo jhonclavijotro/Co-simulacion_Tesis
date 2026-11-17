@@ -89,7 +89,7 @@ def build_s40_row(
     curtail_min_val = float(merged_ders[2].get("curtail_min", 0.15))
     p_curtailed_kw = float(merged_ders[2].get("P_curtailed", 0.0)) / 1000.0
 
-    q_caps = {1: 6000.0, 2: 3000.0, 3: 2000.0}
+    q_caps = {1: 6000.0, 2: 3000.0, 3: 1000.0}
     p_caps = {1: 10000.0, 2: 5000.0, 3: 3000.0}
     q_ratio_1 = float(merged_ders[1].get("Q_ratio", q1_v / q_caps[1]))
     q_ratio_2 = float(merged_ders[2].get("Q_ratio", q2_v / q_caps[2]))

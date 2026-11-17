@@ -279,7 +279,7 @@ class ClusterDeployer:
             "capacidades": {
                 1: {"p_max_W": 10000.0, "q_max_var": 6000.0, "p_init": 8600.0, "q_init": 1500.0},
                 2: {"p_max_W": 5000.0, "q_max_var": 3000.0, "p_init": 3250.0, "q_init": 600.0},
-                3: {"p_max_W": 3000.0, "q_max_var": 2000.0, "p_init": 0.0, "q_init": 1000.0},
+                3: {"p_max_W": 3000.0, "q_max_var": 1000.0, "p_init": 0.0, "q_init": 1000.0},
             },
             "nodos_demanda": [4, 5, 6, 7, 8],
             "p_min_diesel_W": None,

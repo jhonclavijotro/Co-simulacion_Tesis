@@ -146,6 +146,13 @@ class MasterClockZMQ:
 
         voltages_complex, conv, iters = self.solver.solve(P_dict, Q_dict)
 
+        # Potencia física de balance en la barra Slack (Nodo 1 en modo isla / OFFLINE)
+        q_slack_var = round(-float(getattr(self.solver, "Q_net", 0.0)), 2)
+        p_slack_w = round(-float(getattr(self.solver, "P_net", 0.0)), 2)
+        if (1 in effective_injections or "1" in effective_injections) and getattr(self.solver, "operating_mode", self.operating_mode) == "OFFLINE":
+            target_k = 1 if 1 in effective_injections else "1"
+            effective_injections[target_k]["Q"] = q_slack_var
+
         # Dinámica de frecuencia del sistema (Swing Equation en modo isla)
         if hasattr(self.solver, "compute_frequency_dynamics"):
             self.f_sys, p_net = self.solver.compute_frequency_dynamics(
@@ -179,6 +186,8 @@ class MasterClockZMQ:
             "f_sys_hz": round(self.f_sys, 4),
             "omega_sys": round(self.f_sys * 2.0 * 3.141592653589793, 4),
             "P_net_w": round(p_net, 2),
+            "Q_slack_var": q_slack_var,
+            "P_slack_w": p_slack_w,
             "step_elapsed_ms": step_elapsed_ms,
             "injections_effective": {
                 str(k): {"P": round(v["P"], 2), "Q": round(v["Q"], 2)}
