@@ -52,7 +52,8 @@ class DistributedNodeRunner:
         q_perturb_var: float = 0.0,
         q_perturb_start: float = 40.0,
         q_perturb_end: float = 120.0,
-        m_q: Optional[float] = None
+        m_q: Optional[float] = None,
+        diesel_integrator_deadband_hz: Optional[float] = None
     ):
         self.node_id = int(node_id)
         self.source_type = source_type.upper()
@@ -133,6 +134,9 @@ class DistributedNodeRunner:
         if curtail_min is None:
             curtail_min = float(reg_exc.get("curtail_min", 0.15))
         self.curtail_min = float(curtail_min)
+        if diesel_integrator_deadband_hz is None:
+            diesel_integrator_deadband_hz = float(reg_exc.get("diesel_integrator_deadband_hz", 0.030))
+        self.diesel_integrator_deadband_hz = float(diesel_integrator_deadband_hz)
 
         # Gestor de perturbaciones telemáticas D-25 / S-34
         self.impairment_proxy = NetworkImpairmentProxy(
@@ -187,8 +191,8 @@ class DistributedNodeRunner:
 
         # Lazo Restaurativo PI de Frecuencia hacia Potencia Activa (Amortiguado y Asintótico)
         self.int_freq_error = 0.0
-        self.k_p_freq = 250.0  # W/(rad/s)
-        self.k_i_freq = 80.0   # W/(rad/s*s) - Restaura f a 60.0 Hz en 10-15s sin sobreimpulso
+        self.k_p_freq = 1000.0  # W/(rad/s) - Droop primario diésel rápido (~6283 W/Hz)
+        self.k_i_freq = 120.0   # W/(rad/s*s) - Acción integral para régimen permanente lento
 
         # 1. Proceso de Dinamica Fisica (1 kHz) con ZOH por defecto unificado (S-24 S4, S5)
         self.dynamic_proc = NodeDynamicProcess(
@@ -438,8 +442,13 @@ class DistributedNodeRunner:
                 df_hz = f_sys - 60.0
                 err_w = (2.0 * math.pi * 60.0) - omega_local
                 if self.source_type == "DIESEL":
-                    # Anti-windup acotado a [-75.0, +75.0] rad (respetando piso técnico p_min_diesel)
-                    self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * 0.5))
+                    # S-O-35 / C1: Banda muerta en el integrador secundario diésel (+-0.030 Hz / +-0.1885 rad/s)
+                    # La acción integral solo acumula cuando |Delta f| > diesel_integrator_deadband_hz.
+                    # Cuando |Delta f| <= diesel_integrator_deadband_hz, el integrador retiene su valor
+                    # acumulado, permitiendo que el droop primario gobierne el equilibrio de régimen permanente.
+                    deadband_w = 2.0 * math.pi * self.diesel_integrator_deadband_hz
+                    if abs(err_w) > deadband_w:
+                        self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * 0.5))
                     if self.p_min_diesel > 0.0 and self.P_ref <= self.p_min_diesel + 1.0 and self.int_freq_error < 0.0:
                         self.int_freq_error = max(-10.0, self.int_freq_error)
                     delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
@@ -628,6 +637,7 @@ if __name__ == "__main__":
     parser.add_argument("--q-perturb-start", type=float, default=40.0, help="Inicio de perturbacion reactiva [s]")
     parser.add_argument("--q-perturb-end", type=float, default=120.0, help="Fin de perturbacion reactiva [s]")
     parser.add_argument("--m-q", type=float, default=None, help="Pendiente de droop Q-V en V/var (default: 8.0/Q_max)")
+    parser.add_argument("--diesel-integrator-deadband-hz", type=float, default=None, help="Banda muerta del integrador secundario diésel en Hz (default: 0.030)")
     args = parser.parse_args()
 
     # Resolver alias de lambda
@@ -664,6 +674,7 @@ if __name__ == "__main__":
         q_perturb_var=args.q_perturb_var,
         q_perturb_start=args.q_perturb_start,
         q_perturb_end=args.q_perturb_end,
-        m_q=args.m_q
+        m_q=args.m_q,
+        diesel_integrator_deadband_hz=args.diesel_integrator_deadband_hz
     )
     runner.run(max_steps=args.steps)

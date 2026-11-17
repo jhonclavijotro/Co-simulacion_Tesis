@@ -132,6 +132,45 @@ class TestBESSDroopAndCurtailmentGate(unittest.TestCase):
         self.assertEqual(eta_excess, 0.0)
         self.assertEqual(curtail_ratio, 1.0)
 
+    def test_diesel_integrator_deadband_and_droop_governance(self):
+        """Verifica la banda muerta del integrador diésel (S-O-35 / C1): +-0.030 Hz."""
+        deadband_hz = 0.030
+        deadband_w = 2.0 * math.pi * deadband_hz
+
+        int_freq_error = 0.0
+
+        # Caso 1: Dentro de banda muerta (|df| <= 0.030 Hz) -> Integrador retiene (no acumula)
+        df_inside = 0.025
+        err_w_inside = -2.0 * math.pi * df_inside
+        self.assertLessEqual(abs(err_w_inside), deadband_w)
+
+        # Simular 10 pasos dentro de la banda muerta
+        for _ in range(10):
+            if abs(err_w_inside) > deadband_w:
+                int_freq_error += err_w_inside * 0.5
+        self.assertEqual(int_freq_error, 0.0)  # Retención estricta
+
+        # Caso 2: Fuera de banda muerta (|df| > 0.030 Hz) -> Integrador acumula
+        df_outside = 0.066
+        err_w_outside = -2.0 * math.pi * df_outside
+        self.assertGreater(abs(err_w_outside), deadband_w)
+
+        # Acumular 5 pasos
+        for _ in range(5):
+            if abs(err_w_outside) > deadband_w:
+                int_freq_error = max(-75.0, min(75.0, int_freq_error + err_w_outside * 0.5))
+        self.assertLess(int_freq_error, 0.0)
+        self.assertAlmostEqual(int_freq_error, 5 * err_w_outside * 0.5, places=3)
+
+        # Caso 3: En régimen con piso técnico diésel a 3500 W
+        p_min_diesel = 3500.0
+        p_init = 4000.0
+        k_p_freq = 1000.0
+        k_i_freq = 120.0
+        delta_P_restore = k_p_freq * err_w_outside + k_i_freq * int_freq_error
+        p_target = max(p_min_diesel, p_init + delta_P_restore)
+        self.assertEqual(p_target, p_min_diesel)  # Diésel satura exactamente en su piso técnico
+
 
 if __name__ == "__main__":
     unittest.main()

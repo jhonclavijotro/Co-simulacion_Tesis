@@ -68,6 +68,7 @@
     "p_min_diesel_W": 3500.0,
     "p_charge_max_W": 3000.0,
     "soc_inicial": 0.5,
+    "diesel_integrator_deadband_hz": 0.030,
     "ventanas": [
       {
         "tipo": "excedente",
