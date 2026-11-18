@@ -280,12 +280,13 @@ class RackExperimentOrchestrator:
                     except Exception:
                         pass
 
-                # S-O-38: Leer escala de droop k_m o parametros_droop desde meta.json si existe
+                # S-O-38 / S-O-40: Leer escala de droop y sub-pasos de consenso desde meta.json si existen
                 k_m = 1.0
                 if os.path.exists(meta_path):
                     try:
                         with open(meta_path, "r", encoding="utf-8") as f_m:
-                            p_droop = json.load(f_m).get("parametros_droop") or {}
+                            meta_data = json.load(f_m)
+                            p_droop = meta_data.get("parametros_droop") or {}
                             k_m = float(p_droop.get("k_m", 1.0))
                             if "m_q1" in p_droop and "m_q2" in p_droop and "m_q3" in p_droop:
                                 cmd_n1.extend(["--m-q", str(float(p_droop["m_q1"]))])
@@ -297,8 +298,14 @@ class RackExperimentOrchestrator:
                                 cmd_n2.extend(["--m-q", str(0.0026666666666666666 * k_m)])
                                 cmd_n3.extend(["--m-q", str(0.0080000000000000000 * k_m)])
                                 print(f"    [S-O-38] Estatismo reactivo escalado con factor uniforme k_m = {k_m:.4f}")
+                            c_substeps = int(meta_data.get("consensus_substeps", 1))
+                            if c_substeps > 1:
+                                cmd_n1.extend(["--consensus-substeps", str(c_substeps)])
+                                cmd_n2.extend(["--consensus-substeps", str(c_substeps)])
+                                cmd_n3.extend(["--consensus-substeps", str(c_substeps)])
+                                print(f"    [S-O-40] Sub-pasos internos de consenso configurados: n = {c_substeps} (dt_sub = {0.5 / c_substeps:.4f} s)")
                     except Exception as err_droop:
-                        print(f"    [WARN] No se pudo leer parametros_droop de meta.json: {err_droop}")
+                        print(f"    [WARN] No se pudo leer parametros de meta.json: {err_droop}")
 
                 cmd_loads = [
                     python_bin, "-u", "-B", "Agents/multi_load_process.py",
@@ -440,6 +447,9 @@ class RackExperimentOrchestrator:
                 elif scenario_name.startswith("ESC-HIL-017"):
                     audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
                     experiment_meta["audit_s5"] = audit_summary
+                elif scenario_name.startswith("ESC-HIL-018"):
+                    audit_summary = self.audit_independent_telemetry(local_csv, scenario_dir, results_dir, scenario_name)
+                    experiment_meta["audit_s6"] = audit_summary
                 else:
                     audit_summary = self.audit_s40_telemetry(local_csv, scenario_dir, results_dir)
                     experiment_meta["audit_s40"] = audit_summary
@@ -784,6 +794,9 @@ class RackExperimentOrchestrator:
         elif "017" in scenario_name:
             tag = "s5"
             tag_upper = "S5"
+        elif "018" in scenario_name:
+            tag = "s6"
+            tag_upper = "S6"
         else:
             tag = "indep"
             tag_upper = "INDEP"
@@ -852,7 +865,7 @@ class RackExperimentOrchestrator:
                 "curtail_ratio_min": round(min(curt_vals), 4),
             })
 
-        if tag in ("s4_180s", "s5"):
+        if tag in ("s4_180s", "s5", "s6"):
             tail_t0, tail_t1 = 120.0, 180.0
             tail_str = "[120, 180] s"
         else:
@@ -886,7 +899,7 @@ class RackExperimentOrchestrator:
         soc_ini_all = soc_all[0] if soc_all else 0.5
         soc_fin_all = soc_all[-1] if soc_all else 0.5
 
-        if tag in ("s4_180s", "s5"):
+        if tag in ("s4_180s", "s5", "s6"):
             crit_1 = n_samples == 361 and abs(t_first - 0.0) < 1e-6 and abs(t_last - 180.0) < 1e-6
             crit_samples_key = "certified_361_samples"
             crit_samples_text = "Muestras exactas (361 @ 2 Hz / 180 s)"
@@ -1138,6 +1151,45 @@ class RackExperimentOrchestrator:
                 f"  - **Muestras no nulas de e_Q bajo excitación (>= 20 muestras):** {'PASS' if crit_nonzero else 'FAIL'} ({nonzero_eq_samples} muestras con e_Q > 0)",
                 f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s5 else 'FAIL'} ({tail_p2p:.4f} Hz)",
             ]
+        elif tag == "s6":
+            # S-O-40: Criterios de Aceptación para Sub-pasos del Consenso n=4 (ESC-HIL-018)
+            sub_excit = [r for r in rows if 50.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 55.0]
+            eq_excit = [_f(r, "e_Q") for r in sub_excit]
+            e_q_max_excit = max(eq_excit) if eq_excit else 0.0
+            crit_dispersion = e_q_max_excit > 0.010
+
+            sub_tail_13_5 = [r for r in rows if 166.5 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 180.0]
+            eq_tail_13_5 = [_f(r, "e_Q") for r in sub_tail_13_5]
+            e_q_tail_max_13_5 = max(eq_tail_13_5) if eq_tail_13_5 else 0.0
+            crit_tail_sustained = (len(eq_tail_13_5) > 0) and all(x <= 0.0067 for x in eq_tail_13_5)
+
+            # Amplitud residual en los últimos 30 s [150.0, 180.0] s <= 0.003
+            sub_last_30 = [r for r in rows if 150.0 <= _f(r, "time_s", _f(r, "time_sec", -1.0)) <= 180.0]
+            eq_last_30 = [_f(r, "e_Q") for r in sub_last_30]
+            e_q_last_30_max = max(eq_last_30) if eq_last_30 else 0.0
+            e_q_last_30_mean = sum(eq_last_30) / len(eq_last_30) if eq_last_30 else 0.0
+            crit_residual_amp = (len(eq_last_30) > 0) and (e_q_last_30_max <= 0.003)
+
+            sub_trans = [r for r in rows if _f(r, "time_s", _f(r, "time_sec", -1.0)) >= 50.0]
+            nonzero_eq_samples = sum(1 for r in sub_trans if _f(r, "e_Q") > 0.0001)
+            crit_nonzero = nonzero_eq_samples >= 20
+
+            crit_tail_p2p_s6 = tail_p2p <= 0.10
+
+            criteria_dict.update({
+                "ratio_dispersion_gt_0010": crit_dispersion,
+                "tail_dispersion_sustained_le_00067": crit_tail_sustained,
+                "residual_amplitude_last30s_le_0003": crit_residual_amp,
+                "nonzero_eq_samples_ge_20": crit_nonzero,
+                "tail_frequency_p2p_le_010hz": crit_tail_p2p_s6,
+            })
+            specific_lines = [
+                f"  - **Dispersión de ratios bajo excitación (`e_Q_max > 0.010` en [50, 55] s):** {'PASS' if crit_dispersion else 'FAIL'} (e_Q_max={e_q_max_excit:.4f})",
+                f"  - **Dispersión sostenida <= 0.0067 en últimos 13.5 s [166.5, 180.0] s:** {'PASS' if crit_tail_sustained else 'FAIL'} (e_Q_max={e_q_tail_max_13_5:.4f})",
+                f"  - **Amplitud residual en últimos 30 s [150.0, 180.0] s (`<= 0.003`):** {'PASS' if crit_residual_amp else 'FAIL'} (e_Q_max={e_q_last_30_max:.4f}, media={e_q_last_30_mean:.4f})",
+                f"  - **Muestras no nulas de e_Q bajo excitación (>= 20 muestras):** {'PASS' if crit_nonzero else 'FAIL'} ({nonzero_eq_samples} muestras con e_Q > 0)",
+                f"  - **Estabilidad de frecuencia en cola (`p2p <= 0.10 Hz`):** {'PASS' if crit_tail_p2p_s6 else 'FAIL'} ({tail_p2p:.4f} Hz)",
+            ]
         else:
             specific_lines = []
 
@@ -1173,7 +1225,7 @@ class RackExperimentOrchestrator:
                 f"{m['P3_mean_kW']:+.4f} | {m['P_curtailed_mean_kW']:.4f} | {m['SoC_ini']} -> {m['SoC_fin']} | {m['curtail_ratio_min']:.4f} |"
             )
 
-        if tag in ("s4", "s4_180s", "s5"):
+        if tag in ("s4", "s4_180s", "s5", "s6"):
             lines.append("")
             lines.append("### Registro Muestra a Muestra de Potencia Reactiva y Consenso (Ventana de Excitación y Transitorio [48, 75] s)")
             lines.append("| t (s) | Q1 (kvar) | Q2 (kvar) | Q3 (kvar) | q1 (Q1/6k) | q2 (Q2/3k) | q3 (Q3/1k) | e_Q | f_sys (Hz) | V_min (pu) |")
@@ -1193,7 +1245,7 @@ class RackExperimentOrchestrator:
                 v_min = min(v_vals) if v_vals else 1.0
                 lines.append(f"| {t_val:.1f} | {q1_v:+.4f} | {q2_v:+.4f} | {q3_v:+.4f} | {r1_v:.4f} | {r2_v:.4f} | {r3_v:.4f} | {eq_v:.4f} | {f_v:.4f} | {v_min:.4f} |")
 
-            if tag in ("s4_180s", "s5"):
+            if tag in ("s4_180s", "s5", "s6"):
                 lines.append("")
                 lines.append("### Registro Muestra a Muestra en Cola Extendida [120, 180] s (Muestreo cada 2.5 s)")
                 lines.append("| t (s) | Q1 (kvar) | Q2 (kvar) | Q3 (kvar) | q1 (Q1/6k) | q2 (Q2/3k) | q3 (Q3/1k) | e_Q | f_sys (Hz) | V_min (pu) |")

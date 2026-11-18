@@ -1,0 +1,161 @@
+{
+  "run_id": "20261118T101323_ESC-HIL-018_subpasos_consenso_180s_seed42",
+  "scenario": "ESC-HIL-018_subpasos_consenso_180s",
+  "steps": 361,
+  "dt_s": 0.5,
+  "start_time": "2026-11-18T10:13:23.883661",
+  "parameters": {
+    "p_min_diesel": null,
+    "p_charge_max": null,
+    "network_profile": null,
+    "contingencies_file": null,
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261118T101323_ESC-HIL-018_subpasos_consenso_180s_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 115483,
+    "sha256": "01bba9f68ebe9746431acc77f9a00ee964d602f07a2bece24916602c4ae75142"
+  },
+  "audit_s6": {
+    "scenario_tag": "S6",
+    "n_samples": 361,
+    "time_range_s": [
+      0.0,
+      180.0
+    ],
+    "max_step_elapsed_ms": 14.41,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_361_samples": true,
+      "zero_rt_overruns": true,
+      "tail_frequency_p2p_le_010hz": true,
+      "voltages_within_5pct": true,
+      "ratio_dispersion_gt_0010": true,
+      "tail_dispersion_sustained_le_00067": false,
+      "residual_amplitude_last30s_le_0003": false,
+      "nonzero_eq_samples_ge_20": true
+    },
+    "tail_100_120_s": {
+      "f_mean_hz": 60.0264,
+      "f_min_hz": 60.0228,
+      "f_max_hz": 60.031,
+      "f_p2p_hz": 0.0082,
+      "max_abs_dev_hz": 0.031
+    },
+    "voltage_range_pu": [
+      0.9976,
+      1.0
+    ],
+    "post_40s_summary": {
+      "P3_mean_kW": -0.1327,
+      "P_curtailed_mean_kW": 0.0,
+      "SoC_ini": 0.5,
+      "SoC_fin": 0.500043,
+      "curtail_ratio_min": 1.0,
+      "P1_range_kW": [
+        3.5,
+        4.2519
+      ]
+    },
+    "all_criteria_passed": false,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          50
+        ],
+        "evento": "nominal estable 6,5 kW con PV a 800 W/m2",
+        "n": 100,
+        "f_min": 59.9673,
+        "f_max": 60.0791,
+        "f_mean": 59.9906,
+        "f_p2p": 0.1118,
+        "V_min": 0.9976,
+        "V_max": 1.0,
+        "P1_mean_kW": 4.0972,
+        "P2_mean_kW": 2.1719,
+        "P3_mean_kW": 0.024,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 6.3047,
+        "SoC_ini": 0.5,
+        "SoC_fin": 0.499997,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          50,
+          55
+        ],
+        "evento": "escalon reactivo +1 kvar en N5 (5 s)",
+        "n": 10,
+        "f_min": 60.0191,
+        "f_max": 60.0392,
+        "f_mean": 60.0318,
+        "f_p2p": 0.0201,
+        "V_min": 0.9979,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.6036,
+        "P2_mean_kW": 2.1739,
+        "P3_mean_kW": -0.1481,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 5.5366,
+        "SoC_ini": 0.499997,
+        "SoC_fin": 0.499999,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          55,
+          70
+        ],
+        "evento": "recuperacion post-cese (13,5 s)",
+        "n": 30,
+        "f_min": 60.0205,
+        "f_max": 60.0362,
+        "f_mean": 60.0268,
+        "f_p2p": 0.0157,
+        "V_min": 0.9979,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.511,
+        "P2_mean_kW": 2.1746,
+        "P3_mean_kW": -0.1295,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 5.5081,
+        "SoC_ini": 0.499999,
+        "SoC_fin": 0.500004,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          70,
+          180
+        ],
+        "evento": "cola extendida de estabilidad y reconvergencia sostenida (110 s)",
+        "n": 221,
+        "f_min": 60.0227,
+        "f_max": 60.031,
+        "f_mean": 60.0265,
+        "f_p2p": 0.0083,
+        "V_min": 0.9979,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.5,
+        "P2_mean_kW": 2.1764,
+        "P3_mean_kW": -0.1237,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 5.5,
+        "SoC_ini": 0.500004,
+        "SoC_fin": 0.500043,
+        "curtail_ratio_min": 1.0
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261118T101323_ESC-HIL-018_subpasos_consenso_180s_seed42\\reporte_s6_validacion.md"
+  },
+  "end_time": "2026-11-18T10:13:32.177321",
+  "elapsed_seconds": 4.699,
+  "hashes": {
+    "telemetry_rack_csv": "01bba9f68ebe9746431acc77f9a00ee964d602f07a2bece24916602c4ae75142",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "538ebcda2d7a992823aa0dbe93a06b61bd702431a1e95ae49d11a19d84ce6281"
+  }
+}

@@ -53,7 +53,8 @@ class DistributedNodeRunner:
         q_perturb_start: float = 40.0,
         q_perturb_end: float = 120.0,
         m_q: Optional[float] = None,
-        diesel_integrator_deadband_hz: Optional[float] = None
+        diesel_integrator_deadband_hz: Optional[float] = None,
+        consensus_substeps: int = 1
     ):
         self.node_id = int(node_id)
         self.source_type = source_type.upper()
@@ -176,6 +177,7 @@ class DistributedNodeRunner:
         self.q_perturb_var = float(q_perturb_var)
         self.q_perturb_start = float(q_perturb_start)
         self.q_perturb_end = float(q_perturb_end)
+        self.consensus_substeps = max(1, int(consensus_substeps))
 
         # S-O-34 / C3: Droop Q-V unificado para hacer observable el reparto de reactiva
         # Caída a plena carga unificada a 8.0 V (2.0% de 400 V) => m_q = 8.0 / Q_max
@@ -420,16 +422,40 @@ class DistributedNodeRunner:
 
                 # 5. Actualizar ley de control FxTS con vecinos filtrados (disparando retención ZOH si hay pérdidas)
                 omega_local = 2.0 * math.pi * f_sys
-                dV, dQ, dw, dP = self.agent.update_consensus(
-                    V_i=v_pcc_pu,
-                    Q_i=Q_var,
-                    omega_i=omega_local,
-                    P_i=P_w,
-                    eta_i=self.eta_excess,
-                    neighbor_states=filtered_neighbors,
-                    dt=0.5,
-                    return_all=True
-                )
+                if self.consensus_substeps <= 1:
+                    dV, dQ, dw, dP = self.agent.update_consensus(
+                        V_i=v_pcc_pu,
+                        Q_i=Q_var,
+                        omega_i=omega_local,
+                        P_i=P_w,
+                        eta_i=self.eta_excess,
+                        neighbor_states=filtered_neighbors,
+                        dt=0.5,
+                        return_all=True
+                    )
+                else:
+                    dt_sub = 0.5 / self.consensus_substeps
+                    q_sub = Q_var
+                    dV = 0.0
+                    dQ = 0.0
+                    dw = 0.0
+                    dP = 0.0
+                    for _ in range(self.consensus_substeps):
+                        dV_s, dQ_s, dw_s, dP_s = self.agent.update_consensus(
+                            V_i=v_pcc_pu,
+                            Q_i=q_sub,
+                            omega_i=omega_local,
+                            P_i=P_w,
+                            eta_i=self.eta_excess,
+                            neighbor_states=filtered_neighbors,
+                            dt=dt_sub,
+                            return_all=True
+                        )
+                        q_sub += dQ_s
+                        dV += dV_s
+                        dQ += dQ_s
+                        dw += dw_s
+                        dP += dP_s
                 self.neighbor_cache = {n_id: data["state"] for n_id, data in self.agent.neighbor_buffer.items()}
                 self.delta_Q_sec = max(-self.q_max, min(self.q_max, self.delta_Q_sec + dQ))
                 if self.source_type != "DIESEL":
@@ -638,6 +664,7 @@ if __name__ == "__main__":
     parser.add_argument("--q-perturb-end", type=float, default=120.0, help="Fin de perturbacion reactiva [s]")
     parser.add_argument("--m-q", type=float, default=None, help="Pendiente de droop Q-V en V/var (default: 8.0/Q_max)")
     parser.add_argument("--diesel-integrator-deadband-hz", type=float, default=None, help="Banda muerta del integrador secundario diésel en Hz (default: 0.030)")
+    parser.add_argument("--consensus-substeps", type=int, default=1, help="Sub-pasos internos de consenso por macro-paso de 0.5 s (S-O-40)")
     args = parser.parse_args()
 
     # Resolver alias de lambda
@@ -675,6 +702,7 @@ if __name__ == "__main__":
         q_perturb_start=args.q_perturb_start,
         q_perturb_end=args.q_perturb_end,
         m_q=args.m_q,
-        diesel_integrator_deadband_hz=args.diesel_integrator_deadband_hz
+        diesel_integrator_deadband_hz=args.diesel_integrator_deadband_hz,
+        consensus_substeps=args.consensus_substeps
     )
     runner.run(max_steps=args.steps)
