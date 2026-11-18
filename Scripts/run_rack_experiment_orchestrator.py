@@ -503,8 +503,29 @@ class RackExperimentOrchestrator:
             experiment_meta["end_time"] = datetime.now().isoformat()
             experiment_meta["elapsed_seconds"] = round(elapsed_s, 3)
 
+            # Informacion de trazabilidad cientifica y git commit
+            try:
+                git_hash = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+            except Exception:
+                git_hash = "unknown"
+            experiment_meta["git_commit"] = git_hash
+
             cont_path = os.path.join(scenario_dir, contingencies_file or "contingencias_telematicas.csv")
             meta_path = os.path.join(scenario_dir, "meta.json")
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, "r", encoding="utf-8") as f_meta_man:
+                        m_man = json.load(f_meta_man)
+                    is_frozen = m_man.get("freeze_consensus", False)
+                    experiment_meta["consensus_mode"] = "frozen (sin vecinos / anillo desactivado / correccion deltaQ=0)" if is_frozen else "active (con vecinos P2P / anillo completo)"
+                    experiment_meta["consensus_interval"] = m_man.get("consensus_interval", m_man.get("T_c", 0.5))
+                    experiment_meta["c1"] = m_man.get("c1", 0.25)
+                    experiment_meta["c2"] = m_man.get("c2", 0.15)
+                    if "congelacion_modo" in m_man:
+                        experiment_meta["congelacion_modo"] = m_man["congelacion_modo"]
+                except Exception:
+                    pass
+
             experiment_meta["hashes"] = {
                 "telemetry_rack_csv": experiment_meta.get("telemetry", {}).get("sha256"),
                 "contingencias_telematicas_csv": compute_sha256(cont_path) if os.path.exists(cont_path) else None,
