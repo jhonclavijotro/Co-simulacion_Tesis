@@ -1,0 +1,124 @@
+{
+  "run_id": "20261118T102916_ESC-HIL-019_diagnostico_consenso_congelado_60s_seed42",
+  "scenario": "ESC-HIL-019_diagnostico_consenso_congelado_60s",
+  "steps": 121,
+  "dt_s": 0.5,
+  "start_time": "2026-11-18T10:29:16.764591",
+  "parameters": {
+    "p_min_diesel": null,
+    "p_charge_max": null,
+    "network_profile": null,
+    "contingencies_file": null,
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261118T102916_ESC-HIL-019_diagnostico_consenso_congelado_60s_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 39290,
+    "sha256": "0c8d8679907d0ef9a88b88ce0cfc5219c62191a55043b049aa3697c7f86328ce"
+  },
+  "audit_s40": {
+    "n_samples": 121,
+    "time_range_s": [
+      0.0,
+      60.0
+    ],
+    "max_step_elapsed_ms": 76.746,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_961_samples": false,
+      "surplus_bess_and_curtail": false,
+      "link_cut_no_deviation": false,
+      "zero_rt_overruns": true
+    },
+    "reconvergence_exercised": false,
+    "criteria_not_exercised": [
+      "reconvergence_under_active_fault"
+    ],
+    "notes_criteria": {
+      "link_cut_no_deviation": "Corte de enlace 1-2 (60 muestras / 30 s) con precondicion de excitacion e_Q_max > 0.01 y reconvergencia e_Q < 0.05. En ESC-HIL-008 e_Q_max fue 0.0000 (carga estatica), no satisfaciendo la precondicion de excitacion activa."
+    },
+    "all_criteria_passed": false,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          50
+        ],
+        "evento": "nominal estable 6,5 kW con PV a 800 W/m2",
+        "n": 100,
+        "f_min": 59.9666,
+        "f_max": 60.0783,
+        "V_min": 0.9976,
+        "V_max": 1.0,
+        "P3_mean_kW": 0.026,
+        "SoC_ini": 0.5,
+        "SoC_fin": 0.499996,
+        "curtail_ratio_min": 1.0,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.4126,
+        "e_Q_max": 0.4251,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          50,
+          55
+        ],
+        "evento": "escalon reactivo +1 kvar en N5 (5 s)",
+        "n": 10,
+        "f_min": 60.0181,
+        "f_max": 60.0384,
+        "V_min": 0.9979,
+        "V_max": 1.0,
+        "P3_mean_kW": -0.141,
+        "SoC_ini": 0.499996,
+        "SoC_fin": 0.499998,
+        "curtail_ratio_min": 1.0,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.5645,
+        "e_Q_max": 0.5779,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          55,
+          70
+        ],
+        "evento": "recuperacion post-cese (13,5 s)",
+        "n": 11,
+        "f_min": 60.0206,
+        "f_max": 60.0355,
+        "V_min": 0.9979,
+        "V_max": 1.0,
+        "P3_mean_kW": -0.133,
+        "SoC_ini": 0.499999,
+        "SoC_fin": 0.5,
+        "curtail_ratio_min": 1.0,
+        "curtail_min": 0.15,
+        "e_Q_final": 0.4036,
+        "e_Q_max": 0.4181,
+        "dropped_pkts": 0,
+        "d12_samples": 0
+      },
+      {
+        "ventana_s": [
+          70,
+          180
+        ],
+        "evento": "cola extendida de estabilidad y reconvergencia sostenida (110 s)",
+        "n": 0
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261118T102916_ESC-HIL-019_diagnostico_consenso_congelado_60s_seed42\\reporte_s40_validacion.md"
+  },
+  "end_time": "2026-11-18T10:29:28.890791",
+  "elapsed_seconds": 8.536,
+  "hashes": {
+    "telemetry_rack_csv": "0c8d8679907d0ef9a88b88ce0cfc5219c62191a55043b049aa3697c7f86328ce",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "b30cf7d429805059228037559a3214c798e8bb3c0f0b52e16228b70cb2beba8a"
+  }
+}

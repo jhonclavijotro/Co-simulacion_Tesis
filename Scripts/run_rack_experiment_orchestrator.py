@@ -304,6 +304,25 @@ class RackExperimentOrchestrator:
                                 cmd_n2.extend(["--consensus-substeps", str(c_substeps)])
                                 cmd_n3.extend(["--consensus-substeps", str(c_substeps)])
                                 print(f"    [S-O-40] Sub-pasos internos de consenso configurados: n = {c_substeps} (dt_sub = {0.5 / c_substeps:.4f} s)")
+                            if meta_data.get("freeze_consensus", False):
+                                def _strip_neighbors(cmd_list):
+                                    out = []
+                                    skip = False
+                                    for item in cmd_list:
+                                        if item == "--neighbors":
+                                            skip = True
+                                            continue
+                                        if skip:
+                                            if item.startswith("--"):
+                                                skip = False
+                                            else:
+                                                continue
+                                        out.append(item)
+                                    return out
+                                cmd_n1 = _strip_neighbors(cmd_n1)
+                                cmd_n2 = _strip_neighbors(cmd_n2)
+                                cmd_n3 = _strip_neighbors(cmd_n3)
+                                print("    [S-O-41 / M2] Consenso congelado activado: N_i = {} (sin vecinos P2P)")
                     except Exception as err_droop:
                         print(f"    [WARN] No se pudo leer parametros de meta.json: {err_droop}")
 
