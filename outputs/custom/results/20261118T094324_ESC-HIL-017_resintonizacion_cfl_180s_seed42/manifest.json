@@ -1,0 +1,161 @@
+{
+  "run_id": "20261118T094324_ESC-HIL-017_resintonizacion_cfl_180s_seed42",
+  "scenario": "ESC-HIL-017_resintonizacion_cfl_180s",
+  "steps": 361,
+  "dt_s": 0.5,
+  "start_time": "2026-11-18T09:43:24.267723",
+  "parameters": {
+    "p_min_diesel": null,
+    "p_charge_max": null,
+    "network_profile": null,
+    "contingencies_file": null,
+    "network_seed": 42
+  },
+  "telemetry": {
+    "path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261118T094324_ESC-HIL-017_resintonizacion_cfl_180s_seed42\\telemetry_rack.csv",
+    "source": "local_sil_server",
+    "bytes": 114138,
+    "sha256": "2461745345ec38ea190e0be22d06e77a3251282fe4c1fa3094e6d37b87450217"
+  },
+  "audit_s5": {
+    "scenario_tag": "S5",
+    "n_samples": 361,
+    "time_range_s": [
+      0.0,
+      180.0
+    ],
+    "max_step_elapsed_ms": 236.859,
+    "rt_overruns": 0,
+    "criteria": {
+      "certified_361_samples": true,
+      "zero_rt_overruns": true,
+      "tail_frequency_p2p_le_010hz": true,
+      "voltages_within_5pct": true,
+      "ratio_dispersion_gt_0010": true,
+      "reconvergence_le_13_5s": true,
+      "tail_dispersion_sustained_le_00067": false,
+      "nonzero_eq_samples_ge_20": true
+    },
+    "tail_100_120_s": {
+      "f_mean_hz": 60.0264,
+      "f_min_hz": 60.0227,
+      "f_max_hz": 60.0309,
+      "f_p2p_hz": 0.0082,
+      "max_abs_dev_hz": 0.0309
+    },
+    "voltage_range_pu": [
+      0.9967,
+      1.0
+    ],
+    "post_40s_summary": {
+      "P3_mean_kW": -0.1714,
+      "P_curtailed_mean_kW": 0.0,
+      "SoC_ini": 0.5,
+      "SoC_fin": 0.500073,
+      "curtail_ratio_min": 1.0,
+      "P1_range_kW": [
+        0.0,
+        10.0
+      ]
+    },
+    "all_criteria_passed": false,
+    "windows": [
+      {
+        "ventana_s": [
+          0,
+          50
+        ],
+        "evento": "nominal estable 6,5 kW con PV a 800 W/m2",
+        "n": 100,
+        "f_min": 58.8,
+        "f_max": 60.5733,
+        "f_mean": 59.596,
+        "f_p2p": 1.7733,
+        "V_min": 0.9967,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.1186,
+        "P2_mean_kW": 1.3461,
+        "P3_mean_kW": -0.1377,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 6.3047,
+        "SoC_ini": 0.5,
+        "SoC_fin": 0.500019,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          50,
+          55
+        ],
+        "evento": "escalon reactivo +1 kvar en N5 (5 s)",
+        "n": 10,
+        "f_min": 60.0434,
+        "f_max": 60.0697,
+        "f_mean": 60.0609,
+        "f_p2p": 0.0263,
+        "V_min": 0.9978,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.8409,
+        "P2_mean_kW": 2.1728,
+        "P3_mean_kW": -0.3639,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 5.5366,
+        "SoC_ini": 0.50002,
+        "SoC_fin": 0.500025,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          55,
+          70
+        ],
+        "evento": "recuperacion post-cese (13,5 s)",
+        "n": 30,
+        "f_min": 60.025,
+        "f_max": 60.0604,
+        "f_mean": 60.0379,
+        "f_p2p": 0.0354,
+        "V_min": 0.9978,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.6125,
+        "P2_mean_kW": 2.1734,
+        "P3_mean_kW": -0.218,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 5.5081,
+        "SoC_ini": 0.500025,
+        "SoC_fin": 0.500034,
+        "curtail_ratio_min": 1.0
+      },
+      {
+        "ventana_s": [
+          70,
+          180
+        ],
+        "evento": "cola extendida de estabilidad y reconvergencia sostenida (110 s)",
+        "n": 221,
+        "f_min": 60.0227,
+        "f_max": 60.0326,
+        "f_mean": 60.0268,
+        "f_p2p": 0.0099,
+        "V_min": 0.9979,
+        "V_max": 1.0,
+        "P1_mean_kW": 3.5016,
+        "P2_mean_kW": 2.1759,
+        "P3_mean_kW": -0.1257,
+        "P_curtailed_mean_kW": 0.0,
+        "P_load_mean_kW": 5.5,
+        "SoC_ini": 0.500034,
+        "SoC_fin": 0.500073,
+        "curtail_ratio_min": 1.0
+      }
+    ],
+    "report_path": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261118T094324_ESC-HIL-017_resintonizacion_cfl_180s_seed42\\reporte_s5_validacion.md"
+  },
+  "end_time": "2026-11-18T09:43:37.269508",
+  "elapsed_seconds": 9.342,
+  "hashes": {
+    "telemetry_rack_csv": "2461745345ec38ea190e0be22d06e77a3251282fe4c1fa3094e6d37b87450217",
+    "contingencias_telematicas_csv": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "scenario_meta_json": "5d9c17ef6954743cbfdbf969dbfc281865af0969cee45800ed34b48254bb78a1"
+  }
+}
