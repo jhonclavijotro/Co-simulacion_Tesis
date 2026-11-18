@@ -1,0 +1,137 @@
+{
+  "id": "ESC-HIL-020D",
+  "familia": "hil_corto",
+  "duracion_s": 180,
+  "dt_s": 0.5,
+  "inicio_absoluto": "2026-11-12T10:00:00.000-05:00",
+  "zona_horaria": "America/Bogota (UTC-05:00)",
+  "esquema_datos": "consolidado_rev5",
+  "semilla": 42,
+  "archivos": {
+    "meteorologico": "datos_meteorologicos.csv",
+    "demanda": "datos_demanda.csv",
+    "topologia": "topologia_red_8nodos.csv"
+  },
+  "recursos_no_instanciados": [
+    "eolica",
+    "hidrica"
+  ],
+  "capa1": "plantilla_configuracion_cosimulacion.json",
+  "contrato_contingencias": {
+    "version": "v1",
+    "archivo": "contingencias_telematicas.csv",
+    "filas": 0,
+    "sha256": "25af14ebf2fbba1ab3992cc56dcfaa2a801f4520437fe445d81b29ec71fcd6f0",
+    "ventanas": []
+  },
+  "excitacion_reactiva": {
+    "nodo": 5,
+    "q_step_var": 1000.0,
+    "inicio_s": 50.0,
+    "duracion_s": 5.0
+  },
+  "parametros_banco": {
+    "s_base_kVA": 10.0,
+    "tension_base_V": 400.0,
+    "paso_macro_reloj_s": 0.5,
+    "tipo_malla": "RADIAL",
+    "solucionador": "FBS",
+    "plantilla_base": "plantilla_base.json",
+    "slack_online": "RIGIDO",
+    "H_sys_s": 6.0,
+    "D_sys_pu": 12.0,
+    "topologia": "topologia_red_8nodos.csv",
+    "nodos_demanda": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "capacidades_der": {
+      "1": {
+        "p_max_W": 10000.0,
+        "q_max_var": 6000.0
+      },
+      "2": {
+        "p_max_W": 5000.0,
+        "q_max_var": 3000.0
+      },
+      "3": {
+        "p_max_W": 3000.0,
+        "q_max_var": 1000.0
+      }
+    }
+  },
+  "trazabilidad": {
+    "generado_utc": "2026-11-17T12:55:00+00:00",
+    "tesis_commit": "bb9e45b",
+    "tesis_rama": "dev",
+    "tesis_entradas_sin_commitear": 0
+  },
+  "regimen_excedente": {
+    "version": 2,
+    "p_min_diesel_W": 3500.0,
+    "p_charge_max_W": 3000.0,
+    "soc_inicial": 0.5,
+    "diesel_integrator_deadband_hz": 0.03,
+    "ventanas": [
+      {
+        "tipo": "excitacion_reactiva",
+        "ventana_s": [
+          50.0,
+          55.0
+        ],
+        "poa_min_W_m2": 700.0,
+        "poa_ventana_W_m2": 800.89,
+        "p_solar_ventana_kW": 2.175,
+        "holgura_min_kW": 0.2548,
+        "holgura_max_kW": 0.5758,
+        "causa": "escalon de +1 kvar en carga de nodo 5 durante 5 s",
+        "perturbacion": "reactiva",
+        "demanda_ventana_kW": {
+          "min": 5.3456,
+          "max": 5.6666,
+          "media": 5.506,
+          "muestras": 11
+        }
+      }
+    ]
+  },
+  "ventanas_validacion": [
+    {
+      "ventana_s": [
+        0,
+        50
+      ],
+      "evento": "nominal estable 6,5 kW con PV a 800 W/m2",
+      "evidencia": "linea base"
+    },
+    {
+      "ventana_s": [
+        50,
+        55
+      ],
+      "evento": "escalon reactivo +1 kvar en N5 (5 s)",
+      "evidencia": "dispersion e_Q > 0.010"
+    },
+    {
+      "ventana_s": [
+        55,
+        70
+      ],
+      "evento": "recuperacion post-cese (13,5 s)",
+      "evidencia": "reconvergencia e_Q <= 0.0067"
+    },
+    {
+      "ventana_s": [
+        70,
+        180
+      ],
+      "evento": "cola extendida de estabilidad y reconvergencia sostenida (110 s)",
+      "evidencia": "e_Q <= 0.0067 sostenido y p2p <= 0.10 Hz"
+    }
+  ],
+  "consensus_interval": 5.0,
+  "T_c": 5.0
+}

@@ -38,7 +38,8 @@ class MultiLoadProcess:
     }
 
     def __init__(self, master_host="10.0.0.156", port_rep=5555, port_pub=5556, nodos=None,
-                 q_step_node=None, q_step_var=1000.0, q_step_start=None, q_step_duration=5.0):
+                 q_step_node=None, q_step_var=1000.0, q_step_start=None, q_step_duration=5.0,
+                 q_step2_node=None, q_step2_var=1000.0, q_step2_start=None, q_step2_duration=5.0):
         self.master_host = master_host
         self.port_rep = port_rep
         self.port_pub = port_pub
@@ -47,6 +48,10 @@ class MultiLoadProcess:
         self.q_step_var = float(q_step_var)
         self.q_step_start = float(q_step_start) if q_step_start is not None else None
         self.q_step_duration = float(q_step_duration)
+        self.q_step2_node = int(q_step2_node) if q_step2_node is not None else None
+        self.q_step2_var = float(q_step2_var)
+        self.q_step2_start = float(q_step2_start) if q_step2_start is not None else None
+        self.q_step2_duration = float(q_step2_duration)
 
         # Modelos de Carga y Series de Tiempo
         base_forms = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Forms"))
@@ -103,6 +108,12 @@ class MultiLoadProcess:
                         self.q_step_var = float(ex_q.get("q_step_var", 1000.0))
                         self.q_step_start = float(ex_q.get("inicio_s", 50.0))
                         self.q_step_duration = float(ex_q.get("duracion_s", 5.0))
+                    ex_q2 = meta_cfg.get("excitacion_reactiva_2") or {}
+                    if "nodo" in ex_q2:
+                        self.q_step2_node = int(ex_q2["nodo"])
+                        self.q_step2_var = float(ex_q2.get("q_step_var", 1000.0))
+                        self.q_step2_start = float(ex_q2.get("inicio_s", 100.0))
+                        self.q_step2_duration = float(ex_q2.get("duracion_s", 5.0))
                 except Exception:
                     pass
 
@@ -250,6 +261,12 @@ class MultiLoadProcess:
                             and self.q_step_start <= time_s < (self.q_step_start + self.q_step_duration)):
                         q_val += self.q_step_var
 
+                    # S-O-43 / T2-P5: Segundo escalón de reactiva
+                    if (self.q_step2_node is not None and nodo == self.q_step2_node
+                            and self.q_step2_start is not None
+                            and self.q_step2_start <= time_s < (self.q_step2_start + self.q_step2_duration)):
+                        q_val += self.q_step2_var
+
                     demandas_paso[nodo] = (p_val, q_val)
 
                 p_load_total_w = sum(p for p, _ in demandas_paso.values())
@@ -309,6 +326,10 @@ if __name__ == "__main__":
     parser.add_argument("--q-step-var", type=float, default=1000.0, help="Magnitud del escalón de reactiva [var]")
     parser.add_argument("--q-step-start", type=float, default=None, help="Inicio del escalón de reactiva [s]")
     parser.add_argument("--q-step-duration", type=float, default=5.0, help="Duración del escalón de reactiva [s]")
+    parser.add_argument("--q-step2-node", type=int, default=None, help="Nodo para segundo escalón de reactiva (S-O-43 T2-P5)")
+    parser.add_argument("--q-step2-var", type=float, default=1000.0, help="Magnitud del segundo escalón [var]")
+    parser.add_argument("--q-step2-start", type=float, default=None, help="Inicio del segundo escalón [s]")
+    parser.add_argument("--q-step2-duration", type=float, default=5.0, help="Duración del segundo escalón [s]")
     args = parser.parse_args()
 
     nodos = [int(n) for n in args.nodos.split(",")] if args.nodos else None
@@ -320,6 +341,10 @@ if __name__ == "__main__":
         q_step_node=args.q_step_node,
         q_step_var=args.q_step_var,
         q_step_start=args.q_step_start,
-        q_step_duration=args.q_step_duration
+        q_step_duration=args.q_step_duration,
+        q_step2_node=args.q_step2_node,
+        q_step2_var=args.q_step2_var,
+        q_step2_start=args.q_step2_start,
+        q_step2_duration=args.q_step2_duration
     )
     proc.run(max_steps=args.steps)

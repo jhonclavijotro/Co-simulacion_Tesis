@@ -1,0 +1,98 @@
+id: ESC-HIL-016
+slug: excitacion_reactiva_180s
+familia: hil_corto
+descripcion: Excitacion reactiva de +1 kvar en la carga del nodo 5 (5 s de duracion, t=[50, 55] s) con extension a 180 s para verificar reconvergencia sostenida de ratios e_Q bajo consenso FxTS (S-O-37).
+trazabilidad:
+  deriva_de: ESC-HIL-015_excitacion_reactiva
+  esquema_datos: consolidado_rev5
+  cambios_respecto_al_origen: Duracion ampliada a 180 s (361 muestras @ 2 Hz), escalon reactivo +1 kvar en N5 por 5 s (t=[50, 55] s) y cola limpia extendida de 125 s (S-O-37).
+  equivalencia: no comparable con la macro-corrida; escenario independiente de S-O-37.
+  fecha: '2026-11-17'
+regimen_excedente:
+  version: 2
+  p_min_diesel_W: 3500.0
+  p_charge_max_W: 3000.0
+  soc_inicial: 0.5
+  diesel_integrator_deadband_hz: 0.030
+  ventanas:
+  - ventana_s:
+    - 50.0
+    - 55.0
+    tipo: excitacion_reactiva
+    causa: escalon de +1 kvar en carga de nodo 5 durante 5 s
+    poa_min_W_m2: 700.0
+    poa_ventana_W_m2: 800.89
+    p_solar_ventana_kW: 2.175
+    holgura_min_kW: 0.2548
+    holgura_max_kW: 0.5758
+ventanas_validacion:
+- ventana_s:
+  - 0
+  - 50
+  evento: nominal estable 6,5 kW con PV a 800 W/m2
+  evidencia: linea base
+- ventana_s:
+  - 50
+  - 55
+  evento: escalon reactivo +1 kvar en N5 (5 s)
+  evidencia: dispersion e_Q > 0.010
+- ventana_s:
+  - 55
+  - 70
+  evento: recuperacion post-cese (13,5 s)
+  evidencia: reconvergencia e_Q <= 0.0067
+- ventana_s:
+  - 70
+  - 180
+  evento: cola extendida de estabilidad y reconvergencia sostenida (110 s)
+  evidencia: e_Q <= 0.0067 sostenido y p2p <= 0.10 Hz
+contrato:
+  max_cambio_rel: 0.3
+red:
+  topologia: topologia_red_8nodos.csv
+  nivel_tension: BT
+tiempo:
+  duracion_s: 180
+  dt_s: 0.5
+  inicio_absoluto: '2026-11-12T10:00:00-05:00'
+  mapeo_perfil: ventana
+generacion:
+  semilla: 42
+  solar:
+    activa: true
+    nodo: 2
+    perfil: dia_claro.csv
+    POA_base_W_m2: 960.0
+    T_amb_C: 20.0
+    eventos: []
+  eolica:
+    activa: false
+    vel_base_m_s: 0.0
+  hidrica:
+    activa: false
+demanda:
+  nodos:
+    '4':
+      perfil: residencial.csv
+      P_base_kW: 2.2941
+      Q_base_kvar: 0.9176
+    '5':
+      perfil: residencial.csv
+      P_base_kW: 3.4412
+      Q_base_kvar: 1.3765
+    '6':
+      perfil: residencial.csv
+      P_base_kW: 3.8235
+      Q_base_kvar: 1.5294
+    '7':
+      perfil: residencial.csv
+      P_base_kW: 1.9118
+      Q_base_kvar: 0.7647
+    '8':
+      perfil: residencial.csv
+      P_base_kW: 1.5294
+      Q_base_kvar: 0.6118
+  eventos: []
+  ruido:
+    amplitud_rel: 0.02
+contingencias: contingencias_telematicas.csv

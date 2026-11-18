@@ -54,7 +54,10 @@ class DistributedNodeRunner:
         q_perturb_end: float = 120.0,
         m_q: Optional[float] = None,
         diesel_integrator_deadband_hz: Optional[float] = None,
-        consensus_substeps: int = 1
+        consensus_substeps: int = 1,
+        consensus_interval: float = 0.5,
+        c1: Optional[float] = None,
+        c2: Optional[float] = None
     ):
         self.node_id = int(node_id)
         self.source_type = source_type.upper()
@@ -178,6 +181,11 @@ class DistributedNodeRunner:
         self.q_perturb_start = float(q_perturb_start)
         self.q_perturb_end = float(q_perturb_end)
         self.consensus_substeps = max(1, int(consensus_substeps))
+        self.consensus_interval = float(consensus_interval) if consensus_interval is not None else 0.5
+        self.c1 = float(c1) if c1 is not None else 0.25
+        self.c2 = float(c2) if c2 is not None else 0.15
+        self.u_q_history = []
+        self.last_u_q = 0.0
 
         # S-O-34 / C3: Droop Q-V unificado para hacer observable el reparto de reactiva
         # Caída a plena carga unificada a 8.0 V (2.0% de 400 V) => m_q = 8.0 / Q_max
@@ -205,6 +213,7 @@ class DistributedNodeRunner:
         )
 
         # 2. Agente de Consenso en Tiempo Fijo (FxTS)
+        c_interval_steps = max(1, int(round(self.consensus_interval / 0.5)))
         self.agent = FixedTimeConsensusAgent(
             agent_id=self.node_id,
             Q_max=self.q_max,
@@ -212,10 +221,10 @@ class DistributedNodeRunner:
             mode=self.operating_mode,
             alpha=0.8,
             beta=1.2,
-            c1=0.25,
-            c2=0.15,
+            c1=self.c1,
+            c2=self.c2,
             epsilon=1e-3,
-            max_stale_steps=4
+            max_stale_steps=max(4, c_interval_steps * 2)
         )
         # Inicializar ponderaciones de adyacencia derivando el ID del vecino a partir de su puerto ZMQ (ej. 6001/16001 -> 1)
         adj_init = {int(tgt.split(":")[-1]) % 100: 1.0 for tgt in self.neighbors_targets if ":" in tgt}
@@ -422,40 +431,69 @@ class DistributedNodeRunner:
 
                 # 5. Actualizar ley de control FxTS con vecinos filtrados (disparando retención ZOH si hay pérdidas)
                 omega_local = 2.0 * math.pi * f_sys
-                if self.consensus_substeps <= 1:
-                    dV, dQ, dw, dP = self.agent.update_consensus(
-                        V_i=v_pcc_pu,
-                        Q_i=Q_var,
-                        omega_i=omega_local,
-                        P_i=P_w,
-                        eta_i=self.eta_excess,
-                        neighbor_states=filtered_neighbors,
-                        dt=0.5,
-                        return_all=True
-                    )
-                else:
-                    dt_sub = 0.5 / self.consensus_substeps
-                    q_sub = Q_var
-                    dV = 0.0
-                    dQ = 0.0
-                    dw = 0.0
-                    dP = 0.0
-                    for _ in range(self.consensus_substeps):
-                        dV_s, dQ_s, dw_s, dP_s = self.agent.update_consensus(
+                c_step_interval = max(1, int(round(self.consensus_interval / 0.5)))
+                is_consensus_step = (self.consensus_interval <= 0.5) or (step_idx % c_step_interval == 0)
+
+                if is_consensus_step:
+                    if self.consensus_substeps <= 1:
+                        dV, dQ, dw, dP = self.agent.update_consensus(
                             V_i=v_pcc_pu,
-                            Q_i=q_sub,
+                            Q_i=Q_var,
                             omega_i=omega_local,
                             P_i=P_w,
                             eta_i=self.eta_excess,
                             neighbor_states=filtered_neighbors,
-                            dt=dt_sub,
+                            dt=0.5,
                             return_all=True
                         )
-                        q_sub += dQ_s
-                        dV += dV_s
-                        dQ += dQ_s
-                        dw += dw_s
-                        dP += dP_s
+                    else:
+                        dt_sub = 0.5 / self.consensus_substeps
+                        q_sub = Q_var
+                        dV = 0.0
+                        dQ = 0.0
+                        dw = 0.0
+                        dP = 0.0
+                        for _ in range(self.consensus_substeps):
+                            dV_s, dQ_s, dw_s, dP_s = self.agent.update_consensus(
+                                V_i=v_pcc_pu,
+                                Q_i=q_sub,
+                                omega_i=omega_local,
+                                P_i=P_w,
+                                eta_i=self.eta_excess,
+                                neighbor_states=filtered_neighbors,
+                                dt=dt_sub,
+                                return_all=True
+                            )
+                            q_sub += dQ_s
+                            dV += dV_s
+                            dQ += dQ_s
+                            dw += dw_s
+                            dP += dP_s
+                    # Registro u_q para cálculo de chattering e inspección (S-O-43 / T2-P3)
+                    eff_uq = dQ / (0.5 * self.q_max) if self.q_max > 0 else 0.0
+                    self.last_u_q = eff_uq
+                    self.u_q_history.append({
+                        "step": step_idx,
+                        "time_s": time_s,
+                        "u_q": eff_uq,
+                        "dQ": dQ
+                    })
+                    if step_idx % 20 == 0 or (max_steps and step_count >= max_steps):
+                        try:
+                            os.makedirs("output_data", exist_ok=True)
+                            uq_path = os.path.join("output_data", f"node_{self.node_id}_uq.csv")
+                            with open(uq_path, "w", newline="", encoding="utf-8") as f_uq:
+                                writer = csv.DictWriter(f_uq, fieldnames=["step", "time_s", "u_q", "dQ"])
+                                writer.writeheader()
+                                writer.writerows(self.u_q_history)
+                        except Exception:
+                            pass
+                else:
+                    dV = 0.0
+                    dQ = 0.0
+                    dw = 0.0
+                    dP = 0.0
+
                 self.neighbor_cache = {n_id: data["state"] for n_id, data in self.agent.neighbor_buffer.items()}
                 self.delta_Q_sec = max(-self.q_max, min(self.q_max, self.delta_Q_sec + dQ))
                 if self.source_type != "DIESEL":
@@ -616,6 +654,16 @@ class DistributedNodeRunner:
         except KeyboardInterrupt:
             print(f"\nDeteniendo nodo {self.node_id}...")
         finally:
+            if getattr(self, "u_q_history", None):
+                try:
+                    os.makedirs("output_data", exist_ok=True)
+                    uq_path = os.path.join("output_data", f"node_{self.node_id}_uq.csv")
+                    with open(uq_path, "w", newline="", encoding="utf-8") as f_uq:
+                        writer = csv.DictWriter(f_uq, fieldnames=["step", "time_s", "u_q", "dQ"])
+                        writer.writeheader()
+                        writer.writerows(self.u_q_history)
+                except Exception:
+                    pass
             self.close()
             print(f"Nodo {self.node_id} finalizado.")
 
@@ -665,6 +713,9 @@ if __name__ == "__main__":
     parser.add_argument("--m-q", type=float, default=None, help="Pendiente de droop Q-V en V/var (default: 8.0/Q_max)")
     parser.add_argument("--diesel-integrator-deadband-hz", type=float, default=None, help="Banda muerta del integrador secundario diésel en Hz (default: 0.030)")
     parser.add_argument("--consensus-substeps", type=int, default=1, help="Sub-pasos internos de consenso por macro-paso de 0.5 s (S-O-40)")
+    parser.add_argument("--consensus-interval", type=float, default=0.5, help="Intervalo de actualización del consenso en segundos (S-O-42)")
+    parser.add_argument("--c1", type=float, default=None, help="Parámetro c1 de Polyakov (S-O-43)")
+    parser.add_argument("--c2", type=float, default=None, help="Parámetro c2 de Polyakov (S-O-43)")
     args = parser.parse_args()
 
     # Resolver alias de lambda
@@ -703,6 +754,9 @@ if __name__ == "__main__":
         q_perturb_end=args.q_perturb_end,
         m_q=args.m_q,
         diesel_integrator_deadband_hz=args.diesel_integrator_deadband_hz,
-        consensus_substeps=args.consensus_substeps
+        consensus_substeps=args.consensus_substeps,
+        consensus_interval=args.consensus_interval,
+        c1=args.c1,
+        c2=args.c2
     )
     runner.run(max_steps=args.steps)

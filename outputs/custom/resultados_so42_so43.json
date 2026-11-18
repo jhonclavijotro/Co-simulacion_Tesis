@@ -1,0 +1,163 @@
+{
+  "tau_droop": {
+    "N1": {
+      "y0": 2.5099799999999997,
+      "y_post": 3.4985999999999997,
+      "dy": 0.98862,
+      "tau_63": 0.0,
+      "tau_95": 0.0
+    },
+    "N2": {
+      "y0": 0.02174,
+      "y_post": 0.03421111111111111,
+      "dy": 0.01247111111111111,
+      "tau_63": 0.0,
+      "tau_95": 0.0
+    },
+    "N3": {
+      "y0": 0.05437000000000001,
+      "y_post": 0.05136666666666667,
+      "dy": -0.003003333333333337,
+      "tau_63": 0.0,
+      "tau_95": 0.0
+    },
+    "Agregado_disp": {
+      "y0": 0.41108333333333336,
+      "y_post": 0.5716962962962964,
+      "dy": 0.160612962962963,
+      "tau_63": 0.0,
+      "tau_95": 0.0
+    }
+  },
+  "barrido_s42": {
+    "Caso A": {
+      "cfg": {
+        "prefix": "ESC-HIL-020A",
+        "Tc": 0.5,
+        "c1": 0.25,
+        "c2": 0.15
+      },
+      "metrics": {
+        "disp_media": 0.005268579234972678,
+        "disp_max": 0.015283333333333343,
+        "disp_min": 0.0010666666666666602,
+        "p2p_disp": 0.014216666666666683,
+        "factor_reduccion": 82.52129855312968,
+        "tf_efectivo": 52.54,
+        "p2p_f": 0.0073999999999969646,
+        "f_estable": "True",
+        "chattering_idx_n2": 0.5621468926553672,
+        "Tc/tau_droop": 1.0
+      }
+    },
+    "Caso B": {
+      "cfg": {
+        "prefix": "ESC-HIL-020B",
+        "Tc": 1.0,
+        "c1": 0.25,
+        "c2": 0.15
+      },
+      "metrics": {
+        "disp_media": 0.005218579234972674,
+        "disp_max": 0.01551666666666665,
+        "disp_min": 0.0003166666666666873,
+        "p2p_disp": 0.015199999999999964,
+        "factor_reduccion": 83.31194764397911,
+        "tf_efectivo": 105.08,
+        "p2p_f": 0.0073999999999969646,
+        "f_estable": "True",
+        "chattering_idx_n2": 0.5,
+        "Tc/tau_droop": 2.0
+      }
+    },
+    "Caso C / A'": {
+      "cfg": {
+        "prefix": "ESC-HIL-020C",
+        "Tc": 2.0,
+        "c1": 0.25,
+        "c2": 0.15
+      },
+      "metrics": {
+        "disp_media": 0.0052972677595628384,
+        "disp_max": 0.016666666666666635,
+        "disp_min": 0.0007666666666666377,
+        "p2p_disp": 0.015899999999999997,
+        "factor_reduccion": 82.0743862182794,
+        "tf_efectivo": 210.16,
+        "p2p_f": 0.0073999999999969646,
+        "f_estable": "True",
+        "chattering_idx_n2": 0.5280898876404494,
+        "Tc/tau_droop": 4.0
+      }
+    },
+    "Caso D": {
+      "cfg": {
+        "prefix": "ESC-HIL-020D",
+        "Tc": 5.0,
+        "c1": 0.25,
+        "c2": 0.15
+      },
+      "metrics": {
+        "disp_media": 0.004653005464480883,
+        "disp_max": 0.015016666666666678,
+        "disp_min": 9.999999999998899e-05,
+        "p2p_disp": 0.01491666666666669,
+        "factor_reduccion": 93.43853200234861,
+        "tf_efectivo": 525.4,
+        "p2p_f": 0.0073999999999969646,
+        "f_estable": "True",
+        "chattering_idx_n2": 0.4,
+        "Tc/tau_droop": 10.0
+      }
+    },
+    "Corrida B'": {
+      "cfg": {
+        "prefix": "ESC-HIL-021",
+        "Tc": 0.5,
+        "c1": 0.0625,
+        "c2": 0.0375
+      },
+      "metrics": {
+        "disp_media": 0.004247814207650275,
+        "disp_max": 0.01416666666666666,
+        "disp_min": 0.0003166666666666873,
+        "p2p_disp": 0.013849999999999973,
+        "factor_reduccion": 102.3514633048176,
+        "tf_efectivo": 52.54,
+        "p2p_f": 0.0073999999999969646,
+        "f_estable": "True",
+        "chattering_idx_n2": 0.3764367816091954,
+        "Tc/tau_droop": 1.0
+      }
+    }
+  },
+  "prediccion_p4": {
+    "pred_p2p": 0.015277620846921261,
+    "pred_mean": 0.004928372435314048,
+    "medido_p2p": 0.01319999999999999,
+    "medido_mean": 0.00540874316939891,
+    "error_p2p_pct": -13.599112504090927,
+    "error_mean_pct": 9.747046116944931,
+    "valida": true
+  },
+  "latencia_p5": {
+    "ESC-HIL-023A_latencia_Tc_05s": {
+      "Tc": 0.5,
+      "t_step": 90.0,
+      "t_react": 90.0,
+      "latencia_s": 0.0
+    },
+    "ESC-HIL-023B_latencia_Tc_20s": {
+      "Tc": 2.0,
+      "t_step": 91.0,
+      "t_react": 92.0,
+      "latencia_s": 1.0
+    },
+    "ESC-HIL-023C_latencia_Tc_50s": {
+      "Tc": 5.0,
+      "t_step": 92.5,
+      "t_react": 95.0,
+      "latencia_s": 2.5
+    }
+  }
+}

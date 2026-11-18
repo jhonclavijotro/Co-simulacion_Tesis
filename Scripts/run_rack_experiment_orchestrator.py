@@ -304,6 +304,17 @@ class RackExperimentOrchestrator:
                                 cmd_n2.extend(["--consensus-substeps", str(c_substeps)])
                                 cmd_n3.extend(["--consensus-substeps", str(c_substeps)])
                                 print(f"    [S-O-40] Sub-pasos internos de consenso configurados: n = {c_substeps} (dt_sub = {0.5 / c_substeps:.4f} s)")
+                            c_interval = float(meta_data.get("consensus_interval") or meta_data.get("T_c") or 0.5)
+                            if c_interval != 0.5:
+                                cmd_n1.extend(["--consensus-interval", str(c_interval)])
+                                cmd_n2.extend(["--consensus-interval", str(c_interval)])
+                                cmd_n3.extend(["--consensus-interval", str(c_interval)])
+                                print(f"    [S-O-42] Intervalo de actualización de consenso: T_c = {c_interval:.2f} s")
+                            if "c1" in meta_data and "c2" in meta_data:
+                                cmd_n1.extend(["--c1", str(float(meta_data["c1"])), "--c2", str(float(meta_data["c2"]))])
+                                cmd_n2.extend(["--c1", str(float(meta_data["c1"])), "--c2", str(float(meta_data["c2"]))])
+                                cmd_n3.extend(["--c1", str(float(meta_data["c1"])), "--c2", str(float(meta_data["c2"]))])
+                                print(f"    [S-O-43] Parámetros Polyakov: c1 = {meta_data['c1']}, c2 = {meta_data['c2']}")
                             if meta_data.get("freeze_consensus", False):
                                 def _strip_neighbors(cmd_list):
                                     out = []
@@ -339,6 +350,20 @@ class RackExperimentOrchestrator:
                         "--q-step-start", str(q_step_start if q_step_start is not None else 50.0),
                         "--q-step-duration", str(q_step_duration)
                     ])
+                if os.path.exists(meta_path):
+                    try:
+                        with open(meta_path, "r", encoding="utf-8") as f_m2:
+                            m_d2 = json.load(f_m2)
+                        ex_q2 = m_d2.get("excitacion_reactiva_2") or {}
+                        if "nodo" in ex_q2:
+                            cmd_loads.extend([
+                                "--q-step2-node", str(int(ex_q2["nodo"])),
+                                "--q-step2-var", str(float(ex_q2.get("q_step_var", 1000.0))),
+                                "--q-step2-start", str(float(ex_q2.get("inicio_s", 100.0))),
+                                "--q-step2-duration", str(float(ex_q2.get("duracion_s", 5.0)))
+                            ])
+                    except Exception:
+                        pass
 
                 os.makedirs("output_data", exist_ok=True)
                 f_n1 = open("output_data/node_1_sil.log", "w", encoding="utf-8")
