@@ -121,7 +121,7 @@ class PowerFlowClockServer:
 
                 injections = dict(last_injections)
                 sample_idx = step - 1
-                time_s = round(sample_idx * self.step_dt, 2)
+                time_s = round(sample_idx * self.step_dt, 3)
                 extra_payload = {
                     "sample_idx": sample_idx,
                     "time_s": time_s,

@@ -56,6 +56,7 @@ class DistributedNodeRunner:
         diesel_integrator_deadband_hz: Optional[float] = None,
         consensus_substeps: int = 1,
         consensus_interval: float = 0.5,
+        macro_dt: float = 0.5,
         c1: Optional[float] = None,
         c2: Optional[float] = None
     ):
@@ -182,6 +183,7 @@ class DistributedNodeRunner:
         self.q_perturb_end = float(q_perturb_end)
         self.consensus_substeps = max(1, int(consensus_substeps))
         self.consensus_interval = float(consensus_interval) if consensus_interval is not None else 0.5
+        self.macro_dt = float(macro_dt) if macro_dt is not None else 0.5
         self.c1 = float(c1) if c1 is not None else 0.25
         self.c2 = float(c2) if c2 is not None else 0.15
         self.u_q_history = []
@@ -213,7 +215,7 @@ class DistributedNodeRunner:
         )
 
         # 2. Agente de Consenso en Tiempo Fijo (FxTS)
-        c_interval_steps = max(1, int(round(self.consensus_interval / 0.5)))
+        c_interval_steps = max(1, int(round(self.consensus_interval / self.macro_dt)))
         self.agent = FixedTimeConsensusAgent(
             agent_id=self.node_id,
             Q_max=self.q_max,
@@ -319,7 +321,7 @@ class DistributedNodeRunner:
 
                 step_idx = clock_msg.get("step", step_count)
                 sample_idx = max(0, int(step_idx) - 1)
-                time_s = clock_msg.get("time_s", round(sample_idx * 0.5, 2))
+                time_s = clock_msg.get("time_s", round(sample_idx * self.macro_dt, 3))
                 voltages = clock_msg.get("voltages", {})
                 v_node_info = voltages.get(str(self.node_id), {})
                 v_pcc_volts = v_node_info.get("V_volts", self.v_base)
@@ -347,7 +349,7 @@ class DistributedNodeRunner:
                     P_ref=self.P_ref,
                     delta_omega=self.omega_offset,
                     curtail_ratio=self.curtail_ratio,
-                    macro_dt=0.5,
+                    macro_dt=self.macro_dt,
                     micro_dt=0.001
                 )
                 P_w = phys_out["P_w"]
@@ -431,8 +433,8 @@ class DistributedNodeRunner:
 
                 # 5. Actualizar ley de control FxTS con vecinos filtrados (disparando retención ZOH si hay pérdidas)
                 omega_local = 2.0 * math.pi * f_sys
-                c_step_interval = max(1, int(round(self.consensus_interval / 0.5)))
-                is_consensus_step = (self.consensus_interval <= 0.5) or (step_idx % c_step_interval == 0)
+                c_step_interval = max(1, int(round(self.consensus_interval / self.macro_dt)))
+                is_consensus_step = (c_step_interval <= 1) or (sample_idx % c_step_interval == 0)
 
                 if is_consensus_step:
                     if self.consensus_substeps <= 1:
@@ -443,11 +445,11 @@ class DistributedNodeRunner:
                             P_i=P_w,
                             eta_i=self.eta_excess,
                             neighbor_states=filtered_neighbors,
-                            dt=0.5,
+                            dt=self.consensus_interval,
                             return_all=True
                         )
                     else:
-                        dt_sub = 0.5 / self.consensus_substeps
+                        dt_sub = self.consensus_interval / self.consensus_substeps
                         q_sub = Q_var
                         dV = 0.0
                         dQ = 0.0
@@ -470,7 +472,7 @@ class DistributedNodeRunner:
                             dw += dw_s
                             dP += dP_s
                     # Registro u_q para cálculo de chattering e inspección (S-O-43 / T2-P3)
-                    eff_uq = dQ / (0.5 * self.q_max) if self.q_max > 0 else 0.0
+                    eff_uq = dQ / (self.consensus_interval * self.q_max) if self.q_max > 0 else 0.0
                     self.last_u_q = eff_uq
                     self.u_q_history.append({
                         "step": step_idx,
@@ -512,7 +514,7 @@ class DistributedNodeRunner:
                     # acumulado, permitiendo que el droop primario gobierne el equilibrio de régimen permanente.
                     deadband_w = 2.0 * math.pi * self.diesel_integrator_deadband_hz
                     if abs(err_w) > deadband_w:
-                        self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * 0.5))
+                        self.int_freq_error = max(-75.0, min(75.0, self.int_freq_error + err_w * self.macro_dt))
                     if self.p_min_diesel > 0.0 and self.P_ref <= self.p_min_diesel + 1.0 and self.int_freq_error < 0.0:
                         self.int_freq_error = max(-10.0, self.int_freq_error)
                     delta_P_restore = self.k_p_freq * err_w + self.k_i_freq * self.int_freq_error
@@ -714,6 +716,7 @@ if __name__ == "__main__":
     parser.add_argument("--diesel-integrator-deadband-hz", type=float, default=None, help="Banda muerta del integrador secundario diésel en Hz (default: 0.030)")
     parser.add_argument("--consensus-substeps", type=int, default=1, help="Sub-pasos internos de consenso por macro-paso de 0.5 s (S-O-40)")
     parser.add_argument("--consensus-interval", type=float, default=0.5, help="Intervalo de actualización del consenso en segundos (S-O-42)")
+    parser.add_argument("--macro-dt", type=float, default=0.5, help="Paso del solucionador de flujo en segundos (S-O-46)")
     parser.add_argument("--c1", type=float, default=None, help="Parámetro c1 de Polyakov (S-O-43)")
     parser.add_argument("--c2", type=float, default=None, help="Parámetro c2 de Polyakov (S-O-43)")
     args = parser.parse_args()
@@ -756,6 +759,7 @@ if __name__ == "__main__":
         diesel_integrator_deadband_hz=args.diesel_integrator_deadband_hz,
         consensus_substeps=args.consensus_substeps,
         consensus_interval=args.consensus_interval,
+        macro_dt=args.macro_dt,
         c1=args.c1,
         c2=args.c2
     )

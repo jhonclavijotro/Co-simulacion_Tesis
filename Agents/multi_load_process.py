@@ -243,10 +243,10 @@ class MultiLoadProcess:
                     break
 
                 step_idx = clock_msg.get("step", step_count)
-                time_s = clock_msg.get("time_sec", step_idx * 0.5)
+                time_s = clock_msg.get("time_s", clock_msg.get("time_sec", (step_idx - 1) * 0.5))
 
-                # Evaluar demanda de cada nodo segun las series temporales
-                idx = max(0, step_idx - 1)
+                # Evaluar demanda de cada nodo segun las series temporales (en tiempo físico @ 0.5 s)
+                idx = max(0, int(float(time_s) / 0.5 + 1e-6))
                 demandas_paso = {}
                 for nodo in self.nodos_carga:
                     serie = self.demandas.get(nodo) or []

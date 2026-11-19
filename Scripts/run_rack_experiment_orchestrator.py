@@ -315,6 +315,11 @@ class RackExperimentOrchestrator:
                                 cmd_n2.extend(["--c1", str(float(meta_data["c1"])), "--c2", str(float(meta_data["c2"]))])
                                 cmd_n3.extend(["--c1", str(float(meta_data["c1"])), "--c2", str(float(meta_data["c2"]))])
                                 print(f"    [S-O-43] Parámetros Polyakov: c1 = {meta_data['c1']}, c2 = {meta_data['c2']}")
+                            if abs(float(dt_s) - 0.5) > 1e-6:
+                                cmd_n1.extend(["--macro-dt", str(float(dt_s))])
+                                cmd_n2.extend(["--macro-dt", str(float(dt_s))])
+                                cmd_n3.extend(["--macro-dt", str(float(dt_s))])
+                                print(f"    [S-O-46] Multi-rate: paso de solucionador dt_pf = {float(dt_s)*1000:.0f} ms (consenso fijo en T_c = {c_interval:.2f} s)")
                             if meta_data.get("freeze_consensus", False):
                                 def _strip_neighbors(cmd_list):
                                     out = []
@@ -428,7 +433,17 @@ class RackExperimentOrchestrator:
                         p.kill()
                 local_procs.clear()
                 if os.path.exists(backup_csv):
-                    shutil.copy2(backup_csv, local_csv)
+                    if float(dt_s) < 0.5 - 1e-6:
+                        import pandas as _pd_mr
+                        solver_full_csv = os.path.join(results_dir, "telemetry_solver_full.csv")
+                        shutil.copy2(backup_csv, solver_full_csv)
+                        _df_mr = _pd_mr.read_csv(backup_csv)
+                        _sub_factor = max(1, int(round(0.5 / float(dt_s))))
+                        _df_2hz = _df_mr[_df_mr.index % _sub_factor == 0].copy()
+                        _df_2hz.to_csv(local_csv, index=False)
+                        print(f"    [S-O-46] Telemetría 2 Hz conservada en telemetry_rack.csv ({len(_df_2hz)} filas); sub-pasos en telemetry_solver_full.csv ({len(_df_mr)} filas).")
+                    else:
+                        shutil.copy2(backup_csv, local_csv)
                     telemetry_source = "local_sil_server"
                 else:
                     telemetry_source = "unknown"

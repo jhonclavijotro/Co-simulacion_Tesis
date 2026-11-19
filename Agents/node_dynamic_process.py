@@ -103,23 +103,24 @@ class NodeDynamicProcess:
             v_pu = v_num
         v_inv_terminal = v_pu * 110.0
 
-        # 1. Cargar datos de entrada según el tipo de fuente
+        # 1. Cargar datos de entrada según el tipo de fuente (indexados en tiempo físico @ 0.5 s)
+        profile_idx = max(0, int((self.step_index * float(macro_dt)) / 0.5 + 1e-6))
         if self.source_type == "SOLAR":
             try:
-                poa, temp = self.data_loader.get_solar_at(self.step_index)
+                poa, temp = self.data_loader.get_solar_at(profile_idx)
             except Exception:
                 poa, temp = 1000.0, 298.15
             self.model.POA = poa
             self.model.Tam = temp
         elif self.source_type == "EOLICA":
             try:
-                ws = self.data_loader.get_eolic_at(self.step_index)
+                ws = self.data_loader.get_eolic_at(profile_idx)
             except Exception:
                 ws = 10.0
             self.model.Ws = ws
         elif self.source_type == "HIDRICA":
             try:
-                vc = self.data_loader.get_hydro_at(self.step_index)
+                vc = self.data_loader.get_hydro_at(profile_idx)
             except Exception:
                 vc = 1.5
             self.model.Vc = vc
