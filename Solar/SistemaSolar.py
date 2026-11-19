@@ -40,7 +40,15 @@ class SistemaSolar:
         self.mppt = MPPTController()
         self.mppt.paso = float(mppt_step_v)
         self.boost = BoostConverter()
-        self.inversor = GridConnectedInverter(Vdcref=400, N_inv=self.N_inv)
+        s_inv_nom = 6000.0 if self.N_inv == 1 else (self.S_base_planta / self.N_inv)
+        self.inversor = GridConnectedInverter(
+            Vdcref=400.0,
+            N_inv=self.N_inv,
+            S_inv_nom=s_inv_nom,
+            C_dc=self.boost.C,
+            V_dc_min=370.0,
+            V_dc_max=500.0,
+        )
         self.transformadas = Transformadas()
         self.red = RedTrifasica()
         # Irradiancia incidente en el plano del arreglo [W/m2]
@@ -134,16 +142,18 @@ class SistemaSolar:
         # para emular el desplazamiento del punto de operación (off-MPPT) y evitar sobretensión ficticia en Vdc
         I_pv_eff = ctx["I_pv"] * curtail_ratio if curtail_ratio < 1.0 else ctx["I_pv"]
 
-        # Corriente inyectada al bus DC conservando potencia DC del Boost (P_dc = V_dc * I_dc_in = V_array * I_pv_eff)
-        # S-O-34 / D-34 C-4: D = 1 - V_array/V_dc ==> I_dc_in = I_pv_eff * (1 - D) = I_pv_eff * (V_array / V_dc)
-        I_dc_in = I_pv_eff * (1.0 - ctx["duty_cycle"])
+        # Potencia DC real disponible desde el arreglo fotovoltaico
+        P_dc_in = max(0.0, ctx["V_array"] * I_pv_eff) * self.N_inv
+        I_dc_in = P_dc_in / (max(ctx["V_dc"], 10.0) * self.N_inv)
 
-        # Ejecutar un paso del inversor conectado a red con seguimiento de reactiva
+        # Ejecutar un paso del inversor conectado a red (filtro RL en dq + acople DC + círculo S_max)
         q_ref_val = ctx.get("Pq", 0.0)
         Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
             ctx["V_dc"], ctx["Vdi"], ctx["Vqi"], ctx["theta0"], I_dc_in, dt,
             Q_ref=q_ref_val,
-            D=ctx["duty_cycle"])
+            P_dc_in=P_dc_in,
+            D=ctx["duty_cycle"]
+        )
 
         # Potencia MPP nominal disponible del arreglo fotovoltaico sobre V_array real (S-O-34 / D-34 C-4)
         # P_mpp es invariante a la modulación de curtail_ratio y depende únicamente del recurso solar (POA, T)
@@ -151,14 +161,18 @@ class SistemaSolar:
         if P_mpp <= 0.0:
             P_mpp = float(Pw)
 
-        if curtail_ratio < 1.0:
-            Pw_eff = Pw
-            P_curtailed = max(0.0, P_mpp - Pw_eff)
-            Idi_eff = Idi
-        else:
-            Pw_eff = Pw
-            P_curtailed = 0.0
-            Idi_eff = Idi
+        Pw_eff = Pw
+        P_curtailed = max(0.0, P_mpp - P_dc_in) if curtail_ratio < 1.0 else 0.0
+        Idi_eff = Idi
+
+        # Actualizar el bus DC usando la corriente DC real extraída por el inversor AC (S-O-48 B)
+        I_inv_dc = self.inversor.last_I_dc_out
+        _, Vdc_new = self.boost.update_state(
+            ctx["duty_cycle"], I_pv_eff, ctx["V_array"], I_inv_dc, dt
+        )
+        ctx["V_dc"] = Vdc_new
+        P_cap_dc = self.N_inv * self.boost.last_P_cap
+        inv_bal = self.inversor.last_balance
 
         ctx["Pw"] = Pw_eff
         ctx["P_mpp"] = P_mpp
@@ -168,11 +182,15 @@ class SistemaSolar:
         ctx["Idi"] = Idi_eff
         ctx["Iqi"] = Iqi
         ctx["Idiref"] = Idiref
-
-        # Actualizar el bus DC del convertidor Boost con la corriente DC real de carga
-        _, Vdc_new = self.boost.update_state(
-            ctx["duty_cycle"], I_pv_eff, ctx["V_array"], I_dc_in, dt)
-        ctx["V_dc"] = Vdc_new
+        ctx["P_dc_in"] = P_dc_in
+        ctx["P_loss_ac"] = inv_bal.get("P_loss_rl", 0.0)
+        ctx["P_stored_L"] = inv_bal.get("P_stored_l", 0.0)
+        ctx["P_cap_dc"] = P_cap_dc
+        ctx["P_bridge"] = inv_bal.get("P_bridge", Pw_eff)
+        ctx["S_actual"] = inv_bal.get("S_actual", 0.0)
+        ctx["s_limited"] = inv_bal.get("s_limited", False)
+        ctx["tau_rl"] = inv_bal.get("tau_rl", 0.0)
+        ctx["tau_i"] = inv_bal.get("tau_i", 0.0)
 
         # Obtener la tension trifasica de la red o usar el valor externo del PCC
         if V_pcc is not None:

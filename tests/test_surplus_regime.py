@@ -64,21 +64,24 @@ class TestSurplusRegime(unittest.TestCase):
         solar.POA = 1000.0
         solar.Tam = 298.15
 
-        # 1. Operación normal a MPP (curtail_ratio = 1.0)
-        out_mpp = solar.step(dt=0.001, V_pcc=110.0, setpoints={"curtail_ratio": 1.0})
-        p_mpp = out_mpp["Pw"]
-        self.assertGreater(p_mpp, 0.0)
+        # 1. Operación normal a MPP (curtail_ratio = 1.0) estabilizando la dinámica del filtro RL (50 ms)
+        for _ in range(50):
+            out_mpp = solar.step(dt=0.001, V_pcc=110.0, setpoints={"curtail_ratio": 1.0})
+        p_mpp = out_mpp["P_mpp"]
+        self.assertGreater(out_mpp["Pw"], 0.0)
         self.assertEqual(out_mpp["P_curtailed"], 0.0)
         self.assertEqual(out_mpp["curtail_ratio"], 1.0)
 
-        # 2. Operación con 40% de recorte (curtail_ratio = 0.60 -> 60% de inyección)
-        out_curtailed = solar.step(dt=0.001, V_pcc=110.0, setpoints={"curtail_ratio": 0.60})
+        # 2. Operación con 40% de recorte (curtail_ratio = 0.60 -> 60% de inyección tras estabilizar)
+        for _ in range(100):
+            out_curtailed = solar.step(dt=0.001, V_pcc=110.0, setpoints={"curtail_ratio": 0.60})
         p_eff = out_curtailed["Pw"]
         p_mpp_curr = out_curtailed["P_mpp"]
         p_curt = out_curtailed["P_curtailed"]
+        p_losses = out_curtailed["P_loss_ac"] + out_curtailed["P_stored_L"] + out_curtailed["P_cap_dc"]
 
-        self.assertAlmostEqual(p_eff, p_mpp_curr * 0.60, places=3, msg="Potencia efectiva debe ser 60% del MPP actual")
-        self.assertAlmostEqual(p_curt, p_mpp_curr * 0.40, places=3, msg="Potencia recortada debe ser 40% del MPP actual")
+        self.assertAlmostEqual(p_eff / p_mpp_curr, 0.60, delta=0.02, msg="Potencia efectiva debe aproximarse al 60% del MPP actual")
+        self.assertAlmostEqual(p_eff + p_losses + p_curt, p_mpp_curr, delta=5.0, msg="Balance físico completo Pw + pérdidas + recorte = P_mpp")
         self.assertAlmostEqual(out_curtailed["curtail_ratio"], 0.60, places=4)
 
     def test_fixed_time_excess_consensus_convergence(self):

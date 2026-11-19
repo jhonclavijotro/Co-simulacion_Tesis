@@ -9,6 +9,7 @@ class BoostConverter:
         self.R = 0.1          # Resistencia parásita [Ω]
         self.Vdc = 400.0      # Tensión inicial del bus [V] (debe ser > Vpv para Boost)
         self.Ipv = 7.6        # Corriente inicial del panel [A] (~Impp)
+        self.last_P_cap = 0.0
         
         self.integral_error = 0.0
         
@@ -40,25 +41,19 @@ class BoostConverter:
         return np.clip(duty, 0.01, 0.95)
 
     def update_state(self, duty_cycle, Ipv, Vpv, Iinv, dt):
-        """Actualiza el bus DC usando corriente del panel como fuente.
-        No modela la dinámica del inductor (L/R << dt de control).
-        Usa solo la dinámica del capacitor del bus DC:
-          C * dVdc/dt = (1-D)*Ipv - Iinv
-        Args:
-            duty_cycle: Ciclo de trabajo [0-1]
-            Ipv: Corriente del panel (limitada por curva I-V) [A]
-            Vpv: Tensión del arreglo fotovoltaico [V] (no usada directamente)
-            Iinv: Corriente del inversor (carga del bus DC) [A]
-            dt: Paso de tiempo [s]
-        Returns:
-            Ipv, Vdc_new: Ipv sin cambios (el panel la impone), Vdc actualizado
+        """Actualiza el bus DC mediante balance energético exacto del capacitor C_dc:
+          0.5 * C * d(Vdc^2)/dt = P_in - P_out
+        donde P_in = Vpv * Ipv y P_out = Vdc * Iinv (corriente extraída por el inversor AC).
         """
-        Iboost = Ipv * (1 - duty_cycle)
-        dVdc = (Iboost - Iinv) / self.C
-        
-        Vdc_new = self.Vdc + dVdc * dt
-        self.Vdc = max(370.0, min(Vdc_new, 500.0))
-        
+        dt_s = max(1e-6, float(dt))
+        v_old = float(self.Vdc)
+        P_in = float(Vpv) * float(Ipv)
+        P_out = v_old * float(Iinv)
+
+        v_sq_new = v_old * v_old + (2.0 * dt_s / self.C) * (P_in - P_out)
+        self.Vdc = float(np.sqrt(max(370.0 * 370.0, min(500.0 * 500.0, v_sq_new))))
+        self.last_P_cap = 0.5 * self.C * (self.Vdc * self.Vdc - v_old * v_old) / dt_s
+
         return Ipv, self.Vdc
 
     def get_state_space(self, duty_cycle):

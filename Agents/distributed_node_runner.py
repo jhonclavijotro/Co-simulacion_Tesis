@@ -57,6 +57,7 @@ class DistributedNodeRunner:
         consensus_substeps: int = 1,
         consensus_interval: float = 0.5,
         macro_dt: float = 0.5,
+        q_interp_substeps: int = 1,
         c1: Optional[float] = None,
         c2: Optional[float] = None
     ):
@@ -184,6 +185,9 @@ class DistributedNodeRunner:
         self.consensus_substeps = max(1, int(consensus_substeps))
         self.consensus_interval = float(consensus_interval) if consensus_interval is not None else 0.5
         self.macro_dt = float(macro_dt) if macro_dt is not None else 0.5
+        self.q_interp_substeps = max(1, int(q_interp_substeps))
+        self._dq_ramp_per_step = 0.0
+        self._dq_ramp_steps_left = 0
         self.c1 = float(c1) if c1 is not None else 0.25
         self.c2 = float(c2) if c2 is not None else 0.15
         self.u_q_history = []
@@ -497,12 +501,26 @@ class DistributedNodeRunner:
                     dP = 0.0
 
                 self.neighbor_cache = {n_id: data["state"] for n_id, data in self.agent.neighbor_buffer.items()}
-                self.delta_Q_sec = max(-self.q_max, min(self.q_max, self.delta_Q_sec + dQ))
+                # S-O-48 Parte A: interpolacion de dQ en sub-pasos del solucionador manteniendo consenso a 500 ms
+                if self.q_interp_substeps > 1 and c_step_interval > 1:
+                    if is_consensus_step:
+                        n_interp = min(self.q_interp_substeps, c_step_interval) if self.q_interp_substeps >= c_step_interval else c_step_interval
+                        self._dq_ramp_per_step = dQ / float(n_interp)
+                        self._dq_ramp_steps_left = n_interp
+                    if self._dq_ramp_steps_left > 0:
+                        dQ_apply = self._dq_ramp_per_step
+                        self._dq_ramp_steps_left -= 1
+                    else:
+                        dQ_apply = 0.0
+                else:
+                    dQ_apply = dQ
+
+                self.delta_Q_sec = max(-self.q_max, min(self.q_max, self.delta_Q_sec + dQ_apply))
                 if self.source_type != "DIESEL":
                     q_droop = (self.v_base - v_pcc_volts) / self.m_q
                     self.Q_ref = max(0.0, min(self.q_max, q_droop + self.delta_Q_sec))
                 else:
-                    self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ))
+                    self.Q_ref = max(-self.q_max, min(self.q_max, self.Q_ref + dQ_apply))
 
                 # Lazo de Control Secundario de Frecuencia y Reparto de Potencia Activa (Regimenes 1 y 2 / S-36 / D-28)
                 df_hz = f_sys - 60.0
@@ -717,6 +735,7 @@ if __name__ == "__main__":
     parser.add_argument("--consensus-substeps", type=int, default=1, help="Sub-pasos internos de consenso por macro-paso de 0.5 s (S-O-40)")
     parser.add_argument("--consensus-interval", type=float, default=0.5, help="Intervalo de actualización del consenso en segundos (S-O-42)")
     parser.add_argument("--macro-dt", type=float, default=0.5, help="Paso del solucionador de flujo en segundos (S-O-46)")
+    parser.add_argument("--q-interp-substeps", type=int, default=1, help="Sub-pasos de interpolación de consigna Q_ref entre ciclos de consenso (S-O-48)")
     parser.add_argument("--c1", type=float, default=None, help="Parámetro c1 de Polyakov (S-O-43)")
     parser.add_argument("--c2", type=float, default=None, help="Parámetro c2 de Polyakov (S-O-43)")
     args = parser.parse_args()
@@ -760,6 +779,7 @@ if __name__ == "__main__":
         consensus_substeps=args.consensus_substeps,
         consensus_interval=args.consensus_interval,
         macro_dt=args.macro_dt,
+        q_interp_substeps=args.q_interp_substeps,
         c1=args.c1,
         c2=args.c2
     )

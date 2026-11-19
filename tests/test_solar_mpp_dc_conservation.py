@@ -81,9 +81,12 @@ class TestSolarMPPAndDCConservation(unittest.TestCase):
         p_mpp = ctx["P_mpp"]
         pw = ctx["Pw"]
         p_curt = ctx["P_curtailed"]
+        p_loss = ctx["P_loss_ac"]
+        p_stored = ctx["P_stored_L"]
+        p_cap = ctx["P_cap_dc"]
 
-        # Suma Pw + P_curtailed == P_mpp
-        self.assertAlmostEqual(pw + p_curt, p_mpp, places=1)
+        # Balance energético exacto: Pw + P_loss_ac + P_stored_L + P_cap_dc + P_curtailed == P_mpp
+        self.assertAlmostEqual(pw + p_loss + p_stored + p_cap + p_curt, p_mpp, places=2)
 
         # Ratio efectivo
         ratio_efectivo = pw / p_mpp

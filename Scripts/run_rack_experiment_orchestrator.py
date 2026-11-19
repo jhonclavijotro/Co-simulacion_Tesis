@@ -320,6 +320,12 @@ class RackExperimentOrchestrator:
                                 cmd_n2.extend(["--macro-dt", str(float(dt_s))])
                                 cmd_n3.extend(["--macro-dt", str(float(dt_s))])
                                 print(f"    [S-O-46] Multi-rate: paso de solucionador dt_pf = {float(dt_s)*1000:.0f} ms (consenso fijo en T_c = {c_interval:.2f} s)")
+                            q_interp = int(meta_data.get("q_interp_substeps", 1))
+                            if q_interp > 1:
+                                cmd_n1.extend(["--q-interp-substeps", str(q_interp)])
+                                cmd_n2.extend(["--q-interp-substeps", str(q_interp)])
+                                cmd_n3.extend(["--q-interp-substeps", str(q_interp)])
+                                print(f"    [S-O-48 A] Interpolación de consigna Q_ref en {q_interp} sub-pasos")
                             if meta_data.get("freeze_consensus", False):
                                 def _strip_neighbors(cmd_list):
                                     out = []

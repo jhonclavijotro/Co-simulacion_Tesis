@@ -25,7 +25,7 @@ class SistemaBESS:
     def __init__(self, V_nominal=48.0, capacidad_Ah=200.0, SoC_inicial=0.5,
                  N_serie=10, N_paralelo=1, Vdcref=400, V_rms=110.0,
                  modo="promedio", I_inv_max=50.0, N_inv=1, V_base_MT=13800.0, S_base_planta=1000000.0,
-                 m_p=1.57e-4, f_nom=60.0, droop_enabled=True):
+                 m_p=1.57e-4, f_nom=60.0, droop_enabled=True, S_inv_nom=None):
         self.modo = modo
         self.N_inv = max(1, int(N_inv))
         self.V_base_MT = float(V_base_MT)
@@ -43,11 +43,19 @@ class SistemaBESS:
         self.buck_boost = BuckBoost()
         self.Vdcref = Vdcref
 
+        eff_s_inv_nom = float(S_inv_nom) if S_inv_nom is not None else float(Vdcref * I_inv_max)
+        self.inversor = GridConnectedInverter(
+            Vdcref=Vdcref,
+            N_inv=self.N_inv,
+            S_inv_nom=eff_s_inv_nom,
+            C_dc=self.buck_boost.C_dc,
+            V_dc_min=360.0,
+            V_dc_max=440.0,
+            bidirectional=True,
+        )
         if modo == "detallado":
-            self.inversor = GridConnectedInverter(Vdcref=Vdcref, N_inv=self.N_inv)
             self.transformadas = Transformadas()
         else:
-            self.inversor = None
             self.transformadas = None
 
         self.V_rms = V_rms
@@ -185,19 +193,51 @@ class SistemaBESS:
         duty = self.buck_boost.control_corriente(I_bat_ref, ctx["I_bat"], dt)
         ctx["duty"] = duty
 
-        I_inv = P_ref_eff / max(ctx["V_dc"], 1.0)
-        I_inv = max(-I_inv_lim, min(I_inv_lim, I_inv))
-        I_bat, Vdc = self.buck_boost.actualizar_estado(
-            duty, I_bat_ref, V_bat, ctx["V_dc"], I_inv, dt
+        # Dinámica de corriente del convertidor DC-DC bidireccional (tau = 0.01 s)
+        dt_s = max(1e-6, float(dt))
+        alpha_i = min(1.0, dt_s / self.buck_boost.tau)
+        self.buck_boost.I_bat += (I_bat_ref - self.buck_boost.I_bat) * alpha_i
+        I_bat = self.buck_boost.I_bat
+        P_bat_dc = V_bat * I_bat
+
+        # Etapa inversor AC con filtro RL en marco dq, acople de bus DC y círculo S_max
+        v_d_pcc = self.V_rms * V_pcc_pu
+        Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
+            ctx["V_dc"], v_d_pcc, 0.0, ctx["theta0"],
+            P_bat_dc / max(ctx["V_dc"], 100.0), dt_s,
+            Q_ref=float(Q_ref) * 1000.0,
+            P_dc_in=P_bat_dc,
         )
+
+        # Balance energético real del capacitor del bus DC acoplado al puente inversor
+        inv_bal = self.inversor.last_balance
+        p_bridge = inv_bal.get("P_bridge", Pw)
+        v_old = float(ctx["V_dc"])
+        cap_total = self.N_inv * self.buck_boost.C_dc
+        v_sq_new = v_old * v_old + (2.0 * dt_s / cap_total) * (P_bat_dc - p_bridge)
+        Vdc = float(np.sqrt(max(360.0 * 360.0, min(440.0 * 440.0, v_sq_new))))
+        self.buck_boost.Vdc = Vdc
+        p_cap_dc = 0.5 * cap_total * (Vdc * Vdc - v_old * v_old) / dt_s
+
         ctx["I_bat"] = I_bat
         ctx["V_dc"] = Vdc
 
         self.bateria.actualizar_SoC(I_bat, dt)
         ctx["SoC"] = self.bateria.SoC
-        ctx["P_bat"] = V_bat * I_bat
-        ctx["Pw"] = P_ref_eff
-        ctx["Pq"] = float(Q_ref) * 1000.0
+        ctx["P_bat"] = P_bat_dc
+        ctx["Pw"] = Pw
+        ctx["Pq"] = Pq
+        ctx["P_inv_ac"] = Pw
+        ctx["Idi"] = Idi
+        ctx["Iqi"] = Iqi
+        ctx["Vdt"] = Vdt
+        ctx["P_dc_in"] = P_bat_dc
+        ctx["P_loss_ac"] = inv_bal.get("P_loss_rl", 0.0)
+        ctx["P_stored_L"] = inv_bal.get("P_stored_l", 0.0)
+        ctx["P_cap_dc"] = p_cap_dc
+        ctx["P_bridge"] = p_bridge
+        ctx["S_actual"] = inv_bal.get("S_actual", 0.0)
+        ctx["s_limited"] = inv_bal.get("s_limited", False)
 
         ctx["time"] = round(ctx["time"] + dt, 3)
 

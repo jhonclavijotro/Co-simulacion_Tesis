@@ -44,7 +44,14 @@ class SistemaDiesel:
         self._Kp_vdc = 0.8
         self._Ki_vdc = 0.2
 
-        self.inversor = GridConnectedInverter(Vdcref=self.Vdcref)
+        self.inversor = GridConnectedInverter(
+            Vdcref=self.Vdcref,
+            N_inv=1,
+            S_inv_nom=max(12000.0, self.P_nominal * 1.2),
+            C_dc=self.C_dc,
+            V_dc_min=200.0,
+            V_dc_max=600.0,
+        )
         self.transformadas = Transformadas()
         self.datos = []
         self.sample_time = 0.001
@@ -130,27 +137,36 @@ class SistemaDiesel:
         Idiesel = ctx["Pgen"] / v_dc_actual
         ctx["Idiesel"] = Idiesel
 
-        # 4. Control PI de regulación de tensión en bus DC
-        error_vdc = self.Vdcref - v_dc_actual
-        self._vdc_int += error_vdc * self._Ki_vdc * dt
-        self._vdc_int = max(-20.0, min(20.0, self._vdc_int))
-        Iinv_cmd = max(0.0, Idiesel - (self._Kp_vdc * error_vdc + self._vdc_int))
-
-        # 5. Integración del Inversor VSI en marco dq con consigna de reactiva
+        # 4. Integración del Inversor VSI (filtro RL en dq + acople de bus DC + círculo S_max)
+        Iinv_cmd = Idiesel
         q_ref_val = ctx.get("Pq", 0.0)
-        Pw, Pq, _, Iqi, Vdt, Idiref = self.inversor.step(
-            v_dc_actual, ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt, Q_ref=q_ref_val, D=0.0
+        Pw, Pq, Idi, Iqi, Vdt, Idiref = self.inversor.step(
+            v_dc_actual, ctx["Vdi"], ctx["Vqi"], ctx["theta0"], Iinv_cmd, dt,
+            Q_ref=q_ref_val,
+            P_dc_in=ctx["Pgen"],
+            D=0.0
         )
 
-        ctx["Idi"] = self.inversor.Idi_ref
+        # 5. Balance energético real en el capacitor del bus DC
+        inv_bal = self.inversor.last_balance
+        p_bridge = inv_bal.get("P_bridge", Pw)
+        v_sq_new = v_dc_actual * v_dc_actual + (2.0 * dt / self.C_dc) * (ctx["Pgen"] - p_bridge)
+        vdc_new = float(np.sqrt(max(200.0 * 200.0, min(600.0 * 600.0, v_sq_new))))
+        p_cap_dc = 0.5 * self.C_dc * (vdc_new * vdc_new - v_dc_actual * v_dc_actual) / max(1e-6, float(dt))
+
+        ctx["Idi"] = Idi
         ctx["Iqi"] = Iqi
         ctx["Vdt"] = Vdt
         ctx["Pw"] = Pw
         ctx["Pq"] = Pq
-
-        # 6. Balance de carga en el capacitor del bus DC
-        i_cap = Idiesel - Iinv_cmd
-        ctx["Vdc"] = max(200.0, min(ctx["Vdc"] + (i_cap / self.C_dc) * dt, 600.0))
+        ctx["Vdc"] = vdc_new
+        ctx["P_dc_in"] = ctx["Pgen"]
+        ctx["P_loss_ac"] = inv_bal.get("P_loss_rl", 0.0)
+        ctx["P_stored_L"] = inv_bal.get("P_stored_l", 0.0)
+        ctx["P_cap_dc"] = p_cap_dc
+        ctx["P_bridge"] = p_bridge
+        ctx["S_actual"] = inv_bal.get("S_actual", 0.0)
+        ctx["s_limited"] = inv_bal.get("s_limited", False)
 
         # 7. Sincronización SRF-PLL con V_pcc
         if V_pcc is not None:
