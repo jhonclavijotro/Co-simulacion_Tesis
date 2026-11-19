@@ -40,27 +40,34 @@ class NodeDynamicProcess:
         self.data_loader = MockDataLoader()
         self.step_index = 0
 
-        # Leer soc_inicial de meta.json del escenario activo si no se especifica explícitamente
+        # Leer parametros de meta.json del escenario activo
         eff_soc = soc_inicial
+        meta_data = {}
+        esc_dir = getattr(self.data_loader, "escenario_dir", None)
+        if esc_dir:
+            meta_path = os.path.join(esc_dir, "meta.json")
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, "r", encoding="utf-8") as f_meta:
+                        meta_data = json.load(f_meta)
+                except Exception:
+                    meta_data = {}
         if eff_soc is None and self.source_type == "BESS":
-            esc_dir = getattr(self.data_loader, "escenario_dir", None)
-            if esc_dir:
-                meta_path = os.path.join(esc_dir, "meta.json")
-                if os.path.exists(meta_path):
-                    try:
-                        with open(meta_path, "r", encoding="utf-8") as f_meta:
-                            meta_data = json.load(f_meta)
-                        reg_exc = meta_data.get("regimen_excedente") or {}
-                        if "soc_inicial" in reg_exc:
-                            eff_soc = float(reg_exc["soc_inicial"])
-                    except Exception:
-                        pass
+            reg_exc = meta_data.get("regimen_excedente") or {}
+            if "soc_inicial" in reg_exc:
+                eff_soc = float(reg_exc["soc_inicial"])
         if eff_soc is None:
             eff_soc = 0.50
 
         # Inicialización del modelo dinámico con capacidades para microrred de baja potencia
         if self.source_type == "SOLAR":
-            self.model = SistemaSolar(N_inv=1)
+            self.model = SistemaSolar(
+                N_inv=1,
+                mppt_frozen=bool(meta_data.get("mppt_frozen", False)),
+                mppt_step_v=float(meta_data.get("mppt_step_v", 1.0)),
+                mppt_interval_s=float(meta_data.get("mppt_interval_s", 0.5)),
+                mppt_v_fixed=float(meta_data.get("mppt_v_fixed", 359.0)),
+            )
         elif self.source_type == "EOLICA":
             self.model = SistemaEolico()
         elif self.source_type == "HIDRICA":

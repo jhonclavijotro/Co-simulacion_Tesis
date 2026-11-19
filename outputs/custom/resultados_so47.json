@@ -1,0 +1,35 @@
+{
+  "ref_026A": {
+    "label": "026A (Base MPPT 1.0V / 0.5s)",
+    "run_dir": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261119T101812_ESC-HIL-026A_multirate_500ms_seed42",
+    "p2p_disp": 0.013950000000000018,
+    "disp_mean": 0.0042360655737704945,
+    "ripple_period_s": 2.2301951333004584,
+    "n_up_crossings": 14,
+    "f_sys_p2p": 0.0075999999999964984,
+    "f_stable": true,
+    "v_min_pu": 0.99786,
+    "v_max_pu": 1.0,
+    "v_in_5pct": true,
+    "p_pv_mean_kw": 2.1761754098360657,
+    "p_pv_p2p_kw": 0.0036000000000000476
+  },
+  "P1": {
+    "label": "P1 (MPPT Congelado V=359V)",
+    "run_dir": "D:\\Antigravity\\Projects\\Tesis_Grado\\outputs\\custom\\results\\20261119T104633_ESC-HIL-027A_mppt_congelado_seed42",
+    "p2p_disp": 0.013849999999999973,
+    "disp_mean": 0.004248087431693991,
+    "ripple_period_s": 2.229331812825909,
+    "n_up_crossings": 14,
+    "f_sys_p2p": 0.0073999999999969646,
+    "f_stable": true,
+    "v_min_pu": 0.99786,
+    "v_max_pu": 1.0,
+    "v_in_5pct": true,
+    "p_pv_mean_kw": 2.1771426229508193,
+    "p_pv_p2p_kw": 0.0017000000000000348,
+    "delta_p_pv_kw": 0.0009672131147535623
+  },
+  "P2": null,
+  "verdict": "REFUTADO"
+}

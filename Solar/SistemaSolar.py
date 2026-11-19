@@ -19,7 +19,9 @@ class SistemaSolar:
     Impedancia equivalente de la planta: Z_eq = Z_out / N_inv + Z_trafo.
     """
 
-    def __init__(self, N_inv=1, V_base_MT=13800.0, S_base_planta=1000000.0):
+    def __init__(self, N_inv=1, V_base_MT=13800.0, S_base_planta=1000000.0,
+                 mppt_frozen: bool = False, mppt_step_v: float = 1.0,
+                 mppt_interval_s: float = 0.5, mppt_v_fixed: float = 359.0):
         """Inicializa todos los subsistemas y el estado interno de la simulacion.
 
         Parametros:
@@ -30,9 +32,13 @@ class SistemaSolar:
         self.N_inv = max(1, int(N_inv))
         self.V_base_MT = float(V_base_MT)
         self.S_base_planta = float(S_base_planta)
+        self.mppt_frozen = bool(mppt_frozen)
+        self.mppt_interval_s = float(mppt_interval_s)
+        self.mppt_v_fixed = float(mppt_v_fixed)
 
         self.panel = SolarPanel()
         self.mppt = MPPTController()
+        self.mppt.paso = float(mppt_step_v)
         self.boost = BoostConverter()
         self.inversor = GridConnectedInverter(Vdcref=400, N_inv=self.N_inv)
         self.transformadas = Transformadas()
@@ -48,8 +54,8 @@ class SistemaSolar:
             "I_pv": 7.6 * self.N_inv, # Corriente total del arreglo [A]
             "V_array": 0.0,       # Voltaje del arreglo completo [V]
             "P_array": 0.0,       # Potencia del arreglo [W]
-            "V_ref": 350.0,       # Voltaje de referencia del MPPT [V] (~MPP)
-            "duty_cycle": 0.125,  # D = 1 - Vref/Vdc = 1 - 350/400
+            "V_ref": self.mppt_v_fixed if self.mppt_frozen else 350.0,       # Voltaje de referencia del MPPT [V] (~MPP)
+            "duty_cycle": (1.0 - self.mppt_v_fixed / 400.0) if self.mppt_frozen else 0.125,  # D = 1 - Vref/Vdc
             "V_dc": 400.0,        # Tension del bus de corriente continua [V]
             "I_inv": 0.0,         # Corriente del inversor [A]
             "Idi": 0.0,           # Corriente en el eje directo del inversor [A]
@@ -99,16 +105,21 @@ class SistemaSolar:
         P_array = V_array * I_pv
         ctx["P_array"] = P_array
 
-        # Actualizar la referencia de voltaje mediante el algoritmo MPPT
-        # El MPPT se ejecuta cada 500 pasos (0.5s) para evitar que reaccione
-        # a transitorios de Vdc no relacionados con el duty cycle
-        if ctx["time"] - self._ultimo_mppt >= 0.5:
-            ctx["V_ref"] = self.mppt.step(ctx["V_array"], ctx["I_pv"])
-            self._ultimo_mppt = ctx["time"]
+        if not self.mppt_frozen:
+            # Actualizar la referencia de voltaje mediante el algoritmo MPPT
+            # El MPPT se ejecuta cada mppt_interval_s (default 0.5 s) para evitar que reaccione
+            # a transitorios de Vdc no relacionados con el duty cycle
+            if ctx["time"] - self._ultimo_mppt >= self.mppt_interval_s - 1e-9:
+                ctx["V_ref"] = self.mppt.step(ctx["V_array"], ctx["I_pv"])
+                self._ultimo_mppt = ctx["time"]
 
-        # Calcular el ciclo de trabajo del convertidor elevador Boost
-        # Feedforward: D = 1 - Vref/Vdc (relacion algebraica exacta)
-        ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_array"], ctx["V_dc"])
+            # Calcular el ciclo de trabajo del convertidor elevador Boost
+            # Feedforward: D = 1 - Vref/Vdc (relacion algebraica exacta)
+            ctx["duty_cycle"] = self.boost.calculate_duty_cycle(ctx["V_ref"], ctx["V_array"], ctx["V_dc"])
+        else:
+            # S-O-47 P1: MPPT congelado con duty constante en el punto de maxima potencia
+            ctx["V_ref"] = self.mppt_v_fixed
+            ctx["duty_cycle"] = 1.0 - (self.mppt_v_fixed / 400.0)
 
         # Recorte de inyección solar (curtailment) respecto al MPP disponible (S-36)
         curtail_ratio = 1.0
